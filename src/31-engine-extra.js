@@ -82,7 +82,7 @@ function markPlanTaskDone(type) {
 
 /* =========================================================================
    Sable briefing — template-generated from local data (works with no key).
-   Phase 5 optionally rewrites this in Sable's voice via the API.
+   Optionally rewritten in Sable's voice via the API when a key is present.
    ========================================================================= */
 function briefingFacts() {
   ensureToday();

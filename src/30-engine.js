@@ -192,17 +192,20 @@ function bankStats() {
 function katexReady() { return typeof window.katex !== 'undefined' && window.katex && !window.__KATEX_JS_FAILED; }
 
 function texFallback(tex) {
-  // Make raw TeX readable when KaTeX is unavailable.
+  // Make raw TeX readable when KaTeX is unavailable (offline).
   let t = tex;
+  t = t.replace(/\\text(?:rm|bf|it)?\s*{([^{}]*)}/g, '$1');   // \text{...} -> plain
   t = t.replace(/\\d?frac\s*{([^{}]*)}\s*{([^{}]*)}/g, '($1)/($2)');
   t = t.replace(/\\sqrt\s*{([^{}]*)}/g, '√($1)');
   t = t.replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\div/g, '÷');
-  t = t.replace(/\\pm/g, '±').replace(/\\leq/g, '≤').replace(/\\geq/g, '≥').replace(/\\neq/g, '≠');
-  t = t.replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\Rightarrow/g, '⇒').replace(/\\approx/g, '≈');
+  t = t.replace(/\\pm/g, '±').replace(/\\mp/g, '∓').replace(/\\leq?/g, '≤').replace(/\\geq?/g, '≥').replace(/\\neq/g, '≠');
+  t = t.replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\Rightarrow/g, '⇒').replace(/\\rightarrow/g, '→').replace(/\\approx/g, '≈');
+  t = t.replace(/\\circ/g, '°').replace(/\\infty/g, '∞').replace(/\\angle/g, '∠').replace(/\\sim/g, '~');
   t = t.replace(/\\left|\\right/g, '');
   t = t.replace(/\^{([^{}]*)}/g, (m, p) => toSup(p)).replace(/\^(\w)/g, (m, p) => toSup(p));
   t = t.replace(/_{([^{}]*)}/g, (m, p) => toSub(p)).replace(/_(\w)/g, (m, p) => toSub(p));
-  t = t.replace(/[{}]/g, '').replace(/\\,/g, ' ').replace(/\\ /g, ' ');
+  t = t.replace(/\\(sin|cos|tan|log|ln)\b/g, '$1');
+  t = t.replace(/[{}]/g, '').replace(/\\,/g, ' ').replace(/\\ /g, ' ').replace(/\\!/g, '');
   return t;
 }
 const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '+': '⁺', '-': '⁻', 'n': 'ⁿ', 'x': 'ˣ', 'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 't': 'ᵗ' };

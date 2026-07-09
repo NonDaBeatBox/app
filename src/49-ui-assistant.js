@@ -234,6 +234,7 @@ const CommandBar = (() => {
       { icon: '🧭', t: 'Take the diagnostic', d: 'Seed your plan', run: () => navigate('diagnostic') },
       { icon: '🩹', t: 'Review mistakes', d: 'Spaced retry queue', run: () => navigate('mistakes') },
       { icon: '💬', t: 'Ask ' + S.settings.assistantName, d: 'Open the assistant', run: () => Sable.openPanel() },
+      { icon: '✨', t: 'Study Studio', d: 'Notes → flashcards or quiz (AI)', run: () => navigate('studio') },
     ];
     return acts.concat(nav);
   }
@@ -282,7 +283,7 @@ const CommandBar = (() => {
   return { open, close, toggle };
 })();
 
-/* AI facade used by the question player's tutor buttons (Phase 5 expands). */
+/* AI facade used by the question player's tutor buttons. */
 const AI = {
   enabled: () => aiConfigured(),
   async tutorAction(kind, q) {
@@ -301,6 +302,21 @@ const AI = {
       }
     } catch (e) { out.innerHTML = `<div class="tag" style="color:var(--coral);margin-top:8px">${esc(e.message)}</div>`; }
   },
+  async notesToFlashcards(notes) {
+    const t = await aiText('You are a study aide. Output valid JSON only.',
+      `From these notes, extract the key terms and produce vocabulary flashcards. Return ONLY a JSON array like [{"w":"term","def":"concise definition","ex":"a short example sentence"}]. 8–20 cards.\n\nNOTES:\n${notes}`, { max_tokens: 1500, temperature: 0.4 });
+    let arr; try { arr = JSON.parse(t.replace(/^```json?/i, '').replace(/```$/, '').trim()); } catch (e) { throw new Error('Could not parse the generated cards.'); }
+    const words = arr.map((x) => ({ w: (x.w || x.term || '').trim(), def: (x.def || x.definition || '').trim(), ex: (x.ex || x.example || '').trim() })).filter((x) => x.w && x.def);
+    if (!words.length) throw new Error('No cards found in the notes.');
+    importVocabSet('From notes · ' + new Date().toLocaleDateString(), words);
+    return words.length;
+  },
+  async notesToQuiz(notes) {
+    const t = await aiText('You are a study aide and item writer. Output valid JSON only.',
+      `From these notes, write 8 multiple-choice quiz questions that test understanding. Return ONLY a JSON array like [{"stem":"...","choices":["a","b","c","d"],"answer":"B","explanation":"why"}]. answer is the correct letter A–D.\n\nNOTES:\n${notes}`, { max_tokens: 1800, temperature: 0.5 });
+    let arr; try { arr = JSON.parse(t.replace(/^```json?/i, '').replace(/```$/, '').trim()); } catch (e) { throw new Error('Could not parse the generated quiz.'); }
+    return arr.filter((q) => q.stem && Array.isArray(q.choices) && q.answer);
+  },
   async generateSimilar(q, count = 3) {
     const schema = `Return ONLY a JSON array of ${count} objects, no prose. Each: {"skill":"${q.skill}","difficulty":${q.difficulty === 'extreme' ? '"extreme"' : q.difficulty},"type":"${q.type}","stem":"...","choices":["a","b","c","d"](omit for spr),"answer":"${q.type === 'mcq' ? 'A-D letter' : 'numeric string'}","explanation":"full worked solution + why wrong choices are wrong"}. Use $...$ for math.`;
     const t = await aiText('You are an expert Digital SAT item writer. Output valid JSON only.', `Write ${count} NEW questions similar to this one (same skill and difficulty), original stems:\n\n${q.stem}\n\n${schema}`, { max_tokens: 1600, temperature: 0.9 });
@@ -316,3 +332,51 @@ const AI = {
     return added;
   },
 };
+
+/* ---------- Studio: notes → study material (AI) ---------- */
+registerView('studio', {
+  render() {
+    if (!aiConfigured()) return `${pageHeader('Study Studio', 'Turn your class notes into flashcards or a quiz — powered by AI.')}
+      <div class="card tac" style="padding:40px"><div style="font-size:2.2rem">✨</div><h3>Add your API key to unlock</h3>
+      <p class="muted">Paste an Anthropic API key in Settings to generate flashcards and quizzes from your notes.</p>
+      <button class="btn primary" onclick="navigate('settings')">Open Settings →</button></div>`;
+    return `${pageHeader('Study Studio', 'Paste class notes or a passage; ' + esc(S.settings.assistantName) + ' turns them into study material.',
+      `<button class="btn ghost sm" onclick="navigate('learn')">← Learn</button>`)}
+      <div class="card">
+        <label class="fld"><span>Your notes</span><textarea id="notesIn" rows="12" placeholder="Paste lecture notes, a textbook section, or a vocab list…"></textarea></label>
+        <div class="row" style="gap:10px"><button class="btn primary" id="mkCards">🃏 Make flashcards</button><button class="btn" id="mkQuiz">📋 Make a quiz</button></div>
+        <div id="studioMsg" class="tag" style="margin-top:10px"></div>
+      </div>`;
+  },
+  mount(root) {
+    const msg = (m, bad) => { const el = $('#studioMsg', root); el.textContent = m; el.style.color = bad ? 'var(--coral)' : 'var(--muted)'; };
+    $('#mkCards', root).onclick = async () => {
+      const notes = $('#notesIn', root).value.trim(); if (notes.length < 20) return msg('Paste a bit more text first.', true);
+      msg('Generating flashcards…'); try { const n = await AI.notesToFlashcards(notes); toast(`Created a ${n}-card set`, 'mint'); navigate('vocab'); } catch (e) { msg(e.message, true); }
+    };
+    $('#mkQuiz', root).onclick = async () => {
+      const notes = $('#notesIn', root).value.trim(); if (notes.length < 20) return msg('Paste a bit more text first.', true);
+      msg('Writing a quiz…'); try { const qs = await AI.notesToQuiz(notes); if (!qs.length) return msg('No questions generated.', true); runNotesQuiz(qs); } catch (e) { msg(e.message, true); }
+    };
+  },
+});
+// Self-contained quiz over AI-generated note questions (no engine side effects).
+function runNotesQuiz(questions) {
+  const host = document.getElementById('view');
+  let i = 0, correct = 0;
+  function render() {
+    if (i >= questions.length) { host.innerHTML = `<div class="player"><div class="card pad-lg tac"><div class="eyebrow">Quiz complete</div><div class="v stat" style="font-size:2.4rem">${Math.round(correct / questions.length * 100)}%</div><div class="muted">${correct}/${questions.length}</div><div style="margin-top:14px"><button class="btn primary" onclick="navigate('studio')">Back to Studio</button></div></div></div>`; return; }
+    const q = questions[i];
+    host.innerHTML = `<div class="player">${pageHeader('Notes quiz', `${i + 1} / ${questions.length} · ${correct} correct`, `<button class="btn ghost sm" onclick="navigate('studio')">✕ End</button>`)}
+      <div class="card pad-lg"><div class="stem">${mathToHtml(q.stem)}</div>
+      <div class="choices">${q.choices.map((c, k) => `<div class="choice" data-l="${LETTERS[k]}"><span class="key">${LETTERS[k]}</span><span class="txt">${mathToHtml(c)}</span></div>`).join('')}</div></div><div id="nqfb"></div></div>`;
+    typeset(host);
+    $$('.choice', host).forEach((el) => el.onclick = () => {
+      const ok = el.dataset.l === q.answer; if (ok) correct++;
+      $$('.choice', host).forEach((x) => { x.style.pointerEvents = 'none'; if (x.dataset.l === q.answer) x.classList.add('correct'); else if (x === el) x.classList.add('wrong'); });
+      $('#nqfb', host).innerHTML = `<div class="explain ${ok ? 'correct' : 'wrong'}" style="margin-top:12px">${q.explanation ? mathToHtml(q.explanation) : ''}<div style="margin-top:10px"><button class="btn primary" id="nqn">${i + 1 >= questions.length ? 'See score' : 'Next →'}</button></div></div>`;
+    typeset($('#nqfb', host)); $('#nqn', host).focus(); $('#nqn', host).onclick = () => { i++; render(); };
+    });
+  }
+  render();
+}

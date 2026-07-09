@@ -3,10 +3,11 @@
    (Duolingo-style winding path with unlocking nodes + optional hearts mode).
    ========================================================================= */
 
+// Neutral fallback for an unknown id (e.g. a hand-typed bad lesson/strategy link).
 function comingSoon(title, note) {
   return `${pageHeader(title)}<div class="card tac" style="padding:44px">
-    <div style="font-size:2.2rem">🚧</div><h3>${esc(title)} is being built.</h3>
-    <p class="muted">${esc(note || 'Arriving in an upcoming build phase.')}</p></div>`;
+    <div style="font-size:2.2rem">🧭</div><h3>Not found</h3>
+    <p class="muted">${esc(note || 'That item doesn’t exist. Use the menu to navigate.')}</p></div>`;
 }
 
 /* ---------- lesson status helpers ---------- */
@@ -36,7 +37,7 @@ registerView('learn', {
         </div></div>`;
     };
     return `${pageHeader('Learn', 'Courses that actually teach. Each unit holds one mini-lesson per skill, with a checkpoint quiz.',
-      `<button class="btn primary" onclick="navigate('path')">Follow the Skill Path →</button>`)}
+      `${aiConfigured() ? `<button class="btn ghost sm" onclick="navigate('studio')">✨ Study Studio</button>` : ''}<button class="btn primary" onclick="navigate('path')">Follow the Skill Path →</button>`)}
       <div class="grid g-2">
         <div class="stack">${domainsInSection('math').map(unit).join('')}</div>
         <div class="stack">${domainsInSection('rw').map(unit).join('')}</div>

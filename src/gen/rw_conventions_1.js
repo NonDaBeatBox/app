@@ -1,0 +1,128 @@
+/* gen: rw conventions batch 1 */
+GEN_BANK.push(
+  { id: 'GCO1-01', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'The old suspension bridge had been closed for repairs throughout the entire summer ______ commuters heading into the city each morning had to take a long, winding detour through the valley below.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; so ', ', so ', ' so '], answer: 'C',
+    explanation: 'Two independent clauses joined by a coordinating conjunction such as “so” take a comma before the conjunction: “…the entire summer, so commuters….” Choice A places only a comma between two complete clauses, creating a comma splice; choice B wrongly puts a semicolon before a coordinating conjunction; choice D drops the required comma, fusing the clauses into a run-on.' },
+
+  { id: 'GCO1-02', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'The dusty box of old family photographs ______ still sitting untouched in the attic, exactly where my grandmother had left it several decades earlier, long before any of us were born.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'is', 'were', 'have been'], answer: 'B',
+    explanation: 'The subject is the singular “box”; the phrase “of old family photographs” is a prepositional modifier, not the subject, so the verb must be the singular “is.” Choices A (“are”), C (“were”), and D (“have been”) all agree with the plural “photographs,” which is not the true subject; the later pronoun “it” confirms that the subject is singular.' },
+
+  { id: 'GCO1-03', skill: 'rw_verb', difficulty: 1, type: 'mcq',
+    passage: 'The night shift moved quickly. Yesterday the technicians rewired the main junction, tested every circuit twice for faults, and ______ the access panel securely before the safety inspector arrived for her scheduled morning walkthrough.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['seal', 'seals', 'will seal', 'sealed'], answer: 'D',
+    explanation: 'The sentence lists parallel past actions (“rewired,” “tested”), and the cues “Yesterday” and “arrived” fix the timeframe as past, so the third verb must also be simple past: “sealed.” Choices A (“seal”) and B (“seals”) are present tense, and C (“will seal”) is future; each breaks the consistent past sequence.' },
+
+  { id: 'GCO1-04', skill: 'rw_modifiers', difficulty: 1, type: 'mcq',
+    passage: 'Walking slowly through the empty museum long after closing time, ______ The shadows shifted between the towering gilded frames, and every quiet footstep echoed against the polished marble floor.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the night guard felt the paintings were almost alive.', 'the paintings seemed almost alive to the night guard.', 'it seemed to the guard that the paintings were alive.', 'there was a feeling that the paintings were alive.'], answer: 'A',
+    explanation: 'An introductory participial phrase such as “Walking slowly through the empty museum…” must modify the person performing the action, so the noun right after the comma must name who is walking — “the night guard.” In B the paintings, in C “it,” and in D “there” cannot logically walk through the museum, leaving the modifier dangling.' },
+
+  { id: 'GCO1-05', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'When reviewing hundreds of applications, the scholarship committee looked for one quality above all others ______ genuine intellectual curiosity. Grades and test scores mattered, of course, but the readers kept returning to that single decisive trait.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', and ', '; ', ' or ', ': '], answer: 'D',
+    explanation: 'A colon follows a complete sentence to introduce the word or phrase that identifies what precedes it: “…above all others: genuine intellectual curiosity.” Choices A (“, and ”) and C (“ or ”) wrongly signal a second item in a series; choice B (“; ”) requires a full independent clause after the semicolon, but “genuine intellectual curiosity” is only a noun phrase.' },
+
+  { id: 'GCO1-06', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'A long series of unexpected autumn storms ______ delayed the region’s harvest by several weeks and forced growers throughout the valley to rethink the planting schedules they had relied on for generations.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['have', 'were', 'has', 'are'], answer: 'C',
+    explanation: 'The subject is the singular noun “series”; “of unexpected autumn storms” is a prepositional phrase, so the verb must be the singular “has” (“…has delayed… and forced…”). Choice A (“have”) agrees with the plural “storms,” not the subject, and choices B (“were”) and D (“are”) create the ungrammatical, meaning-changing passive “were/are delayed the harvest.”' },
+
+  { id: 'GCO1-07', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'The conservation group set an ambitious goal for the decade. By the time the long regional drought finally ended that scorching August, the volunteers ______ nearly a thousand native oak trees along the eroded riverbanks.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had planted', 'have planted', 'plant', 'were planting'], answer: 'A',
+    explanation: 'The planting was completed before another past event (“the drought… ended”), so the past perfect “had planted” is required. Choice B (“have planted”) is present perfect, which clashes with the past “ended”; choice C (“plant”) is present tense; and choice D (“were planting”) describes an ongoing action rather than the completed total the sentence reports.' },
+
+  { id: 'GCO1-08', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'Because a young start-up depends so heavily on its earliest customer reviews, it must guard ______ reputation carefully from the very first day it opens, long before it can afford any real marketing budget.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['their', 'it’s', 'its', 'there'], answer: 'C',
+    explanation: 'The antecedent “a young start-up” is singular, so the singular possessive pronoun “its” is correct; the earlier pronoun “it” confirms the singular. Choice A (“their”) is plural and does not agree; choice B (“it’s”) means “it is” and is not possessive; choice D (“there”) indicates place, not possession.' },
+
+  { id: 'GCO1-09', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Sea otters often wrap themselves in long strands of floating kelp before they drift off to sleep ______ the natural anchoring keeps them from floating away on the strong nighttime currents while their guard is down.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ' ', ', which '], answer: 'B',
+    explanation: 'Two closely related independent clauses may be joined with a semicolon: “…before they sleep; the natural anchoring keeps them….” Choice A (a comma alone) is a comma splice; choice C (no punctuation) fuses the clauses into a run-on; and choice D (“, which ”) cannot introduce “the natural anchoring keeps them…,” which is a full clause, not a relative modifier.' },
+
+  { id: 'GCO1-10', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'On this particular team, decisions about the starting lineup are never simple. Either the two assistant coaches or the veteran team captain ______ responsible for deciding which players will start each game and which will wait on the bench.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'have been', 'is'], answer: 'D',
+    explanation: 'In an “either… or” subject, the verb agrees with the nearer element. The closer subject here is the singular “the veteran team captain,” so the verb is “is.” Choices A (“are”), B (“were”), and C (“have been”) are plural forms that agree with the farther subject “coaches,” which the proximity rule does not govern.' },
+
+  { id: 'GCO1-11', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'The new documentary is genuinely eye-opening. It patiently explains how coral reefs form over many centuries and why even a small, sustained rise in ocean temperature ______ them within a single warm season, bleaching structures that took lifetimes to grow.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['can devastate', 'had devastated', 'will have devastated', 'was devastating'], answer: 'A',
+    explanation: 'The passage stays in the present tense (“explains,” “form”), so the verb describing the general effect of a temperature rise must also be present: “can devastate.” Choice B (“had devastated”) is past perfect, choice C (“will have devastated”) is future perfect, and choice D (“was devastating”) is past progressive — each shifts out of the established present frame.' },
+
+  { id: 'GCO1-12', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'Cleaned patiently over many hours with a soft cloth and a mild chemical solvent, ______ For decades the artifact had sat unnoticed in a storage drawer, its surface hidden beneath a thick, greenish layer of corrosion.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['a faint inscription appeared along the ancient bronze mirror’s rim.', 'the ancient bronze mirror revealed a faint inscription along its rim.', 'conservators noticed a faint inscription on the mirror’s rim.', 'there was a faint inscription visible along the mirror’s rim.'], answer: 'B',
+    explanation: 'The opening phrase “Cleaned patiently… with a soft cloth…” must describe the thing that was cleaned, so the noun after the comma must be the mirror. In A “a faint inscription,” in C “conservators” (who do the cleaning rather than get cleaned), and in D “there” become the thing cleaned, which is illogical and leaves the modifier dangling.' },
+
+  { id: 'GCO1-13', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'After years of internal delays, the company finally released its ambitious new operating system ______ which had been postponed at least three separate times over the previous two years, to the visible relief of investors and impatient longtime customers alike.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['; ', ' ', ', ', ': '], answer: 'C',
+    explanation: 'A nonrestrictive clause beginning with “which” is set off with a comma: “…new operating system, which had been postponed….” Choice A (“; ”) needs a complete independent clause after the semicolon, but the “which” clause is dependent; choice B (no punctuation) wrongly fuses the modifier to the clause; choice D (“: ”) introduces lists or explanations, not a “which” modifier.' },
+
+  { id: 'GCO1-14', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'Faculty in the mathematics department have noticed a striking shift. The number of students enrolling in the once-obscure advanced statistics courses ______ risen sharply ever since the college introduced its popular new data-science track two years ago.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['have', 'were', 'are', 'has'], answer: 'D',
+    explanation: 'The construction “The number of…” is grammatically singular and takes a singular verb, so “has risen” is correct. Choice A (“have”) treats the subject as plural, confusing it with “A number of,” which would be plural; choices B (“were”) and C (“are”) do not combine with the participle “risen” and also fail to agree with the singular subject.' },
+
+  { id: 'GCO1-15', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The old property dispute might have been avoided entirely. Had the surveyors only double-checked their brass instruments that foggy morning, the costly boundary error ______ long before the expensive stone fences were ever surveyed, staked, and permanently built.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['would have been caught', 'would be caught', 'will have been caught', 'was caught'], answer: 'A',
+    explanation: 'The opening “Had the surveyors… double-checked…” signals a past unreal (third) conditional, whose main clause uses “would have + past participle”: “…would have been caught….” Choice B (“would be caught”) is the present or future unreal form; choice C (“will have been caught”) is future perfect; and choice D (“was caught”) states the event as fact, contradicting the hypothetical.' },
+
+  { id: 'GCO1-16', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The qualifying standard that season was famously strict. To earn one of the few coveted spots at the regional championship finals, ______ Anything slower, no matter how close, meant watching the whole meet from the crowded stands.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['a time under two minutes had to be posted by each swimmer.', 'each swimmer had to post a time under two minutes.', 'the qualifying time was under two minutes.', 'there was a two-minute cutoff for each swimmer.'], answer: 'B',
+    explanation: 'The introductory infinitive phrase “To earn one of the few coveted spots…” must be followed by the noun that performs the action — the one who earns a spot. Only “each swimmer” can do so. In A “a time,” in C “the qualifying time,” and in D “there” cannot earn a spot, so each leaves the phrase dangling.' },
+
+  { id: 'GCO1-17', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'On paper the results looked flawless. The prototype engine passed every grueling stress test the laboratory could devise ______ however, it failed within a matter of hours under the messier, hotter, real-world conditions of the actual factory floor.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', ' ', '; ', ': '], answer: 'C',
+    explanation: 'When a conjunctive adverb such as “however” links two independent clauses, a semicolon precedes it (and a comma follows): “…could devise; however, it failed….” Choice A (a comma) creates a comma splice; choice B (no punctuation) fuses the clauses; and choice D (a colon) does not properly introduce a contrasting independent clause.' },
+
+  { id: 'GCO1-18', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'The canyon holds many secrets for those patient enough to look. High along the sheer, weathered sandstone walls ______ a long series of faded painted symbols that archaeologists from around the world have struggled for decades to interpret.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'have been', 'is'], answer: 'D',
+    explanation: 'This sentence is inverted, so the true subject follows the verb: the singular “a long series.” The verb must be “is.” The nearby plurals “walls” and “symbols” tempt agreement, but “walls” belongs to the introductory place phrase and “symbols” sits inside a modifier; choices A (“are”), B (“were”), and C (“have been”) wrongly agree with those plurals.' },
+
+  { id: 'GCO1-19', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The archivists worked slowly, handling each fragile document with obvious care. They noted that although the brittle letters themselves had survived nearly two centuries of damp neglect, the iron-gall ink ______ so badly over the decades that only a few scattered phrases still remained legible.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had faded', 'has faded', 'fades', 'would fade'], answer: 'A',
+    explanation: 'Both the fading and the surviving (“had survived”) happened before the past act of noting, so the past perfect “had faded” keeps the sequence consistent. Choice B (“has faded”) is present perfect and clashes with the past narration; choice C (“fades”) is present tense; and choice D (“would fade”) expresses a future-in-the-past or hypothetical, not a completed prior event.' },
+
+  { id: 'GCO1-20', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The debriefing grew tense as the shift wore on. Each of the exhausted veteran firefighters insisted, some more loudly than others, that ______ own training over the years had never once included a scenario quite like the sudden tunnel collapse they had just escaped.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['their', 'his or her', 'they’re', 'there'], answer: 'B',
+    explanation: 'The antecedent “Each” is a singular indefinite pronoun, so it requires a singular possessive: “his or her own training.” Choice A (“their”) is plural and does not agree with the singular “Each”; choice C (“they’re”) means “they are” and is not possessive; choice D (“there”) indicates place, not possession.' },
+
+  { id: 'GCO1-21', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Public health officials faced a frustrating logistical puzzle. Rural clinics across the province struggled for months to distribute the promising new vaccine ______ it required constant storage at extremely low temperatures that ordinary medical refrigerators simply could not reach or reliably maintain.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; because ', ' ', ' because '], answer: 'D',
+    explanation: 'The second clause gives the reason for the first, so the subordinating conjunction “because” links them, with no comma needed when the dependent clause follows the main clause: “…the promising new vaccine because it required….” Choice A (a comma alone) joins two independent clauses as a comma splice; choice B (“; because ”) places a dependent clause after a semicolon, which needs an independent clause; choice C (no punctuation) leaves a fused run-on.' }
+);

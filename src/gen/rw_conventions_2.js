@@ -1,0 +1,128 @@
+/* gen: rw conventions batch 2 */
+GEN_BANK.push(
+  { id: 'GCO2-01', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'A row of tall oak trees along the eastern fence ______ the crowded schoolyard from the busy road, muffling the constant noise of passing traffic during afternoon classes.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['separate', 'have separated', 'separates', 'separating'], answer: 'C',
+    explanation: 'Subject-verb agreement rule: the verb must agree with the true subject “A row” (singular), not with the nearer plural “trees” inside the modifier, so the singular “separates” is correct. (A) “separate” and (B) “have separated” are plural, agreeing with “oak trees” rather than the subject; (D) “separating” is not a finite verb and leaves the sentence with no main verb.' },
+
+  { id: 'GCO2-02', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'The earliest mechanical clocks kept remarkably poor time, often drifting by many minutes over the course of a single day ______ they still marked a profound shift, loosening the ancient grip that sunrise and sunset had long held over ordinary life.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', nevertheless, ', '; nevertheless, ', ' nevertheless, ', ': nevertheless, '], answer: 'B',
+    explanation: 'Boundaries rule: two independent clauses joined by a conjunctive adverb such as “nevertheless” need a semicolon (or period) before the adverb and a comma after it. (A) a comma before the adverb creates a comma splice; (C) with no punctuation the two clauses fuse into a run-on; (D) a colon must be introduced by a clause that anticipates what follows, but here the clauses merely contrast.' },
+
+  { id: 'GCO2-03', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'By the time the archaeologists finally reached the sealed burial chamber deep inside the pyramid, grave robbers ______ nearly all of its gold ornaments many centuries earlier, leaving behind only a thin scattering of broken clay beads.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had taken', 'took', 'have taken', 'take'], answer: 'A',
+    explanation: 'Tense-sequence rule: the past perfect “had taken” marks the earlier of two past actions, since the robbing happened “centuries earlier” than the archaeologists’ arrival. (B) simple past “took” fails to sequence the two past events; (C) present perfect “have taken” conflicts with the fully past narrative; (D) present-tense “take” clashes with “reached” and “centuries earlier.”' },
+
+  { id: 'GCO2-04', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'The storm had been building over the cattle ranch all afternoon, and the animals in the near pasture were already visibly restless. Startled by a sudden, close crack of thunder directly overhead, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the horses bolted toward the far corner of the pasture.', 'the pasture quickly emptied as the herd bolted toward its far corner.', 'there was a stampede toward the far corner of the pasture.', 'the far corner of the pasture filled with panicked horses.'], answer: 'A',
+    explanation: 'Modifier rule: an introductory participial phrase must modify the noun that immediately follows the comma, and only “the horses” can logically be “startled.” (B) makes “the pasture” the startled thing; (C) attaches the phrase to the empty “there”; (D) makes “the far corner” startled — each leaves the opening modifier dangling.' },
+
+  { id: 'GCO2-05', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'For the small team, survival during three long months on the exposed mountain glacier came down to just three essentials ______ dried food, clean-burning stove fuel, and instruments rugged enough to keep working in the brutal cold.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ': ', ', and '], answer: 'C',
+    explanation: 'Colon rule: a colon follows a complete independent clause to introduce a list, and “...came down to just three essentials” is a full clause announcing the items. (A) a comma cannot separate the announcing clause from the list it introduces; (B) a semicolon must be followed by an independent clause, not a list of nouns; (D) “, and” creates faulty coordination and does not introduce a list.' },
+
+  { id: 'GCO2-06', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'Each of the several dozen volunteers who staff the downtown night shelter ______ carefully trained in basic first aid and emergency procedures before ever being allowed to work an overnight shift alone.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'have been', 'is'], answer: 'D',
+    explanation: 'Subject-verb agreement rule: “Each” is a singular indefinite pronoun and takes a singular verb, no matter how many “volunteers” appear in the modifier, so “is” is correct. (A) “are” and (C) “have been” are plural, agreeing with “volunteers”; (B) “were” is both plural and shifted to the past tense, clashing with the general present timeframe.' },
+
+  { id: 'GCO2-07', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'If the ancient Roman aqueduct that once fed the city ______ still fully intact today, engineers estimate that it could carry fresh water clear across the valley nearly as efficiently as any modern steel pipeline.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['was', 'were', 'is', 'had been'], answer: 'B',
+    explanation: 'Subjunctive rule: a present contrary-to-fact conditional (“If... could carry”) requires the subjunctive “were.” (A) “was” is the ordinary indicative and does not signal the hypothetical; (C) “is” asserts that the aqueduct really is intact, contradicting the “if”; (D) “had been” points to a past condition and would force “could have carried,” not “could carry... today.”' },
+
+  { id: 'GCO2-08', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The research team had waited nearly two years for this rare, precise alignment of the sun and the moon. To photograph the total solar eclipse without permanently ruining their costly equipment, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the astronomers fitted each lens with a certified solar filter.', 'a certified solar filter was fitted onto each lens.', 'each lens needed a certified solar filter.', 'there had to be a certified solar filter on every lens.'], answer: 'A',
+    explanation: 'Modifier rule: an introductory infinitive phrase (“To photograph...”) must be followed by the subject that performs the action — the astronomers, who match the earlier “their.” (B) makes a passive “filter” the photographer; (C) makes “each lens” the photographer; (D) attaches the phrase to “there” — each version leaves the modifier dangling.' },
+
+  { id: 'GCO2-09', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'The novelist’s earliest surviving drafts ______ handwritten on hotel stationery, stained with coffee, and crowded with furious cross-outs — reveal just how many times she reshaped even the smallest scene before publication.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ': ', ' — '], answer: 'D',
+    explanation: 'Dash rule: a supplementary element must be enclosed by a matching pair of marks, and because the interruption closes with a dash before “reveal,” it must open with a dash. (A) a comma cannot pair with the closing dash; (B) a semicolon separates clauses rather than bracketing an insertion; (C) a colon introduces material instead of enclosing a mid-sentence interruption.' },
+
+  { id: 'GCO2-10', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'Late that night, the low hum of the idling backup generator and the steady drip of the leaking overhead pipe ______ the only sounds anywhere in the vast, echoing, long-abandoned textile factory.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['was', 'were', 'has been', 'is'], answer: 'B',
+    explanation: 'Subject-verb agreement rule: two subjects joined by “and” (“hum” and “drip”) form a plural compound subject and take “were.” The singular nouns tempt a singular verb, but they are both parts of one plural subject. (A) “was” and (C) “has been” are singular; (D) “is” is singular and also shifts to the present, clashing with “that night.”' },
+
+  { id: 'GCO2-11', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'A genuinely well-made field guide should help a nervous beginner identify a distant bird by its silhouette, notice the subtle field marks that separate nearly identical species, and ______ the distinctive calls that often reveal a well-hidden nest.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['recognizing', 'to recognize', 'recognize', 'recognizes'], answer: 'C',
+    explanation: 'Parallelism rule: items in a series must share the same grammatical form, and after “help a beginner identify... notice...,” the third verb must be the base form “recognize.” (A) the -ing form “recognizing,” (B) the infinitive “to recognize,” and (D) the finite “recognizes” all break the parallel base-verb pattern set by “identify” and “notice.”' },
+
+  { id: 'GCO2-12', skill: 'rw_modifiers', difficulty: 1, type: 'mcq',
+    passage: 'A hummingbird must feed almost constantly throughout the day, darting from one blossom to the next and visiting hundreds of flowers just to fuel ______ astonishingly rapid metabolism and tireless hovering flight.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['their', 'its', 'it’s', 'they’re'], answer: 'B',
+    explanation: 'Pronoun-agreement rule: a possessive pronoun must agree with its antecedent, and “A hummingbird” is singular, so the singular possessive “its” is correct. (A) “their” is plural; (C) “it’s” is the contraction of “it is”; (D) “they’re” means “they are” — neither of the last two is a possessive form.' },
+
+  { id: 'GCO2-13', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Marie Tharp, the pioneering geologist who painstakingly mapped the floor of the Atlantic Ocean ______ spent long years plotting thousands of depth soundings by hand before her charts finally revealed the hidden Mid-Atlantic Ridge.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', ' — ', '; ', ': '], answer: 'A',
+    explanation: 'Supplementary-comma rule: a nonrestrictive appositive (“the pioneering geologist who... Atlantic Ocean”) must be set off by a matching pair of commas, and since it opened with a comma after “Tharp,” it must close with a comma. (B) a dash mismatches the opening comma; (C) a semicolon needs an independent clause after it, but “spent long years...” is only a predicate; (D) a colon introduces rather than closes an appositive.' },
+
+  { id: 'GCO2-14', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'Neither the two senior structural engineers nor the veteran site manager ______ willing to approve the hastily revised bridge design until the full battery of stress tests had been run a second time.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['were', 'are', 'was', 'have been'], answer: 'C',
+    explanation: 'Agreement rule: with the correlative “neither... nor,” the verb agrees with the nearer subject, and “the site manager” is singular, so “was” is correct. (A) “were” wrongly agrees with the farther plural “engineers”; (B) “are” is plural and present tense, clashing with the past setting; (D) “have been” is plural.' },
+
+  { id: 'GCO2-15', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The theater’s yearlong renovation not only carefully restored the building’s crumbling plaster ceiling but also ______ the original gas-lamp fixtures with cleverly hidden bulbs that mimic their warm, flickering nineteenth-century glow.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['replacing', 'had replaced', 'replaces', 'replaced'], answer: 'D',
+    explanation: 'Parallelism rule: the correlative pair “not only... but also” must join grammatically parallel elements, and “restored” calls for the parallel past-tense “replaced.” (A) the -ing form “replacing” breaks parallelism; (B) the past perfect “had replaced” and (C) the present “replaces” both break the matched tense established by “restored.”' },
+
+  { id: 'GCO2-16', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'After deliberating for nearly a week, the scholarship committee ultimately divided the top award between another finalist and ______, splitting the substantial prize money evenly between the two of us.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['I', 'me', 'myself', 'mine'], answer: 'B',
+    explanation: 'Pronoun-case rule: a pronoun serving as the object of the preposition “between” takes the objective case “me”; you can hear it by dropping “another finalist and.” (A) “I” is subjective; (C) “myself” is a reflexive that needs an earlier “I” to refer back to; (D) “mine” is possessive.' },
+
+  { id: 'GCO2-17', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'The students who had managed to finish the long exit survey ______ quietly asked to help tally the hundreds of responses collected from the other three classrooms down the hall.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['early, were', 'early — were', 'early were', 'early; were'], answer: 'C',
+    explanation: 'Boundaries rule: no punctuation belongs between a subject and its verb, and the restrictive clause “who had managed to finish the long exit survey early” identifies which students, so no comma sets it off — “early were” runs straight from subject to verb. (A) a comma wrongly splits the subject from the verb “were asked”; (B) a dash likewise interrupts that link; (D) a semicolon must join two independent clauses, but “were quietly asked...” is only a predicate.' },
+
+  { id: 'GCO2-18', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'Behind the art museum’s imposing marble façade, hidden completely from the public galleries, ______ a series of narrow, dimly lit service corridors that ordinary visitors almost never get to see.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['lie', 'have lain', 'are lying', 'lies'], answer: 'D',
+    explanation: 'Agreement rule: in this inverted sentence the true subject follows the verb — “a series” (singular), not the plural “corridors” inside the modifier — so the singular “lies” is correct. (A) “lie,” (B) “have lain,” and (C) “are lying” are all plural, agreeing with “corridors” instead of the head noun “series.”' },
+
+  { id: 'GCO2-19', skill: 'rw_verb', difficulty: 1, type: 'mcq',
+    passage: 'When the documentary crew returns to the retreating glacier early next month, they ______ the very same ice ridge they first filmed two years ago, hoping to measure precisely how far it has melted since.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['will revisit', 'revisited', 'have revisited', 'were revisiting'], answer: 'A',
+    explanation: 'Tense rule: the future time marker “next month” requires the future tense “will revisit.” (B) “revisited” is past and contradicts “next month”; (C) “have revisited” implies the return trip is already complete; (D) “were revisiting” is past progressive — all three clash with an action set in the future.' },
+
+  { id: 'GCO2-20', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The city’s apprenticeship program deliberately pairs every anxious newcomer with a seasoned master electrician ______ they can phone at any hour of the night with a question about a genuinely baffling wiring problem.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['who', 'whom', 'which', 'whose'], answer: 'B',
+    explanation: 'Pronoun-case rule: the relative pronoun here is the object of “can phone” (they can phone whom), so the objective “whom” is correct. (A) “who” is the subjective form, used for subjects; (C) “which” refers to things rather than a person; (D) “whose” is possessive and would need a noun after it.' },
+
+  { id: 'GCO2-21', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'The prestigious design fellowship sent its three winners abroad to study urban preservation in a carefully chosen set of cities: Bergen, Norway ______ Medellín, Colombia; and Christchurch, New Zealand, each admired for sensitively restoring its historic core.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', ' — ', '; ', ': '], answer: 'C',
+    explanation: 'Boundaries rule: when the items in a series already contain internal commas (city, country), the items must be separated by semicolons for clarity — note the matching semicolon before “and Christchurch.” (A) another comma blurs where each city-country item ends; (B) a dash does not separate parallel list items; (D) a colon introduces a list but does not divide the items within it.' }
+);

@@ -418,8 +418,15 @@ label.fld > span { display: block; font-size: .8rem; color: var(--muted); margin
   .testmode .test-cols { grid-template-columns: 1fr; }
   .readiness { flex-direction: column; text-align: center; }
 }
+@media (max-width: 760px) {
+  /* Collapse multi-column layouts (including inline grid-template-columns like the
+     home hero and vocab split) to a single column, but keep stat rows 2-up. */
+  .main .grid:not(.g-3):not(.g-4) { grid-template-columns: 1fr !important; }
+  .readiness { flex-direction: column; text-align: center; }
+}
 @media (max-width: 560px) {
   .g-3, .g-4 { grid-template-columns: 1fr 1fr; }
+  h1 { font-size: 1.7rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }

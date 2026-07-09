@@ -11,6 +11,7 @@ const NAV = [
   { route: 'learn',      icon: '📖', label: 'Learn' },
   { route: 'path',       icon: '🧭', label: 'Skill Path' },
   { route: 'drills',     icon: '🎯', label: 'Drills' },
+  { route: 'extreme',    icon: '💀', label: 'Extreme' },
   { route: 'vocab',      icon: '📚', label: 'Vocabulary' },
   { route: 'mocks',      icon: '📝', label: 'Mock Exams' },
   { route: 'strategies', icon: '♟️', label: 'Strategies' },
@@ -355,7 +356,7 @@ function defaultSummary(sm, cfg) {
     </div></div>`;
 }
 
-/* Tutor buttons appear only when AI is configured (Phase 5 wires AI). */
+/* Tutor buttons appear only when an API key is configured. */
 function tutorButtons(q, chosen, correct) {
   if (typeof AI === 'undefined' || !AI.enabled()) return '';
   return `<div class="row wrap" style="gap:8px;margin-top:12px">

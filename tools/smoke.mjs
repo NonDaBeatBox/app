@@ -135,6 +135,67 @@ await check('vocab import + modes', async () => {
   if (!/Vocab quiz|What does|Which word/i.test(await page.innerHTML('#view'))) throw new Error('quiz did not start');
 });
 
+// Full diagnostic end-to-end through the Bluebook runner
+await check('diagnostic runs to a score', async () => {
+  await page.evaluate(() => { S.diagnostic = { done: false, result: null }; startDiagnostic(); });
+  let guard = 0;
+  while (guard++ < 160) {
+    await page.waitForTimeout(40);
+    if (await page.$('#rdone')) break;                       // results screen
+    if (await page.$('#tstart')) { await page.click('#tstart'); continue; }   // module intro
+    if (await page.$('#bresume')) { await page.click('#bresume'); continue; } // break
+    const submit = await page.$('.modal [data-submit]');
+    if (submit) { await submit.click(); continue; }          // review-before-submit modal
+    // answer the current question
+    if (await page.$('#tspr')) { await page.fill('#tspr', '4'); }
+    else if (await page.$('#tchoices .choice')) { await page.click('#tchoices .choice'); }
+    const next = await page.$('#tnext');
+    if (next) { await next.click(); continue; }
+    break;
+  }
+  if (!(await page.$('#rdone'))) throw new Error('diagnostic did not reach results (guard=' + guard + ')');
+  const total = await page.$eval('.fs .stat .v', el => el.textContent);
+  if (!/\d{3,4}/.test(total)) throw new Error('no score shown: ' + total);
+  // enter review then finish
+  await page.click('#rreview'); await page.waitForTimeout(150);
+  if (!/Review — every question/i.test(await page.innerHTML('body'))) throw new Error('review screen missing');
+  await page.click('#rback'); await page.waitForTimeout(150);
+});
+
+// Full mock end-to-end (adaptive routing + break screen + scoring)
+async function driveTest(page) {
+  let guard = 0, sawBreak = false;
+  while (guard++ < 400) {
+    await page.waitForTimeout(20);
+    if (await page.$('#rdone')) return { ok: true, sawBreak };
+    if (await page.$('#bresume')) { sawBreak = true; await page.click('#bresume'); continue; }
+    if (await page.$('#tstart')) { await page.click('#tstart'); continue; }
+    const submit = await page.$('.modal [data-submit]');
+    if (submit) { await submit.click(); continue; }
+    if (await page.$('#tspr')) await page.fill('#tspr', '4');
+    else if (await page.$('#tchoices .choice')) {
+      // vary answers so module-1 accuracy isn't degenerate
+      const choices = await page.$$('#tchoices .choice');
+      await choices[guard % choices.length].click();
+    }
+    const next = await page.$('#tnext');
+    if (next) { await next.click(); continue; }
+    break;
+  }
+  return { ok: false, sawBreak };
+}
+await check('full mock runs (routing + break + score)', async () => {
+  await page.evaluate(() => startMock());
+  const r = await driveTest(page);
+  if (!r.ok) throw new Error('mock did not reach results');
+  if (!r.sawBreak) throw new Error('no break screen between sections');
+  const total = await page.$eval('.fs .stat .v', el => el.textContent);
+  if (!/\d{3,4}/.test(total)) throw new Error('no total score');
+  const mocks = await page.evaluate(() => S.mocks.length);
+  if (mocks < 1) throw new Error('mock not saved to history');
+  await page.click('#rdone'); await page.waitForTimeout(100);
+});
+
 // localStorage has state
 await check('localStorage persisted', async () => {
   const has = await page.evaluate(() => !!localStorage.getItem('ace.v1.state'));

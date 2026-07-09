@@ -1,7 +1,76 @@
 <!doctype html>
 <!--
-  Ace — a personal, offline-first Digital SAT trainer (single file).
-  (Full usage notes are finalized in the last build phase.)
+═══════════════════════════════════════════════════════════════════════════
+  ACE — your personal Digital SAT trainer.  One file. Runs offline. Target: 1600.
+═══════════════════════════════════════════════════════════════════════════
+
+  WHAT THIS IS
+  A single, self-contained web app (this file) that combines a Khan-style
+  course, an IXL-style mastery system, a Duolingo-style skill path, Quizlet-style
+  vocabulary games, CookSAT-style strategies + full adaptive mock exams, and
+  "Sable" — a JARVIS-style command assistant. Everything is embedded here; there
+  is no server, no build step, and no account.
+
+  HOW TO USE IT
+  • Just double-click ace.html to open it in any modern browser. That's it.
+  • All progress is saved automatically in your browser's localStorage, so it
+    survives closing and reopening the file. (Keep using the same browser.)
+  • Start with the Diagnostic (home screen) — it seeds your mastery heatmap,
+    a score estimate, and a study plan. Then follow the daily quest each day.
+  • Press Cmd/Ctrl+K anywhere for the command bar; click the glowing orb
+    (bottom-right) to talk to Sable.
+  • Back up or move your progress: Settings → Data → "Export progress (JSON)",
+    and "Import progress" on another machine.
+
+  YOUR ANTHROPIC API KEY  (optional — the app is fully usable without it)
+  • Go to Settings → "AI & Sable" and paste your key (from console.anthropic.com).
+    It is stored ONLY in this browser's localStorage and is sent only to
+    Anthropic's API, directly from your browser, when you use an AI feature.
+  • With a key you unlock: freeform chat with Sable (who can start drills, open
+    lessons, run mocks, etc.), "Explain it differently", a per-question tutor,
+    "Give me 3 similar questions", and the Study Studio (notes → flashcards/quiz).
+  • Without a key, everything else works: lessons, drills, mastery, the full
+    mock exams, vocab, strategies, gamification, and Sable's rule-based answers
+    and daily briefing.
+
+  IMPORTING YOUR 1,500-WORD VOCAB LIST
+  • Vocabulary → Import (or Settings). Paste CSV, one word per line:
+        word,definition,example
+    The example column is optional; a header row is skipped automatically.
+  • JSON also works: [{"w":"candid","def":"honest","ex":"a candid reply"}].
+  • You can keep multiple named sets, each with its own spaced-repetition
+    progress. A 120-word starter set ships so the games work immediately.
+
+  ADDING YOUR OWN QUESTIONS
+  • Settings → "Import questions", or edit this file directly. The schema (see
+    the DATA:QUESTIONS_MATH section) is:
+        { id, skill, difficulty (1|2|3|"extreme"), type ("mcq"|"spr"),
+          stem, choices:[4 strings] (mcq only), answer, explanation }
+    - answer is the letter "A"–"D" for mcq, or the numeric string for spr.
+    - section and domain are derived automatically from `skill` (see DATA:SKILLS
+      for the ~30 valid skill ids).
+    - Wrap math in $...$ (KaTeX); write literal money as \$ (e.g. \$80).
+
+  VOICE MODE
+  • Settings → Gameplay → "Voice mode" turns on spoken replies (speechSynthesis)
+    and, where available, the mic button for speech-to-text. NOTE: browsers often
+    block SpeechRecognition on file:// pages — if the mic doesn't work, just type;
+    spoken replies still work. (Serving the file over http://localhost re-enables
+    the mic if you want it.)
+
+  OFFLINE NOTE
+  • The only external resource is KaTeX (math rendering) from a CDN. Offline, the
+    app falls back to readable plain-text math automatically — nothing breaks.
+
+  EDITING / REBUILDING (for the curious)
+  • This file is assembled from tidy source parts in src/ by build.py, but the
+    shipped ace.html is fully standalone — you can also just edit it directly.
+    The table of contents below maps the sections.
+
+  TABLE OF CONTENTS (search for these markers)
+    STYLES · DATA:SKILLS · DATA:QUESTIONS_MATH · DATA:QUESTIONS_RW ·
+    DATA:LESSONS · DATA:STRATEGIES · DATA:VOCAB · ENGINE · UI
+═══════════════════════════════════════════════════════════════════════════
 
 -->
 <html lang="en">
@@ -443,8 +512,15 @@ label.fld > span { display: block; font-size: .8rem; color: var(--muted); margin
   .testmode .test-cols { grid-template-columns: 1fr; }
   .readiness { flex-direction: column; text-align: center; }
 }
+@media (max-width: 760px) {
+  /* Collapse multi-column layouts (including inline grid-template-columns like the
+     home hero and vocab split) to a single column, but keep stat rows 2-up. */
+  .main .grid:not(.g-3):not(.g-4) { grid-template-columns: 1fr !important; }
+  .readiness { flex-direction: column; text-align: center; }
+}
 @media (max-width: 560px) {
   .g-3, .g-4 { grid-template-columns: 1fr 1fr; }
+  h1 { font-size: 1.7rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
@@ -2779,6 +2855,396 @@ GEN_BANK.push(
     explanation: 'A positive test restricts attention to the 60 patients who tested positive; of these, 48 are 40 or older: $\\frac{48}{60} = \\frac{4}{5}$. ($\\frac{6}{25} = \\frac{48}{200}$ divides by all 200 patients; $\\frac{12}{25} = \\frac{48}{100}$ divides by the 100 patients who are 40 or older; $\\frac{1}{5} = \\frac{12}{60}$ uses the 12 under-40 positives in the numerator, the complementary group.)' }
 );
 
+/* gen: rw_conventions_1.js */
+/* gen: rw conventions batch 1 */
+GEN_BANK.push(
+  { id: 'GCO1-01', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'The old suspension bridge had been closed for repairs throughout the entire summer ______ commuters heading into the city each morning had to take a long, winding detour through the valley below.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; so ', ', so ', ' so '], answer: 'C',
+    explanation: 'Two independent clauses joined by a coordinating conjunction such as “so” take a comma before the conjunction: “…the entire summer, so commuters….” Choice A places only a comma between two complete clauses, creating a comma splice; choice B wrongly puts a semicolon before a coordinating conjunction; choice D drops the required comma, fusing the clauses into a run-on.' },
+
+  { id: 'GCO1-02', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'The dusty box of old family photographs ______ still sitting untouched in the attic, exactly where my grandmother had left it several decades earlier, long before any of us were born.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'is', 'were', 'have been'], answer: 'B',
+    explanation: 'The subject is the singular “box”; the phrase “of old family photographs” is a prepositional modifier, not the subject, so the verb must be the singular “is.” Choices A (“are”), C (“were”), and D (“have been”) all agree with the plural “photographs,” which is not the true subject; the later pronoun “it” confirms that the subject is singular.' },
+
+  { id: 'GCO1-03', skill: 'rw_verb', difficulty: 1, type: 'mcq',
+    passage: 'The night shift moved quickly. Yesterday the technicians rewired the main junction, tested every circuit twice for faults, and ______ the access panel securely before the safety inspector arrived for her scheduled morning walkthrough.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['seal', 'seals', 'will seal', 'sealed'], answer: 'D',
+    explanation: 'The sentence lists parallel past actions (“rewired,” “tested”), and the cues “Yesterday” and “arrived” fix the timeframe as past, so the third verb must also be simple past: “sealed.” Choices A (“seal”) and B (“seals”) are present tense, and C (“will seal”) is future; each breaks the consistent past sequence.' },
+
+  { id: 'GCO1-04', skill: 'rw_modifiers', difficulty: 1, type: 'mcq',
+    passage: 'Walking slowly through the empty museum long after closing time, ______ The shadows shifted between the towering gilded frames, and every quiet footstep echoed against the polished marble floor.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the night guard felt the paintings were almost alive.', 'the paintings seemed almost alive to the night guard.', 'it seemed to the guard that the paintings were alive.', 'there was a feeling that the paintings were alive.'], answer: 'A',
+    explanation: 'An introductory participial phrase such as “Walking slowly through the empty museum…” must modify the person performing the action, so the noun right after the comma must name who is walking — “the night guard.” In B the paintings, in C “it,” and in D “there” cannot logically walk through the museum, leaving the modifier dangling.' },
+
+  { id: 'GCO1-05', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'When reviewing hundreds of applications, the scholarship committee looked for one quality above all others ______ genuine intellectual curiosity. Grades and test scores mattered, of course, but the readers kept returning to that single decisive trait.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', and ', '; ', ' or ', ': '], answer: 'D',
+    explanation: 'A colon follows a complete sentence to introduce the word or phrase that identifies what precedes it: “…above all others: genuine intellectual curiosity.” Choices A (“, and ”) and C (“ or ”) wrongly signal a second item in a series; choice B (“; ”) requires a full independent clause after the semicolon, but “genuine intellectual curiosity” is only a noun phrase.' },
+
+  { id: 'GCO1-06', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'A long series of unexpected autumn storms ______ delayed the region’s harvest by several weeks and forced growers throughout the valley to rethink the planting schedules they had relied on for generations.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['have', 'were', 'has', 'are'], answer: 'C',
+    explanation: 'The subject is the singular noun “series”; “of unexpected autumn storms” is a prepositional phrase, so the verb must be the singular “has” (“…has delayed… and forced…”). Choice A (“have”) agrees with the plural “storms,” not the subject, and choices B (“were”) and D (“are”) create the ungrammatical, meaning-changing passive “were/are delayed the harvest.”' },
+
+  { id: 'GCO1-07', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'The conservation group set an ambitious goal for the decade. By the time the long regional drought finally ended that scorching August, the volunteers ______ nearly a thousand native oak trees along the eroded riverbanks.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had planted', 'have planted', 'plant', 'were planting'], answer: 'A',
+    explanation: 'The planting was completed before another past event (“the drought… ended”), so the past perfect “had planted” is required. Choice B (“have planted”) is present perfect, which clashes with the past “ended”; choice C (“plant”) is present tense; and choice D (“were planting”) describes an ongoing action rather than the completed total the sentence reports.' },
+
+  { id: 'GCO1-08', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'Because a young start-up depends so heavily on its earliest customer reviews, it must guard ______ reputation carefully from the very first day it opens, long before it can afford any real marketing budget.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['their', 'it’s', 'its', 'there'], answer: 'C',
+    explanation: 'The antecedent “a young start-up” is singular, so the singular possessive pronoun “its” is correct; the earlier pronoun “it” confirms the singular. Choice A (“their”) is plural and does not agree; choice B (“it’s”) means “it is” and is not possessive; choice D (“there”) indicates place, not possession.' },
+
+  { id: 'GCO1-09', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Sea otters often wrap themselves in long strands of floating kelp before they drift off to sleep ______ the natural anchoring keeps them from floating away on the strong nighttime currents while their guard is down.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ' ', ', which '], answer: 'B',
+    explanation: 'Two closely related independent clauses may be joined with a semicolon: “…before they sleep; the natural anchoring keeps them….” Choice A (a comma alone) is a comma splice; choice C (no punctuation) fuses the clauses into a run-on; and choice D (“, which ”) cannot introduce “the natural anchoring keeps them…,” which is a full clause, not a relative modifier.' },
+
+  { id: 'GCO1-10', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'On this particular team, decisions about the starting lineup are never simple. Either the two assistant coaches or the veteran team captain ______ responsible for deciding which players will start each game and which will wait on the bench.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'have been', 'is'], answer: 'D',
+    explanation: 'In an “either… or” subject, the verb agrees with the nearer element. The closer subject here is the singular “the veteran team captain,” so the verb is “is.” Choices A (“are”), B (“were”), and C (“have been”) are plural forms that agree with the farther subject “coaches,” which the proximity rule does not govern.' },
+
+  { id: 'GCO1-11', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'The new documentary is genuinely eye-opening. It patiently explains how coral reefs form over many centuries and why even a small, sustained rise in ocean temperature ______ them within a single warm season, bleaching structures that took lifetimes to grow.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['can devastate', 'had devastated', 'will have devastated', 'was devastating'], answer: 'A',
+    explanation: 'The passage stays in the present tense (“explains,” “form”), so the verb describing the general effect of a temperature rise must also be present: “can devastate.” Choice B (“had devastated”) is past perfect, choice C (“will have devastated”) is future perfect, and choice D (“was devastating”) is past progressive — each shifts out of the established present frame.' },
+
+  { id: 'GCO1-12', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'Cleaned patiently over many hours with a soft cloth and a mild chemical solvent, ______ For decades the artifact had sat unnoticed in a storage drawer, its surface hidden beneath a thick, greenish layer of corrosion.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['a faint inscription appeared along the ancient bronze mirror’s rim.', 'the ancient bronze mirror revealed a faint inscription along its rim.', 'conservators noticed a faint inscription on the mirror’s rim.', 'there was a faint inscription visible along the mirror’s rim.'], answer: 'B',
+    explanation: 'The opening phrase “Cleaned patiently… with a soft cloth…” must describe the thing that was cleaned, so the noun after the comma must be the mirror. In A “a faint inscription,” in C “conservators” (who do the cleaning rather than get cleaned), and in D “there” become the thing cleaned, which is illogical and leaves the modifier dangling.' },
+
+  { id: 'GCO1-13', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'After years of internal delays, the company finally released its ambitious new operating system ______ which had been postponed at least three separate times over the previous two years, to the visible relief of investors and impatient longtime customers alike.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['; ', ' ', ', ', ': '], answer: 'C',
+    explanation: 'A nonrestrictive clause beginning with “which” is set off with a comma: “…new operating system, which had been postponed….” Choice A (“; ”) needs a complete independent clause after the semicolon, but the “which” clause is dependent; choice B (no punctuation) wrongly fuses the modifier to the clause; choice D (“: ”) introduces lists or explanations, not a “which” modifier.' },
+
+  { id: 'GCO1-14', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'Faculty in the mathematics department have noticed a striking shift. The number of students enrolling in the once-obscure advanced statistics courses ______ risen sharply ever since the college introduced its popular new data-science track two years ago.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['have', 'were', 'are', 'has'], answer: 'D',
+    explanation: 'The construction “The number of…” is grammatically singular and takes a singular verb, so “has risen” is correct. Choice A (“have”) treats the subject as plural, confusing it with “A number of,” which would be plural; choices B (“were”) and C (“are”) do not combine with the participle “risen” and also fail to agree with the singular subject.' },
+
+  { id: 'GCO1-15', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The old property dispute might have been avoided entirely. Had the surveyors only double-checked their brass instruments that foggy morning, the costly boundary error ______ long before the expensive stone fences were ever surveyed, staked, and permanently built.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['would have been caught', 'would be caught', 'will have been caught', 'was caught'], answer: 'A',
+    explanation: 'The opening “Had the surveyors… double-checked…” signals a past unreal (third) conditional, whose main clause uses “would have + past participle”: “…would have been caught….” Choice B (“would be caught”) is the present or future unreal form; choice C (“will have been caught”) is future perfect; and choice D (“was caught”) states the event as fact, contradicting the hypothetical.' },
+
+  { id: 'GCO1-16', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The qualifying standard that season was famously strict. To earn one of the few coveted spots at the regional championship finals, ______ Anything slower, no matter how close, meant watching the whole meet from the crowded stands.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['a time under two minutes had to be posted by each swimmer.', 'each swimmer had to post a time under two minutes.', 'the qualifying time was under two minutes.', 'there was a two-minute cutoff for each swimmer.'], answer: 'B',
+    explanation: 'The introductory infinitive phrase “To earn one of the few coveted spots…” must be followed by the noun that performs the action — the one who earns a spot. Only “each swimmer” can do so. In A “a time,” in C “the qualifying time,” and in D “there” cannot earn a spot, so each leaves the phrase dangling.' },
+
+  { id: 'GCO1-17', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'On paper the results looked flawless. The prototype engine passed every grueling stress test the laboratory could devise ______ however, it failed within a matter of hours under the messier, hotter, real-world conditions of the actual factory floor.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', ' ', '; ', ': '], answer: 'C',
+    explanation: 'When a conjunctive adverb such as “however” links two independent clauses, a semicolon precedes it (and a comma follows): “…could devise; however, it failed….” Choice A (a comma) creates a comma splice; choice B (no punctuation) fuses the clauses; and choice D (a colon) does not properly introduce a contrasting independent clause.' },
+
+  { id: 'GCO1-18', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'The canyon holds many secrets for those patient enough to look. High along the sheer, weathered sandstone walls ______ a long series of faded painted symbols that archaeologists from around the world have struggled for decades to interpret.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'have been', 'is'], answer: 'D',
+    explanation: 'This sentence is inverted, so the true subject follows the verb: the singular “a long series.” The verb must be “is.” The nearby plurals “walls” and “symbols” tempt agreement, but “walls” belongs to the introductory place phrase and “symbols” sits inside a modifier; choices A (“are”), B (“were”), and C (“have been”) wrongly agree with those plurals.' },
+
+  { id: 'GCO1-19', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The archivists worked slowly, handling each fragile document with obvious care. They noted that although the brittle letters themselves had survived nearly two centuries of damp neglect, the iron-gall ink ______ so badly over the decades that only a few scattered phrases still remained legible.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had faded', 'has faded', 'fades', 'would fade'], answer: 'A',
+    explanation: 'Both the fading and the surviving (“had survived”) happened before the past act of noting, so the past perfect “had faded” keeps the sequence consistent. Choice B (“has faded”) is present perfect and clashes with the past narration; choice C (“fades”) is present tense; and choice D (“would fade”) expresses a future-in-the-past or hypothetical, not a completed prior event.' },
+
+  { id: 'GCO1-20', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The debriefing grew tense as the shift wore on. Each of the exhausted veteran firefighters insisted, some more loudly than others, that ______ own training over the years had never once included a scenario quite like the sudden tunnel collapse they had just escaped.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['their', 'his or her', 'they’re', 'there'], answer: 'B',
+    explanation: 'The antecedent “Each” is a singular indefinite pronoun, so it requires a singular possessive: “his or her own training.” Choice A (“their”) is plural and does not agree with the singular “Each”; choice C (“they’re”) means “they are” and is not possessive; choice D (“there”) indicates place, not possession.' },
+
+  { id: 'GCO1-21', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Public health officials faced a frustrating logistical puzzle. Rural clinics across the province struggled for months to distribute the promising new vaccine ______ it required constant storage at extremely low temperatures that ordinary medical refrigerators simply could not reach or reliably maintain.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; because ', ' ', ' because '], answer: 'D',
+    explanation: 'The second clause gives the reason for the first, so the subordinating conjunction “because” links them, with no comma needed when the dependent clause follows the main clause: “…the promising new vaccine because it required….” Choice A (a comma alone) joins two independent clauses as a comma splice; choice B (“; because ”) places a dependent clause after a semicolon, which needs an independent clause; choice C (no punctuation) leaves a fused run-on.' }
+);
+
+/* gen: rw_conventions_2.js */
+/* gen: rw conventions batch 2 */
+GEN_BANK.push(
+  { id: 'GCO2-01', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'A row of tall oak trees along the eastern fence ______ the crowded schoolyard from the busy road, muffling the constant noise of passing traffic during afternoon classes.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['separate', 'have separated', 'separates', 'separating'], answer: 'C',
+    explanation: 'Subject-verb agreement rule: the verb must agree with the true subject “A row” (singular), not with the nearer plural “trees” inside the modifier, so the singular “separates” is correct. (A) “separate” and (B) “have separated” are plural, agreeing with “oak trees” rather than the subject; (D) “separating” is not a finite verb and leaves the sentence with no main verb.' },
+
+  { id: 'GCO2-02', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'The earliest mechanical clocks kept remarkably poor time, often drifting by many minutes over the course of a single day ______ they still marked a profound shift, loosening the ancient grip that sunrise and sunset had long held over ordinary life.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', nevertheless, ', '; nevertheless, ', ' nevertheless, ', ': nevertheless, '], answer: 'B',
+    explanation: 'Boundaries rule: two independent clauses joined by a conjunctive adverb such as “nevertheless” need a semicolon (or period) before the adverb and a comma after it. (A) a comma before the adverb creates a comma splice; (C) with no punctuation the two clauses fuse into a run-on; (D) a colon must be introduced by a clause that anticipates what follows, but here the clauses merely contrast.' },
+
+  { id: 'GCO2-03', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'By the time the archaeologists finally reached the sealed burial chamber deep inside the pyramid, grave robbers ______ nearly all of its gold ornaments many centuries earlier, leaving behind only a thin scattering of broken clay beads.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had taken', 'took', 'have taken', 'take'], answer: 'A',
+    explanation: 'Tense-sequence rule: the past perfect “had taken” marks the earlier of two past actions, since the robbing happened “centuries earlier” than the archaeologists’ arrival. (B) simple past “took” fails to sequence the two past events; (C) present perfect “have taken” conflicts with the fully past narrative; (D) present-tense “take” clashes with “reached” and “centuries earlier.”' },
+
+  { id: 'GCO2-04', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'The storm had been building over the cattle ranch all afternoon, and the animals in the near pasture were already visibly restless. Startled by a sudden, close crack of thunder directly overhead, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the horses bolted toward the far corner of the pasture.', 'the pasture quickly emptied as the herd bolted toward its far corner.', 'there was a stampede toward the far corner of the pasture.', 'the far corner of the pasture filled with panicked horses.'], answer: 'A',
+    explanation: 'Modifier rule: an introductory participial phrase must modify the noun that immediately follows the comma, and only “the horses” can logically be “startled.” (B) makes “the pasture” the startled thing; (C) attaches the phrase to the empty “there”; (D) makes “the far corner” startled — each leaves the opening modifier dangling.' },
+
+  { id: 'GCO2-05', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'For the small team, survival during three long months on the exposed mountain glacier came down to just three essentials ______ dried food, clean-burning stove fuel, and instruments rugged enough to keep working in the brutal cold.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ': ', ', and '], answer: 'C',
+    explanation: 'Colon rule: a colon follows a complete independent clause to introduce a list, and “...came down to just three essentials” is a full clause announcing the items. (A) a comma cannot separate the announcing clause from the list it introduces; (B) a semicolon must be followed by an independent clause, not a list of nouns; (D) “, and” creates faulty coordination and does not introduce a list.' },
+
+  { id: 'GCO2-06', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'Each of the several dozen volunteers who staff the downtown night shelter ______ carefully trained in basic first aid and emergency procedures before ever being allowed to work an overnight shift alone.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'have been', 'is'], answer: 'D',
+    explanation: 'Subject-verb agreement rule: “Each” is a singular indefinite pronoun and takes a singular verb, no matter how many “volunteers” appear in the modifier, so “is” is correct. (A) “are” and (C) “have been” are plural, agreeing with “volunteers”; (B) “were” is both plural and shifted to the past tense, clashing with the general present timeframe.' },
+
+  { id: 'GCO2-07', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'If the ancient Roman aqueduct that once fed the city ______ still fully intact today, engineers estimate that it could carry fresh water clear across the valley nearly as efficiently as any modern steel pipeline.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['was', 'were', 'is', 'had been'], answer: 'B',
+    explanation: 'Subjunctive rule: a present contrary-to-fact conditional (“If... could carry”) requires the subjunctive “were.” (A) “was” is the ordinary indicative and does not signal the hypothetical; (C) “is” asserts that the aqueduct really is intact, contradicting the “if”; (D) “had been” points to a past condition and would force “could have carried,” not “could carry... today.”' },
+
+  { id: 'GCO2-08', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The research team had waited nearly two years for this rare, precise alignment of the sun and the moon. To photograph the total solar eclipse without permanently ruining their costly equipment, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the astronomers fitted each lens with a certified solar filter.', 'a certified solar filter was fitted onto each lens.', 'each lens needed a certified solar filter.', 'there had to be a certified solar filter on every lens.'], answer: 'A',
+    explanation: 'Modifier rule: an introductory infinitive phrase (“To photograph...”) must be followed by the subject that performs the action — the astronomers, who match the earlier “their.” (B) makes a passive “filter” the photographer; (C) makes “each lens” the photographer; (D) attaches the phrase to “there” — each version leaves the modifier dangling.' },
+
+  { id: 'GCO2-09', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'The novelist’s earliest surviving drafts ______ handwritten on hotel stationery, stained with coffee, and crowded with furious cross-outs — reveal just how many times she reshaped even the smallest scene before publication.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ': ', ' — '], answer: 'D',
+    explanation: 'Dash rule: a supplementary element must be enclosed by a matching pair of marks, and because the interruption closes with a dash before “reveal,” it must open with a dash. (A) a comma cannot pair with the closing dash; (B) a semicolon separates clauses rather than bracketing an insertion; (C) a colon introduces material instead of enclosing a mid-sentence interruption.' },
+
+  { id: 'GCO2-10', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'Late that night, the low hum of the idling backup generator and the steady drip of the leaking overhead pipe ______ the only sounds anywhere in the vast, echoing, long-abandoned textile factory.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['was', 'were', 'has been', 'is'], answer: 'B',
+    explanation: 'Subject-verb agreement rule: two subjects joined by “and” (“hum” and “drip”) form a plural compound subject and take “were.” The singular nouns tempt a singular verb, but they are both parts of one plural subject. (A) “was” and (C) “has been” are singular; (D) “is” is singular and also shifts to the present, clashing with “that night.”' },
+
+  { id: 'GCO2-11', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'A genuinely well-made field guide should help a nervous beginner identify a distant bird by its silhouette, notice the subtle field marks that separate nearly identical species, and ______ the distinctive calls that often reveal a well-hidden nest.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['recognizing', 'to recognize', 'recognize', 'recognizes'], answer: 'C',
+    explanation: 'Parallelism rule: items in a series must share the same grammatical form, and after “help a beginner identify... notice...,” the third verb must be the base form “recognize.” (A) the -ing form “recognizing,” (B) the infinitive “to recognize,” and (D) the finite “recognizes” all break the parallel base-verb pattern set by “identify” and “notice.”' },
+
+  { id: 'GCO2-12', skill: 'rw_modifiers', difficulty: 1, type: 'mcq',
+    passage: 'A hummingbird must feed almost constantly throughout the day, darting from one blossom to the next and visiting hundreds of flowers just to fuel ______ astonishingly rapid metabolism and tireless hovering flight.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['their', 'its', 'it’s', 'they’re'], answer: 'B',
+    explanation: 'Pronoun-agreement rule: a possessive pronoun must agree with its antecedent, and “A hummingbird” is singular, so the singular possessive “its” is correct. (A) “their” is plural; (C) “it’s” is the contraction of “it is”; (D) “they’re” means “they are” — neither of the last two is a possessive form.' },
+
+  { id: 'GCO2-13', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Marie Tharp, the pioneering geologist who painstakingly mapped the floor of the Atlantic Ocean ______ spent long years plotting thousands of depth soundings by hand before her charts finally revealed the hidden Mid-Atlantic Ridge.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', ' — ', '; ', ': '], answer: 'A',
+    explanation: 'Supplementary-comma rule: a nonrestrictive appositive (“the pioneering geologist who... Atlantic Ocean”) must be set off by a matching pair of commas, and since it opened with a comma after “Tharp,” it must close with a comma. (B) a dash mismatches the opening comma; (C) a semicolon needs an independent clause after it, but “spent long years...” is only a predicate; (D) a colon introduces rather than closes an appositive.' },
+
+  { id: 'GCO2-14', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'Neither the two senior structural engineers nor the veteran site manager ______ willing to approve the hastily revised bridge design until the full battery of stress tests had been run a second time.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['were', 'are', 'was', 'have been'], answer: 'C',
+    explanation: 'Agreement rule: with the correlative “neither... nor,” the verb agrees with the nearer subject, and “the site manager” is singular, so “was” is correct. (A) “were” wrongly agrees with the farther plural “engineers”; (B) “are” is plural and present tense, clashing with the past setting; (D) “have been” is plural.' },
+
+  { id: 'GCO2-15', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The theater’s yearlong renovation not only carefully restored the building’s crumbling plaster ceiling but also ______ the original gas-lamp fixtures with cleverly hidden bulbs that mimic their warm, flickering nineteenth-century glow.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['replacing', 'had replaced', 'replaces', 'replaced'], answer: 'D',
+    explanation: 'Parallelism rule: the correlative pair “not only... but also” must join grammatically parallel elements, and “restored” calls for the parallel past-tense “replaced.” (A) the -ing form “replacing” breaks parallelism; (B) the past perfect “had replaced” and (C) the present “replaces” both break the matched tense established by “restored.”' },
+
+  { id: 'GCO2-16', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'After deliberating for nearly a week, the scholarship committee ultimately divided the top award between another finalist and ______, splitting the substantial prize money evenly between the two of us.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['I', 'me', 'myself', 'mine'], answer: 'B',
+    explanation: 'Pronoun-case rule: a pronoun serving as the object of the preposition “between” takes the objective case “me”; you can hear it by dropping “another finalist and.” (A) “I” is subjective; (C) “myself” is a reflexive that needs an earlier “I” to refer back to; (D) “mine” is possessive.' },
+
+  { id: 'GCO2-17', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'The students who had managed to finish the long exit survey ______ quietly asked to help tally the hundreds of responses collected from the other three classrooms down the hall.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['early, were', 'early — were', 'early were', 'early; were'], answer: 'C',
+    explanation: 'Boundaries rule: no punctuation belongs between a subject and its verb, and the restrictive clause “who had managed to finish the long exit survey early” identifies which students, so no comma sets it off — “early were” runs straight from subject to verb. (A) a comma wrongly splits the subject from the verb “were asked”; (B) a dash likewise interrupts that link; (D) a semicolon must join two independent clauses, but “were quietly asked...” is only a predicate.' },
+
+  { id: 'GCO2-18', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'Behind the art museum’s imposing marble façade, hidden completely from the public galleries, ______ a series of narrow, dimly lit service corridors that ordinary visitors almost never get to see.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['lie', 'have lain', 'are lying', 'lies'], answer: 'D',
+    explanation: 'Agreement rule: in this inverted sentence the true subject follows the verb — “a series” (singular), not the plural “corridors” inside the modifier — so the singular “lies” is correct. (A) “lie,” (B) “have lain,” and (C) “are lying” are all plural, agreeing with “corridors” instead of the head noun “series.”' },
+
+  { id: 'GCO2-19', skill: 'rw_verb', difficulty: 1, type: 'mcq',
+    passage: 'When the documentary crew returns to the retreating glacier early next month, they ______ the very same ice ridge they first filmed two years ago, hoping to measure precisely how far it has melted since.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['will revisit', 'revisited', 'have revisited', 'were revisiting'], answer: 'A',
+    explanation: 'Tense rule: the future time marker “next month” requires the future tense “will revisit.” (B) “revisited” is past and contradicts “next month”; (C) “have revisited” implies the return trip is already complete; (D) “were revisiting” is past progressive — all three clash with an action set in the future.' },
+
+  { id: 'GCO2-20', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The city’s apprenticeship program deliberately pairs every anxious newcomer with a seasoned master electrician ______ they can phone at any hour of the night with a question about a genuinely baffling wiring problem.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['who', 'whom', 'which', 'whose'], answer: 'B',
+    explanation: 'Pronoun-case rule: the relative pronoun here is the object of “can phone” (they can phone whom), so the objective “whom” is correct. (A) “who” is the subjective form, used for subjects; (C) “which” refers to things rather than a person; (D) “whose” is possessive and would need a noun after it.' },
+
+  { id: 'GCO2-21', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'The prestigious design fellowship sent its three winners abroad to study urban preservation in a carefully chosen set of cities: Bergen, Norway ______ Medellín, Colombia; and Christchurch, New Zealand, each admired for sensitively restoring its historic core.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', ' — ', '; ', ': '], answer: 'C',
+    explanation: 'Boundaries rule: when the items in a series already contain internal commas (city, country), the items must be separated by semicolons for clarity — note the matching semicolon before “and Christchurch.” (A) another comma blurs where each city-country item ends; (B) a dash does not separate parallel list items; (D) a colon introduces a list but does not divide the items within it.' }
+);
+
+/* gen: rw_conventions_3.js */
+/* gen: rw conventions batch 3 */
+GEN_BANK.push(
+  { id: 'GCO3-01', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'Every weekend, the neighborhood comes alive with activity around the old brick pavilion downtown. The community center hosts a lively farmers’ market every ______ musicians perform on the front steps throughout the afternoon.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['Saturday, local', 'Saturday; local', 'Saturday: local', 'Saturday local'], answer: 'B',
+    explanation: 'Rule: two independent clauses cannot be joined by a comma alone; a semicolon (or period) is needed. The clauses “The community center hosts a lively farmers’ market every Saturday” and “local musicians perform on the front steps throughout the afternoon” are both complete, so the semicolon in (B) is correct. (A) creates a comma splice; (C) misuses the colon, which should introduce a list, explanation, or definition rather than a second, separate statement; (D) fuses the clauses with no punctuation, producing a run-on.' },
+
+  { id: 'GCO3-02', skill: 'rw_sva', difficulty: 1, type: 'mcq',
+    passage: 'My grandmother always kept fresh flowers in the house, believing they lifted everyone’s mood. The bouquet of bright yellow tulips she set on the kitchen table this morning ______ the whole room feel like spring.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['make', 'makes', 'are making', 'have made'], answer: 'B',
+    explanation: 'Rule: a verb agrees with its head noun, not with a nearer noun inside an intervening phrase. The subject is the singular “bouquet”; “of bright yellow tulips” is a prepositional modifier, so the singular “makes” is correct. (A) “make,” (C) “are making,” and (D) “have made” all agree mistakenly with the plural “tulips,” which is not the true subject.' },
+
+  { id: 'GCO3-03', skill: 'rw_verb', difficulty: 1, type: 'mcq',
+    passage: 'For years the empty corner lot had collected nothing but weeds and litter. Last summer, our neighborhood ______ a community garden on the vacant lot behind the library, and dozens of families now grow vegetables there.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['plants', 'planted', 'will plant', 'has planted'], answer: 'B',
+    explanation: 'Rule: use the simple past for an action completed at a specific past time. The marker “Last summer” fixes a finished past action, so “planted” is correct. (A) “plants” is present tense and (C) “will plant” is future, both clashing with “Last summer”; (D) “has planted” is present perfect, which cannot be paired with a specific past-time expression like “last summer.”' },
+
+  { id: 'GCO3-04', skill: 'rw_modifiers', difficulty: 1, type: 'mcq',
+    passage: 'Dozens of residents packed the chamber, ready to speak against the rezoning plan. Before the public comment period even began, the city council announced that ______ would postpone the vote until residents had more time to review the full proposal.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['they', 'it', 'these', 'one'], answer: 'B',
+    explanation: 'Rule: a pronoun must agree in number with its antecedent, and collective nouns are singular in Standard American English. The antecedent “The city council” is singular, so the singular “it” is correct. (A) “they” is plural; (C) “these” is a plural demonstrative with no matching antecedent; (D) “one” is an indefinite pronoun that does not refer back to the council.' },
+
+  { id: 'GCO3-05', skill: 'rw_boundaries', difficulty: 1, type: 'mcq',
+    passage: 'Heavy rain had fallen across the region for three straight days, leaving the lowlands soaked. Because the trail flooded badly after the ______ rangers rerouted hikers along a higher gravel ridge for the rest of the week.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['storm, park', 'storm; park', 'storm: park', 'storm park'], answer: 'A',
+    explanation: 'Rule: an introductory dependent clause is set off from the main clause with a comma. “Because the trail flooded badly after the storm” is a subordinate clause, so the comma in (A) is correct. (B) is wrong because a semicolon needs an independent clause on both sides; (C) misuses the colon, which follows a complete clause and introduces an explanation or list; (D) omits the required comma entirely.' },
+
+  { id: 'GCO3-06', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'The judge’s instructions that morning were unusually strict about how deliberations should begin. Each of the twelve jurors ______ required to review the evidence independently before the group reconvenes to compare their conclusions.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['is', 'are', 'were', 'have been'], answer: 'A',
+    explanation: 'Rule: indefinite pronouns such as “each,” “either,” and “neither” are grammatically singular, regardless of a following plural. The subject is “Each,” so the singular “is” is correct. (B) “are” and (C) “were” agree with the plural “jurors,” and (D) “have been” is likewise plural — none matches the singular subject “Each.”' },
+
+  { id: 'GCO3-07', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'The morning rush caught no one by surprise this time. By the time the first customers lined up outside at six, the bakers ______ nearly three hundred loaves, and the long shelves behind the glass case were already full.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['baked', 'has baked', 'bakes', 'had baked'], answer: 'D',
+    explanation: 'Rule: use the past perfect for the earlier of two past actions. The baking was completed before another past event (“the first customers lined up”), so “had baked” is required. (A) “baked” is simple past and does not mark the sequence the phrase “By the time” demands; (B) “has baked” is present perfect, which clashes with the past narration; (C) “bakes” is present tense.' },
+
+  { id: 'GCO3-08', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'For most of the afternoon, the apartment was quiet except for the soft bubbling coming from the stove. Simmering slowly on the back burner for nearly three hours, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the apartment filled with the warm aroma of the rich tomato sauce.', 'we could smell the rich tomato sauce in every room.', 'there was a warm aroma of tomato sauce in every room.', 'the rich tomato sauce filled the apartment with its warm aroma.'], answer: 'D',
+    explanation: 'Rule: an introductory participial phrase must modify the noun that immediately follows it, or it dangles. Only “the rich tomato sauce” can logically be simmering, so (D) is correct. (A) makes the apartment simmer; (B) makes “we” simmer; (C) begins with “there,” which supplies no logical subject for the phrase — each leaves the modifier dangling.' },
+
+  { id: 'GCO3-09', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'The cookbook promised that even beginners could manage its simplest bread with almost no shopping. The recipe called for only three pantry staples that most cooks already ______ flour, butter, and a generous pinch of salt.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['have,', 'have;', 'have:', 'have'], answer: 'C',
+    explanation: 'Rule: use a colon after a complete independent clause to introduce a list. “The recipe called for only three pantry staples that most cooks already have” is complete, and the colon introduces the list that names those staples, so (C) is correct. (A) a comma cannot formally introduce the list here; (B) a semicolon must be followed by an independent clause, but the list is not one; (D) with no punctuation, the sentence ungrammatically doubles the object of “have.”' },
+
+  { id: 'GCO3-10', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'Residents who want a new playground or dog run have a clear path to make their case. The committee that oversees the city’s parks ______ once a month to review new proposals from the public.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['meet', 'are meeting', 'have met', 'meets'], answer: 'D',
+    explanation: 'Rule: in Standard American English, collective nouns like “committee” name a single group and take a singular verb. The plural “parks” sits inside the modifier “that oversees the city’s parks” and does not govern the verb, so “meets” is correct. (A) “meet,” (B) “are meeting,” and (C) “have met” all treat the singular subject as plural.' },
+
+  { id: 'GCO3-11', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'The program used to finish near the bottom of the standings every season. Since the new coach took over three years ago, however, the swim team ______ every regional championship it has entered.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['won', 'had won', 'has won', 'wins'], answer: 'C',
+    explanation: 'Rule: use the present perfect for an action that begins in the past and continues to the present. The frame “Since … three years ago” to now calls for “has won.” (A) “won” is simple past; (B) “had won” is past perfect, which needs a later past reference point; (D) “wins” is present tense and cannot span the period from the past to now.' },
+
+  { id: 'GCO3-12', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'The graded essays had been promised for weeks, and the whole class was anxious to see how they had done. At the start of class, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the professor returned the essays, which were covered in red corrections, to the nervous students.', 'the professor returned the essays to the nervous students covered in red corrections.', 'the nervous students received the essays from the professor covered in red corrections.', 'covered in red corrections, the nervous students received the essays from the professor.'], answer: 'A',
+    explanation: 'Rule: a modifier must sit next to the word it logically describes. The corrections cover the essays, not the students or the professor, so the clause “which were covered in red corrections” belongs right after “essays,” as in (A). (B) places the phrase beside “students,” (C) beside “professor,” and (D) at the front modifying “the nervous students” — each creates an illogical, misplaced modifier.' },
+
+  { id: 'GCO3-13', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'Visitors planning a trip this month should check the schedule before they arrive downtown. The museum’s east wing has been closed for renovation for over a ______ the gift shop and café remain open to visitors as usual.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['year, however,', 'year; however,', 'year however,', 'year, however'], answer: 'B',
+    explanation: 'Rule: a conjunctive adverb such as “however” linking two independent clauses takes a semicolon before it and a comma after it. (B) correctly separates the clauses and punctuates “however.” (A) puts only a comma before “however,” creating a comma splice; (C) omits punctuation before “however,” producing a run-on; (D) keeps the comma splice and drops the comma after “however.”' },
+
+  { id: 'GCO3-14', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'The salvage team spent two seasons hauling crates of corroded metal up from the seabed. Among the many artifacts recovered from the shipwreck ______ a brass astrolabe that still turns smoothly after four centuries underwater.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['is', 'are', 'were', 'have been'], answer: 'A',
+    explanation: 'Rule: in an inverted sentence, the verb agrees with the subject that follows it, not with a noun in the opening phrase. The true subject is the singular “a brass astrolabe,” so “is” is correct. (B) “are,” (C) “were,” and (D) “have been” wrongly agree with the plural “artifacts,” which is only the object of the preposition “Among.”' },
+
+  { id: 'GCO3-15', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'My film professor opened the semester with a simple claim about what separates great nonfiction from the forgettable kind. A good documentary, she argued, should inform viewers, challenge their assumptions, and ______ them to see a familiar subject in a new way.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['inspiring', 'inspires', 'inspire', 'to inspire'], answer: 'C',
+    explanation: 'Rule: items in a series must share the same grammatical form. Following the modal “should,” the three verbs must be parallel base forms: “inform … challenge … and inspire.” (A) “inspiring” is a participle, (B) “inspires” is a finite present-tense verb, and (D) “to inspire” is an infinitive — each breaks the base-form parallel established by “inform” and “challenge.”' },
+
+  { id: 'GCO3-16', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The two had rarely agreed on anything during the long negotiation. When Maria finally met with Ms. Chen to discuss the terms of the merger, ______ seemed unusually optimistic about the combined company’s future.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['she', 'they', 'Maria', 'the executive'], answer: 'C',
+    explanation: 'Rule: a pronoun must point unmistakably to a single antecedent. Because both Maria and Ms. Chen could be the referent, a pronoun like “she” is ambiguous; repeating the noun “Maria” makes the reference clear. (A) “she” could mean either woman; (D) “the executive” could describe either as well; (B) “they” is plural and does not agree with a singular antecedent.' },
+
+  { id: 'GCO3-17', skill: 'rw_boundaries', difficulty: 3, type: 'mcq',
+    passage: 'The dig had reached its most delicate stage, and every movement in the trench was slow and deliberate. The archaeologists carefully brushed away centuries of ______ and then photographed each artifact before lifting it from the packed soil.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['sediment', 'sediment,', 'sediment;', 'sediment:'], answer: 'A',
+    explanation: 'Rule: do not separate two verbs joined by “and” with punctuation when they share a single subject. “brushed away centuries of sediment and then photographed each artifact” is a compound predicate under one subject (“The archaeologists”), so no punctuation belongs before “and,” making (A) correct. (B) inserts an unnecessary comma; (C) a semicolon requires an independent clause after it, but “and then photographed…” has no subject; (D) a colon has nothing to introduce.' },
+
+  { id: 'GCO3-18', skill: 'rw_sva', difficulty: 3, type: 'mcq',
+    passage: 'The screening ran long, and the studio had been pushing for cuts for weeks. Neither the two producers nor the film’s director ______ willing to trim the movie’s final scene, despite the studio’s repeated objections.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'were', 'is', 'have been'], answer: 'C',
+    explanation: 'Rule: with the correlative “neither … nor” (like “either … or”), the verb agrees with the nearer subject. The closer element here is the singular “the film’s director,” so “is” is correct. (A) “are,” (B) “were,” and (D) “have been” are plural, agreeing with the more distant “producers” instead of the nearer singular subject.' },
+
+  { id: 'GCO3-19', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The collapse could almost certainly have been prevented, according to the independent panel’s final report. If the engineers had reviewed the safety reports more carefully, they ______ the faulty support design long before construction ever began.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['would catch', 'will catch', 'caught', 'would have caught'], answer: 'D',
+    explanation: 'Rule: in a past unreal (third) conditional, a past-perfect “if” clause pairs with “would have” plus a past participle. Because the “if” clause uses “had reviewed,” the main clause needs “would have caught.” (A) “would catch” is the present conditional; (B) “will catch” is future; (C) “caught” is simple past — none completes the hypothetical past.' },
+
+  { id: 'GCO3-20', skill: 'rw_modifiers', difficulty: 3, type: 'mcq',
+    passage: 'The clinic’s director had watched both applicants closely all summer and made her decision quickly. In the end, the coveted research internship was offered to Priya and ______, both of whom had spent the summer volunteering there.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['I', 'me', 'myself', 'mine'], answer: 'B',
+    explanation: 'Rule: use the objective case for the object of a preposition. The pronoun is part of the compound object of “to,” so it must be “me”: test by dropping “Priya and” — “offered to me,” not “to I.” (A) “I” is subjective; (C) “myself” is reflexive with no subject to reflect back on; (D) “mine” is possessive.' },
+
+  { id: 'GCO3-21', skill: 'rw_verb', difficulty: 3, type: 'mcq',
+    passage: 'The company’s finances had grown tangled after a year of rapid, uneven expansion. To restore order, the chief financial officer insisted that every department ______ its expense reports by the end of the month, regardless of size.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['submit', 'submits', 'submitted', 'would submit'], answer: 'A',
+    explanation: 'Rule: after a verb of demand such as “insist,” “recommend,” or “require,” English uses the mandative subjunctive — the base form — in the “that” clause, even with a singular subject. So “every department submit” is correct. (B) “submits” is the ordinary indicative; (C) “submitted” is past tense; (D) “would submit” is conditional, not subjunctive.' }
+);
+
 /* gen: rw_craft_1.js */
 /* gen: rw craft batch 1 */
 GEN_BANK.push(
@@ -4405,6 +4871,468 @@ VOCAB_STARTER.push(
   { w: 'substantiate', def: 'to provide evidence that proves something is true', ex: 'The reporter could not substantiate the rumor, so she dropped it.' }
 );
 
+/* gen: xtreme_math_1.js */
+/* gen: extreme math 1 */
+GEN_BANK.push(
+  { id: 'GXM1-01', skill: 'alg_systems', difficulty: 'extreme', type: 'spr',
+    stem: 'In the system of equations $3x+ky=12$ and $kx+12y=4k$, $k$ is a constant. If the system has infinitely many solutions $(x,y)$, what is the product of all possible values of $k$?',
+    answer: '-36',
+    explanation: 'For infinitely many solutions the two equations must be proportional, so $\\frac{3}{k}=\\frac{k}{12}=\\frac{12}{4k}$. The equation $\\frac{3}{k}=\\frac{k}{12}$ gives $k^{2}=36$, so $k=6$ or $k=-6$; the ratio $\\frac{12}{4k}=\\frac{3}{k}$ is automatically satisfied by both. Checking: $k=6$ turns both equations into $x+2y=4$, and $k=-6$ turns both into $x-2y=4$, so each value truly yields infinitely many solutions. The product is $6\\cdot(-6)=-36$. A common error is to report only $k=6$ (missing the negative root) or to stop at $k^{2}=36$.' },
+
+  { id: 'GXM1-02', skill: 'adv_quadratic', difficulty: 'extreme', type: 'mcq',
+    stem: 'In the equation $2x^{2}-8x+k=0$, $k$ is a constant. If one solution of the equation is 3 times the other solution, what is the value of $k$?',
+    choices: ['$3$', '$6$', '$12$', '$24$'], answer: 'B',
+    explanation: 'Let the solutions be $r$ and $3r$. By Vieta’s formulas the sum is $r+3r=4r=\\frac{-(-8)}{2}=4$, so $r=1$; the product is $r\\cdot3r=3r^{2}=\\frac{k}{2}$, giving $3(1)^{2}=\\frac{k}{2}$ and $k=6$ (B). Substituting back, $2x^{2}-8x+6=0$ factors as $2(x-1)(x-3)$, with roots 1 and 3. Choice A comes from setting the product equal to $k$ instead of $\\frac{k}{2}$. Choices C and D come from mishandling the leading coefficient in the sum ($4r=8$, so $r=2$), then computing $3r^{2}=12$ or $\\frac{k}{2}=12$.' },
+
+  { id: 'GXM1-03', skill: 'adv_exponential', difficulty: 'extreme', type: 'mcq',
+    stem: 'For the equation $9^{x}-4\\cdot3^{x}+3=0$, what is the sum of all values of $x$ that satisfy the equation?',
+    choices: ['$0$', '$1$', '$3$', '$4$'], answer: 'B',
+    explanation: 'Let $u=3^{x}$, so $9^{x}=(3^{x})^{2}=u^{2}$ and the equation becomes $u^{2}-4u+3=0$, which factors as $(u-1)(u-3)=0$. Then $u=1$ gives $3^{x}=1$, so $x=0$, and $u=3$ gives $3^{x}=3$, so $x=1$. Both values are valid, and their sum is $0+1=1$ (B). Choice A keeps only $x=0$. Choice C reports a $u$-value ($u=3$) as if it were $x$. Choice D adds the two $u$-values ($1+3$) instead of the $x$-values.' },
+
+  { id: 'GXM1-04', skill: 'adv_exponents', difficulty: 'extreme', type: 'spr',
+    stem: 'For $x>1$, the expression $\\sqrt{x\\sqrt{x\\sqrt{x}}}$ is equal to $x^{k}$ for some constant $k$. What is the value of $k$?',
+    answer: '7/8',
+    explanation: 'Work from the inside out using fractional exponents. The innermost radical is $\\sqrt{x}=x^{1/2}$; then $x\\sqrt{x}=x^{3/2}$ and $\\sqrt{x^{3/2}}=x^{3/4}$; finally $x\\cdot x^{3/4}=x^{7/4}$ and $\\sqrt{x^{7/4}}=x^{7/8}$. Thus $k=\\frac{7}{8}$. Stopping one layer too early gives $\\frac{3}{4}$, and treating each radical as acting on only a single $x$ gives $\\frac{1}{8}$.' },
+
+  { id: 'GXM1-05', skill: 'adv_polynomial', difficulty: 'extreme', type: 'mcq',
+    stem: 'The polynomial $p(x)=x^{3}-6x^{2}+11x+k$ has three real zeros that form an arithmetic sequence. What is the value of $k$?',
+    choices: ['$-6$', '$0$', '$6$', '$11$'], answer: 'A',
+    explanation: 'If the three zeros form an arithmetic sequence, write them as $a-d$, $a$, and $a+d$. Their sum is $3a$, and by Vieta’s formulas the sum of the zeros equals $-\\frac{-6}{1}=6$, so $3a=6$ and $a=2$. Therefore $x=2$ is a zero, so $p(2)=8-24+22+k=6+k=0$, giving $k=-6$ (A). Indeed $x^{3}-6x^{2}+11x-6=(x-1)(x-2)(x-3)$, with zeros 1, 2, 3. Choice C flips the sign of $p(2)$. Choice D just copies the coefficient 11, and choice B assumes the constant term must be 0.' },
+
+  { id: 'GXM1-06', skill: 'adv_rational', difficulty: 'extreme', type: 'spr',
+    stem: 'What value of $x$ satisfies the equation $\\frac{x}{x-2}+\\frac{4}{x+2}=\\frac{8}{x^{2}-4}$?',
+    answer: '-8',
+    explanation: 'Multiply both sides by $(x-2)(x+2)=x^{2}-4$: $x(x+2)+4(x-2)=8$. Expanding gives $x^{2}+6x-8=8$, so $x^{2}+6x-16=0$ and $(x+8)(x-2)=0$, giving $x=-8$ or $x=2$. However, $x=2$ makes the denominator $x-2$ equal to 0, so it is extraneous and must be rejected. The only valid solution is $x=-8$. Substituting confirms $\\frac{-8}{-10}+\\frac{4}{-6}=\\frac{8}{60}$.' },
+
+  { id: 'GXM1-07', skill: 'adv_functions', difficulty: 'extreme', type: 'mcq',
+    stem: 'The function $f$ satisfies $f(2x-1)=4x^{2}+2x$ for all real numbers $x$. What is the value of $f(3)$?',
+    choices: ['$12$', '$20$', '$30$', '$42$'], answer: 'B',
+    explanation: 'To find $f(3)$, choose $x$ so that the input $2x-1$ equals 3: $2x-1=3$ gives $x=2$. Then $f(3)=4(2)^{2}+2(2)=16+4=20$ (B). Equivalently, letting $u=2x-1$ gives $f(u)=(u+1)(u+2)$, so $f(3)=4\\cdot5=20$. Choice D substitutes $x=3$ directly into $4x^{2}+2x$. Choice A uses $x=2$ but forgets to square, computing $4(2)+2(2)$. Choice C comes from a sign slip, evaluating $4x^{2}-2x$ at the output value 3.' },
+
+  { id: 'GXM1-08', skill: 'psda_ratio', difficulty: 'extreme', type: 'mcq',
+    stem: 'A tank contains 60 liters of a mixture that is 30% antifreeze by volume. Some of the mixture is drained and replaced with an equal volume of pure antifreeze, so that the tank again holds 60 liters. If the resulting mixture is 65% antifreeze, how many liters were drained and replaced?',
+    choices: ['$21$', '$30$', '$39$', '$42$'], answer: 'B',
+    explanation: 'Let $x$ be the number of liters drained and replaced. The tank starts with $0.30(60)=18$ liters of antifreeze. Draining $x$ liters of the 30% mixture removes $0.30x$ liters of antifreeze, and adding $x$ liters of pure antifreeze adds $x$ liters, so the new amount is $18-0.30x+x=18+0.70x$. Setting the concentration to 65% of 60 liters: $18+0.70x=0.65(60)=39$, so $0.70x=21$ and $x=30$ (B). Choice A stops at $0.70x=21$ and reports 21. Choice C reports 39, the final amount of antifreeze, not the volume replaced. Choice D is $0.70(60)$, applying the 70% to the wrong quantity.' },
+
+  { id: 'GXM1-09', skill: 'psda_percent', difficulty: 'extreme', type: 'spr',
+    stem: 'At a company, 60% of the employees are engineers and the rest are not. Of the engineers, 30% are managers, and of the employees who are not engineers, 50% are managers. If the number of employees who are not managers is 60 more than the number who are managers, how many employees does the company have?',
+    answer: '250',
+    explanation: 'Let $N$ be the total number of employees. Engineers number $0.60N$ and non-engineers $0.40N$. Managers total $0.30(0.60N)+0.50(0.40N)=0.18N+0.20N=0.38N$, so non-managers total $N-0.38N=0.62N$. The condition that there are 60 more non-managers than managers gives $0.62N-0.38N=0.24N=60$, so $N=250$. Check: 150 engineers and 100 non-engineers give $45+50=95$ managers and 155 non-managers, and $155-95=60$.' },
+
+  { id: 'GXM1-10', skill: 'psda_stats', difficulty: 'extreme', type: 'spr',
+    stem: 'A list of 5 positive integers has a mean of 8 and a median of 9. What is the greatest possible value of any single integer in the list?',
+    answer: '20',
+    explanation: 'The five positive integers have a mean of 8, so their sum is $5\\times8=40$. To make one integer as large as possible, make the other four as small as possible. In increasing order, the third value is the median, which must equal 9. The two values below it are positive integers, so their least possible values are 1 and 1, and the fourth value must be at least the median, so its least value is 9. That accounts for $1+1+9+9=20$, leaving $40-20=20$ for the largest integer. The list $1,1,9,9,20$ has mean 8 and median 9, so the greatest possible value is 20.' },
+
+  { id: 'GXM1-11', skill: 'geo_circles', difficulty: 'extreme', type: 'mcq',
+    stem: 'In the $xy$-plane, a circle has equation $(x-6)^{2}+(y-8)^{2}=25$. What is the length of the shortest chord of this circle that passes through the point $(9,8)$?',
+    choices: ['$4$', '$6$', '$8$', '$10$'], answer: 'C',
+    explanation: 'The circle has center $(6,8)$ and radius $\\sqrt{25}=5$. The point $(9,8)$ lies at distance $|9-6|=3$ from the center, which is less than 5, so the point is inside the circle. Among all chords through an interior point, the shortest is the one perpendicular to the segment joining the center to that point. Its half-length is $\\sqrt{r^{2}-d^{2}}=\\sqrt{25-9}=4$, so the chord has length 8 (C). Choice D, 10, is the diameter, which is the longest chord. Choice A, 4, is only half the chord. Choice B, 6, doubles the distance from the center to the point instead.' },
+
+  { id: 'GXM1-12', skill: 'geo_trig', difficulty: 'extreme', type: 'mcq',
+    stem: 'Angles are measured in degrees. If $\\sin(4k+10)^{\\circ}=\\cos(2k+20)^{\\circ}$, where $4k+10$ and $2k+20$ are the measures of two acute angles, what is the value of $k$?',
+    choices: ['$5$', '$10$', '$15$', '$20$'], answer: 'B',
+    explanation: 'Since $\\sin\\theta=\\cos(90^{\\circ}-\\theta)$, two acute angles whose sine and cosine match in this way must be complementary. So $(4k+10)+(2k+20)=90$, giving $6k+30=90$, $6k=60$, and $k=10$ (B). Then the angles are $50^{\\circ}$ and $40^{\\circ}$, and $\\sin50^{\\circ}=\\cos40^{\\circ}$. Choice A sets the two expressions equal ($4k+10=2k+20$), which would make the angles equal rather than complementary. Choice C drops the constant terms, solving $6k=90$. Choice D results from setting the angle sum to 120 instead of 90.' },
+
+  { id: 'GXM1-13', skill: 'alg_word', difficulty: 'extreme', type: 'mcq',
+    stem: 'Two cars leave the same point traveling along the same straight road in the same direction. The first car travels at a constant 40 miles per hour. One hour later, the second car leaves the same point traveling at a constant 60 miles per hour. How many miles from the starting point does the second car catch up to the first?',
+    choices: ['$80$', '$100$', '$120$', '$180$'], answer: 'C',
+    explanation: 'Measure time $t$ in hours after the second car starts. When the second car has traveled for $t$ hours, the first car has traveled for $t+1$ hours, so their distances are $60t$ and $40(t+1)$. Setting them equal: $60t=40t+40$, so $20t=40$ and $t=2$. The second car has then traveled $60\\times2=120$ miles (C). Choice A, 80, uses the first car’s speed for the catch-up time ($40\\times2$). Choice B, 100, simply adds the two speeds. Choice D, 180, multiplies the second car’s speed by the first car’s total travel time of 3 hours.' },
+
+  { id: 'GXM1-14', skill: 'adv_quadratic', difficulty: 'extreme', type: 'spr',
+    stem: 'In the equation $x^{2}-(k+3)x+(2k+2)=0$, $k$ is a positive constant. The two solutions of the equation have squares that sum to 13. What is the value of $k$?',
+    answer: '2',
+    explanation: 'Let the solutions be $r$ and $s$. By Vieta’s formulas, $r+s=k+3$ and $rs=2k+2$. The sum of their squares is $r^{2}+s^{2}=(r+s)^{2}-2rs=(k+3)^{2}-2(2k+2)=k^{2}+2k+5$. Setting this equal to 13 gives $k^{2}+2k-8=0$, so $(k+4)(k-2)=0$ and $k=2$ or $k=-4$. Since $k$ is positive, $k=2$. Check: $x^{2}-5x+6=0$ has solutions 2 and 3, and $2^{2}+3^{2}=13$.' },
+
+  { id: 'GXM1-15', skill: 'adv_rational', difficulty: 'extreme', type: 'mcq',
+    stem: 'For $x\\neq4$ and $x\\neq-4$, the expression $\\frac{2x^{2}+3x-20}{x^{2}-16}$ is equivalent to $\\frac{ax+b}{x-4}$, where $a$ and $b$ are constants. What is the value of $a+b$?',
+    choices: ['$-7$', '$-3$', '$3$', '$7$'], answer: 'B',
+    explanation: 'Factor the numerator and denominator. The numerator $2x^{2}+3x-20$ factors as $(2x-5)(x+4)$, and the denominator $x^{2}-16$ factors as $(x-4)(x+4)$. Canceling the common factor $x+4$ leaves $\\frac{2x-5}{x-4}$, so $a=2$ and $b=-5$, giving $a+b=-3$ (B). The other choices are the remaining sign combinations of 2 and 5: choice A is $(-2)+(-5)$, choice C is $(-2)+5$, and choice D is $2+5$ (taking $b$ as $+5$), each resulting from a sign error in factoring or canceling.' },
+
+  { id: 'GXM1-16', skill: 'geo_circles', difficulty: 'extreme', type: 'mcq',
+    stem: 'A sector of a circle of radius 6 has an area of $15\\pi$. What is the length of the arc that bounds this sector?',
+    choices: ['$\\frac{5\\pi}{6}$', '$5\\pi$', '$\\frac{5\\pi}{2}$', '$10\\pi$'], answer: 'B',
+    explanation: 'The area of a sector is $\\frac{1}{2}r^{2}\\theta$, where $\\theta$ is the central angle in radians. So $\\frac{1}{2}(6)^{2}\\theta=18\\theta=15\\pi$, giving $\\theta=\\frac{5\\pi}{6}$. The arc length is $s=r\\theta=6\\cdot\\frac{5\\pi}{6}=5\\pi$ (B). Equivalently, area $=\\frac{1}{2}rs$ gives $15\\pi=3s$, so $s=5\\pi$. Choice A reports the central angle $\\frac{5\\pi}{6}$ as if it were the arc length. Choice C, $\\frac{5\\pi}{2}$, divides the area by the radius. Choice D doubles the correct arc length.' },
+
+  { id: 'GXM1-17', skill: 'adv_functions', difficulty: 'extreme', type: 'mcq',
+    stem: 'The functions $f$ and $g$ are defined by $f(x)=2x-1$ and $g(x)=x^{2}+k$, where $k$ is a constant. If $f(g(2))=15$, what is the value of $g(f(2))$?',
+    choices: ['$9$', '$13$', '$15$', '$29$'], answer: 'B',
+    explanation: 'First find $k$. Since $g(2)=2^{2}+k=4+k$, we have $f(g(2))=2(4+k)-1=7+2k$. Setting $7+2k=15$ gives $k=4$, so $g(x)=x^{2}+4$. Now $f(2)=2(2)-1=3$, so $g(f(2))=g(3)=3^{2}+4=13$ (B). Choice A forgets to add $k$, computing $3^{2}=9$. Choice C just restates the given value $f(g(2))=15$. Choice D comes from miscomputing $f(2)$ as $2(2)+1=5$, giving $g(5)=25+4=29$.' },
+
+  { id: 'GXM1-18', skill: 'geo_trig', difficulty: 'extreme', type: 'mcq',
+    stem: 'In right triangle $PQR$, the right angle is at $Q$, side $PQ$ has length 6, and $\\tan P=\\frac{\\sqrt{7}}{3}$. What is the length of the hypotenuse $PR$?',
+    choices: ['$2\\sqrt{7}$', '$\\sqrt{43}$', '$8$', '$10$'], answer: 'C',
+    explanation: 'In right triangle $PQR$ with the right angle at $Q$, the legs are $PQ$ and $QR$ and the hypotenuse is $PR$. For angle $P$, the opposite side is $QR$ and the adjacent side is $PQ=6$, so $\\tan P=\\frac{QR}{6}=\\frac{\\sqrt{7}}{3}$, giving $QR=\\frac{6\\sqrt{7}}{3}=2\\sqrt{7}$. Then $PR=\\sqrt{PQ^{2}+QR^{2}}=\\sqrt{36+(2\\sqrt{7})^{2}}=\\sqrt{36+28}=\\sqrt{64}=8$ (C). Choice A, $2\\sqrt{7}$, is the leg $QR$, not the hypotenuse. Choice B, $\\sqrt{43}$, uses $\\sqrt{7}$ itself as the leg ($\\sqrt{36+7}$). Choice D, 10, wrongly assumes a 6-8-10 triangle.' }
+);
+
+/* gen: xtreme_math_2.js */
+/* gen: extreme math 2 */
+GEN_BANK.push(
+  { id: 'GXM2-01', skill: 'psda_stats', difficulty: 'extreme', type: 'spr',
+    stem: 'A set of 12 numbers has a mean of 30. When one of the numbers is removed, the mean of the remaining 11 numbers is 28. A separate set of 5 numbers has a mean of 40. If the number that was removed from the first set is inserted into the second set, what is the mean of the resulting set of 6 numbers?',
+    answer: '42',
+    explanation: 'The 12 numbers total $12 \\times 30 = 360$, and the 11 remaining numbers total $11 \\times 28 = 308$, so the removed number is $360 - 308 = 52$. The second set of 5 numbers totals $5 \\times 40 = 200$; inserting 52 gives a total of $200 + 52 = 252$ spread over 6 numbers, for a mean of $\\frac{252}{6} = 42$.' },
+
+  { id: 'GXM2-02', skill: 'psda_prob', difficulty: 'extreme', type: 'mcq',
+    stem: 'In a group of 300 people, 150 subscribe to streaming service $X$, 130 subscribe to streaming service $Y$, and 60 subscribe to both services. If a person is selected at random from those who subscribe to at least one of the two services, what is the probability that the person subscribes to exactly one of the two services?',
+    choices: ['$\\frac{8}{15}$', '$\\frac{8}{11}$', '$\\frac{3}{11}$', '$\\frac{11}{15}$'], answer: 'B',
+    explanation: 'The number subscribing to at least one service is $150 + 130 - 60 = 220$. Of these, 60 subscribe to both, so the number subscribing to exactly one is $220 - 60 = 160$. Restricting to the 220 people who subscribe to at least one service, the probability is $\\frac{160}{220} = \\frac{8}{11}$, choice (B). (A) $\\frac{8}{15} = \\frac{160}{300}$ divides by all 300 people instead of only those with at least one subscription. (C) $\\frac{3}{11} = \\frac{60}{220}$ is the probability of subscribing to both services, the complement of exactly one. (D) $\\frac{11}{15} = \\frac{220}{300}$ is the probability of subscribing to at least one service, ignoring the exactly-one condition.' },
+
+  { id: 'GXM2-03', skill: 'geo_circles', difficulty: 'extreme', type: 'mcq',
+    stem: 'In the $xy$-plane, a circle has its center at $(6, 8)$ and passes through the origin. From the external point $P(15, 0)$, a line is drawn tangent to the circle, touching it at point $T$. What is the length of segment $PT$?',
+    choices: ['$\\sqrt{145}$', '$7\\sqrt{5}$', '$3\\sqrt{5}$', '$3\\sqrt{15}$'], answer: 'C',
+    explanation: 'The radius equals the distance from the center to the origin: $r = \\sqrt{6^2 + 8^2} = \\sqrt{100} = 10$. The distance from $P$ to the center is $PC = \\sqrt{(15 - 6)^2 + (0 - 8)^2} = \\sqrt{81 + 64} = \\sqrt{145}$. A tangent is perpendicular to the radius at $T$, so triangle $PTC$ has its right angle at $T$, giving $PT = \\sqrt{PC^2 - r^2} = \\sqrt{145 - 100} = \\sqrt{45} = 3\\sqrt{5}$, choice (C). (A) $\\sqrt{145}$ is $PC$ itself, forgetting to subtract $r^2$. (B) $7\\sqrt{5} = \\sqrt{245}$ adds $r^2$ instead of subtracting it. (D) $3\\sqrt{15} = \\sqrt{135}$ subtracts $r$ rather than $r^2$.' },
+
+  { id: 'GXM2-04', skill: 'adv_functions', difficulty: 'extreme', type: 'mcq',
+    stem: 'The function $f$ is defined by $f(x) = ax + b$, where $a$ and $b$ are constants and $a > 0$. If $f(f(x)) = 9x - 4$ for all values of $x$, what is the value of $f(3)$?',
+    choices: ['8', '10', '2', '23'], answer: 'A',
+    explanation: 'Composing, $f(f(x)) = a(ax + b) + b = a^2 x + ab + b$. Matching this to $9x - 4$: the $x$-terms require $a^2 = 9$, so $a = 3$ (since $a > 0$), and the constant terms require $ab + b = b(a + 1) = -4$, so $4b = -4$ and $b = -1$. Thus $f(x) = 3x - 1$ and $f(3) = 3(3) - 1 = 8$, choice (A). (B) 10 comes from taking $b = +1$, a sign error. (C) 2 comes from misreading $ab + b$ as $a + b = -4$, giving $b = -7$ and $f(3) = 2$. (D) 23 evaluates $f(f(3)) = 9(3) - 4 = 23$ instead of $f(3)$.' },
+
+  { id: 'GXM2-05', skill: 'psda_percent', difficulty: 'extreme', type: 'spr',
+    stem: 'The price of a share of stock rose by 20% during the first week, then fell by 25% during the second week, and then rose by $p\\%$ during the third week. At the end of the third week, the price was 8% greater than the price at the start of the first week. What is the value of $p$?',
+    answer: '20',
+    explanation: 'Let the starting price be $P$. After a 20% rise the price is $1.20P$; after a 25% fall it is $1.20 \\times 0.75\\,P = 0.90P$. A rise of $p\\%$ in the third week multiplies by $\\left(1 + \\frac{p}{100}\\right)$, and the final price equals $1.08P$. So $0.90\\left(1 + \\frac{p}{100}\\right) = 1.08$, giving $1 + \\frac{p}{100} = \\frac{1.08}{0.90} = 1.20$. Therefore $\\frac{p}{100} = 0.20$ and $p = 20$.' },
+
+  { id: 'GXM2-06', skill: 'geo_trig', difficulty: 'extreme', type: 'mcq',
+    stem: 'In triangle $ABC$, $AB = AC = 10$ and the measure of angle $BAC$ is $120^\\circ$. What is the area of triangle $ABC$?',
+    choices: ['$50\\sqrt{3}$', '$50$', '$25$', '$25\\sqrt{3}$'], answer: 'D',
+    explanation: 'Drop an altitude from $A$ to the midpoint $M$ of $BC$. It bisects the $120^\\circ$ angle into two $60^\\circ$ angles, creating right triangle $AMB$ with hypotenuse $AB = 10$. Then $AM = 10\\cos 60^\\circ = 5$ and $BM = 10\\sin 60^\\circ = 5\\sqrt{3}$, so $BC = 2(5\\sqrt{3}) = 10\\sqrt{3}$. The area is $\\frac{1}{2}(BC)(AM) = \\frac{1}{2}(10\\sqrt{3})(5) = 25\\sqrt{3}$, choice (D). (A) $50\\sqrt{3}$ omits the factor $\\frac{1}{2}$. (B) 50 uses $\\frac{1}{2}(10)(10)$ but drops the sine factor, as if the angle were $90^\\circ$. (C) 25 uses $\\sin 120^\\circ = \\frac{1}{2}$, mistaking it for the sine of $30^\\circ$ instead of $\\frac{\\sqrt{3}}{2}$.' },
+
+  { id: 'GXM2-07', skill: 'adv_quadratic', difficulty: 'extreme', type: 'spr',
+    stem: 'In the equation $x^2 - bx + 27 = 0$, $b$ is a positive constant. One of the two solutions of the equation is 3 times the other solution. What is the value of $b$?',
+    answer: '12',
+    explanation: 'Let the two solutions be $r$ and $3r$. Their product equals the constant term: $r \\cdot 3r = 3r^2 = 27$, so $r^2 = 9$ and $r = 3$ (the positive value, since a positive $b$ forces both roots positive). The solutions are 3 and 9, and their sum equals $b$: $3 + 9 = 12$. Check: $x^2 - 12x + 27 = (x - 3)(x - 9)$, and $9 = 3 \\times 3$, so $b = 12$.' },
+
+  { id: 'GXM2-08', skill: 'psda_ratio', difficulty: 'extreme', type: 'mcq',
+    stem: 'In a jar, the ratio of red marbles to blue marbles is $7 : 4$. After 20 red marbles are removed from the jar, the ratio of red marbles to blue marbles becomes $3 : 4$. How many blue marbles are in the jar?',
+    choices: ['20', '35', '15', '55'], answer: 'A',
+    explanation: 'Write the counts as $7x$ red and $4x$ blue. Removing 20 red marbles leaves $7x - 20$ red, while the blue count is unchanged, so $\\frac{7x - 20}{4x} = \\frac{3}{4}$. Cross-multiplying gives $4(7x - 20) = 12x$, so $28x - 80 = 12x$, $16x = 80$, and $x = 5$. The number of blue marbles is $4x = 20$, choice (A). (B) 35 is the original red count $7x$. (C) 15 is the red count after removal, $7x - 20$. (D) 55 is the original total $7x + 4x = 11x$.' },
+
+  { id: 'GXM2-09', skill: 'geo_volume', difficulty: 'extreme', type: 'mcq',
+    stem: 'A right circular cone with height 12 and base radius 6 is oriented with its vertex pointing straight down. Water is poured into the cone until it reaches a depth of 8, measured vertically upward from the vertex. What fraction of the cone’s total volume is filled with water?',
+    choices: ['$\\frac{2}{3}$', '$\\frac{8}{27}$', '$\\frac{4}{9}$', '$\\frac{19}{27}$'], answer: 'B',
+    explanation: 'The water forms a smaller cone similar to the full cone, because they share the vertex and the same shape. The ratio of their heights is $\\frac{8}{12} = \\frac{2}{3}$, so every linear dimension of the water cone is $\\frac{2}{3}$ of the full cone’s. Volume scales as the cube of the linear ratio: $\\left(\\frac{2}{3}\\right)^3 = \\frac{8}{27}$, choice (B). (A) $\\frac{2}{3}$ is the ratio of heights (linear), not volume. (C) $\\frac{4}{9} = \\left(\\frac{2}{3}\\right)^2$ is the ratio of areas, not volume. (D) $\\frac{19}{27} = 1 - \\frac{8}{27}$ is the fraction of the volume that is empty.' },
+
+  { id: 'GXM2-10', skill: 'psda_prob', difficulty: 'extreme', type: 'mcq',
+    stem: 'A box contains 5 red balls and 3 green balls. Two balls are drawn from the box at random, one after the other, without replacement. Given that at least one of the two balls drawn is green, what is the probability that both balls drawn are green?',
+    choices: ['$\\frac{3}{28}$', '$\\frac{2}{7}$', '$\\frac{1}{6}$', '$\\frac{3}{8}$'], answer: 'C',
+    explanation: 'The number of ways to choose 2 balls from 8 is $\\frac{8 \\cdot 7}{2} = 28$. Choosing 2 green from the 3 green gives $\\frac{3 \\cdot 2}{2} = 3$ ways. The event “at least one green” is the complement of “both red,” and both red gives $\\frac{5 \\cdot 4}{2} = 10$ ways, so at least one green occurs in $28 - 10 = 18$ ways. The conditional probability is $\\frac{3}{18} = \\frac{1}{6}$, choice (C). (A) $\\frac{3}{28}$ is the unconditional probability that both are green, ignoring the given condition. (B) $\\frac{2}{7}$ is the probability the second ball is green given that the first is green. (D) $\\frac{3}{8}$ is the probability that a single drawn ball is green.' },
+
+  { id: 'GXM2-11', skill: 'adv_exponential', difficulty: 'extreme', type: 'spr',
+    stem: 'If $2^{2x} - 5\\left(2^{x}\\right) + 4 = 0$ and $x > 0$, what is the value of $x$?',
+    answer: '2',
+    explanation: 'Let $u = 2^{x}$. Since $2^{2x} = \\left(2^{x}\\right)^2 = u^2$, the equation becomes $u^2 - 5u + 4 = 0$, which factors as $(u - 1)(u - 4) = 0$. So $u = 1$ or $u = 4$, meaning $2^{x} = 1$ (giving $x = 0$) or $2^{x} = 4$ (giving $x = 2$). Because $x > 0$, the only valid solution is $x = 2$.' },
+
+  { id: 'GXM2-12', skill: 'psda_stats', difficulty: 'extreme', type: 'mcq',
+    stem: 'A list consists of 7 distinct integers. The three smallest integers in the list are 3, 5, and 8, and the median of the list is 12. If the mean of all 7 integers is 14, what is the greatest possible value of the largest integer in the list?',
+    choices: ['43', '45', '70', '44'], answer: 'A',
+    explanation: 'The 7 integers sum to $7 \\times 14 = 98$. Written in increasing order they begin $3, 5, 8, 12$, where 12 is the 4th value (the median), followed by three larger integers. The first four sum to $3 + 5 + 8 + 12 = 28$, so the top three sum to $98 - 28 = 70$. To maximize the largest, make the other two as small as possible while keeping all integers distinct and greater than 12: the smallest available are 13 and 14. The largest is then $70 - 13 - 14 = 43$, choice (A). (B) 45 lets the fifth value equal the median 12, but the integers must be distinct. (C) 70 places the entire remaining sum in one value, ignoring that two other integers above 12 are also required. (D) 44 uses 13 and 13, which are not distinct.' },
+
+  { id: 'GXM2-13', skill: 'geo_circles', difficulty: 'extreme', type: 'spr',
+    stem: 'In the $xy$-plane, a circle is defined by the equation $x^2 + y^2 - 6x + 8y + 9 = 0$. A sector of this circle has an area of $\\frac{16\\pi}{5}$. What is the measure, in degrees, of the central angle of this sector?',
+    answer: '72',
+    explanation: 'Complete the square: $(x^2 - 6x) + (y^2 + 8y) = -9$ becomes $(x - 3)^2 + (y + 4)^2 = -9 + 9 + 16 = 16$, so $r^2 = 16$ and the full circle’s area is $\\pi r^2 = 16\\pi$. A sector with central angle $\\theta$ degrees has area $\\frac{\\theta}{360}(16\\pi)$. Setting $\\frac{\\theta}{360}(16\\pi) = \\frac{16\\pi}{5}$ gives $\\frac{\\theta}{360} = \\frac{1}{5}$, so $\\theta = \\frac{360}{5} = 72$ degrees.' },
+
+  { id: 'GXM2-14', skill: 'adv_rational', difficulty: 'extreme', type: 'mcq',
+    stem: 'For a constant $k$, the equation $\\frac{x + 2}{x - 1} = k$ has no real solution for $x$. What is the value of $k$?',
+    choices: ['-2', '0', '-1', '1'], answer: 'D',
+    explanation: 'Multiplying both sides by $x - 1$ gives $x + 2 = k(x - 1)$, so $x + 2 = kx - k$ and $x - kx = -k - 2$, i.e., $x(1 - k) = -(k + 2)$. This can be solved for $x$ unless the coefficient $1 - k = 0$, that is $k = 1$. When $k = 1$ the equation becomes $x + 2 = x - 1$, or $2 = -1$, which is never true, so there is no solution; the value 1 is the horizontal asymptote of $\\frac{x + 2}{x - 1}$, an output the function approaches but never reaches. The answer is (D). (A) $k = -2$ gives $x = 0$, a valid solution. (B) $k = 0$ gives $x = -2$, a valid solution. (C) $k = -1$ gives $x = -\\frac{1}{2}$, a valid solution.' },
+
+  { id: 'GXM2-15', skill: 'psda_data', difficulty: 'extreme', type: 'mcq',
+    stem: 'A biologist models the size of a population using the equation $P = 120 + 8t$, where $t$ is the number of whole months since the study began. According to this model, during which month will the population first exceed 250?',
+    choices: ['16', '17', '18', '32'], answer: 'B',
+    explanation: 'Solve $120 + 8t > 250$: $8t > 130$, so $t > 16.25$. Since $t$ counts whole months, the first month for which the population exceeds 250 is $t = 17$, choice (B). Check: at $t = 16$, $P = 120 + 128 = 248$, still below 250; at $t = 17$, $P = 120 + 136 = 256$, above 250. (A) 16 rounds 16.25 down, but month 16 reaches only 248. (C) 18 rounds up one month too far. (D) 32 comes from solving $8t = 250$ ($t \\approx 31.25$, then rounding up), ignoring the initial value of 120.' },
+
+  { id: 'GXM2-16', skill: 'geo_trig', difficulty: 'extreme', type: 'mcq',
+    stem: 'From a point on level ground, the angle of elevation to the top of a vertical flagpole is $30^\\circ$. From a second point on the same straight path, 50 feet closer to the base of the flagpole, the angle of elevation to the top is $45^\\circ$. What is the height, in feet, of the flagpole?',
+    choices: ['$25(\\sqrt{3} + 1)$', '$25(\\sqrt{3} - 1)$', '$50(\\sqrt{3} + 1)$', '$25\\sqrt{3}$'], answer: 'A',
+    explanation: 'Let $h$ be the height and $d$ the horizontal distance from the closer point to the base. From the closer point, $\\tan 45^\\circ = \\frac{h}{d} = 1$, so $d = h$. From the farther point, $\\tan 30^\\circ = \\frac{h}{d + 50} = \\frac{1}{\\sqrt{3}}$, so $d + 50 = h\\sqrt{3}$. Substituting $d = h$ gives $h + 50 = h\\sqrt{3}$, so $50 = h(\\sqrt{3} - 1)$ and $h = \\frac{50}{\\sqrt{3} - 1} = \\frac{50(\\sqrt{3} + 1)}{(\\sqrt{3} - 1)(\\sqrt{3} + 1)} = \\frac{50(\\sqrt{3} + 1)}{2} = 25(\\sqrt{3} + 1)$, choice (A). (B) $25(\\sqrt{3} - 1)$ rationalizes with the wrong sign. (C) $50(\\sqrt{3} + 1)$ forgets to divide by 2 after rationalizing. (D) $25\\sqrt{3}$ keeps only one of the two terms, dropping the $+1$.' },
+
+  { id: 'GXM2-17', skill: 'adv_polynomial', difficulty: 'extreme', type: 'spr',
+    stem: 'The polynomial $p(x) = x^3 + ax^2 - 13x + b$, where $a$ and $b$ are constants, is divisible by both $(x - 1)$ and $(x + 3)$. What is the value of $p(2)$?',
+    answer: '-15',
+    explanation: 'If $(x - 1)$ and $(x + 3)$ are factors, then $p(1) = 0$ and $p(-3) = 0$. From $p(1) = 1 + a - 13 + b = 0$ we get $a + b = 12$. From $p(-3) = -27 + 9a + 39 + b = 0$ we get $9a + b = -12$. Subtracting the first equation from the second gives $8a = -24$, so $a = -3$ and $b = 15$. Then $p(x) = x^3 - 3x^2 - 13x + 15$, and $p(2) = 8 - 12 - 26 + 15 = -15$.' },
+
+  { id: 'GXM2-18', skill: 'psda_percent', difficulty: 'extreme', type: 'mcq',
+    stem: 'At a company, 60% of the employees are engineers and the remaining 40% are non-engineers. Exactly 40% of the engineers hold a graduate degree, and exactly 75% of the non-engineers hold a graduate degree. If an employee who holds a graduate degree is selected at random, what is the probability that this employee is an engineer?',
+    choices: ['$\\frac{2}{5}$', '$\\frac{6}{25}$', '$\\frac{4}{9}$', '$\\frac{5}{9}$'], answer: 'C',
+    explanation: 'Consider 100 employees: 60 engineers and 40 non-engineers. Engineers with a graduate degree number $0.40 \\times 60 = 24$; non-engineers with a graduate degree number $0.75 \\times 40 = 30$. The total number of graduate-degree holders is $24 + 30 = 54$. Among these, the fraction who are engineers is $\\frac{24}{54} = \\frac{4}{9}$, choice (C). (A) $\\frac{2}{5}$ merely restates the 40% graduate rate among engineers, not the requested conditional probability. (B) $\\frac{6}{25} = \\frac{24}{100}$ is the probability of being an engineer with a graduate degree, not conditioned on holding a degree. (D) $\\frac{5}{9} = \\frac{30}{54}$ is the probability that the graduate-degree holder is a non-engineer, the complement.' }
+);
+
+/* gen: xtreme_rw_1.js */
+/* gen: extreme rw 1 */
+GEN_BANK.push(
+  {
+    id: 'GXR1-01',
+    skill: 'rw_vocab',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Critics have long remarked on the economy of Elizabeth Bishop’s descriptions: a single, precisely chosen detail is made to bear the weight a lesser poet would spread across a dozen lines. Nothing is wasted, and nothing merely decorative is admitted; the finished poem withholds far more than it states.',
+    stem: 'As used in the text, what does the word “economy” most nearly mean?',
+    choices: ['Careful management of money', 'Sparing use of available means', 'Inexpensive simplicity', 'Orderly arrangement of parts'],
+    answer: 'B',
+    explanation: 'Correct: B. The passage glosses “economy” through “Nothing is wasted” and a single detail made to bear great weight — a frugal, sparing use of means. A imports the monetary sense the literary context never invokes. C also trades on the money sense and adds cheapness, which is not implied. D is the near-miss: “economy” can denote the orderly arrangement of a system’s parts, and a poem does have such an arrangement — but the text stresses frugality (withholding, nothing wasted), not structure, so B is the only fully supported reading.'
+  },
+  {
+    id: 'GXR1-02',
+    skill: 'rw_purpose',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Kuhn’s critics often charge him with irrationalism, as though his account of scientific revolutions reduced the choice between paradigms to mere mob psychology. But this reading mistakes description for endorsement. When Kuhn observes that rival paradigms are incommensurable, he is not celebrating the collapse of reasoned debate; he is diagnosing why practitioners so often argue past one another without ever quite meeting.',
+    stem: 'Which choice best describes the main function of the sentence “But this reading mistakes description for endorsement” in the text?',
+    choices: ['It offers empirical evidence that disproves the critics’ charge.', 'It concedes a genuine limitation in Kuhn’s position.', 'It marks a turn from stating the critics’ objection to rejecting it.', 'It introduces a technical term that the rest of the passage defines.'],
+    answer: 'C',
+    explanation: 'Correct: C. The sentence pivots from reporting the critics’ charge (irrationalism) to overturning it, setting up the “not … but” contrast that follows. A is the near-miss: the sentence does oppose the critics, so one may hear it as “evidence against” them — but it advances a conceptual distinction (description versus endorsement), not empirical data, so A misnames its method. B is wrong because the author grants nothing; the sentence attacks the reading rather than conceding a flaw. D is wrong because the technical term “incommensurable” is introduced later, not here.'
+  },
+  {
+    id: 'GXR1-03',
+    skill: 'rw_connections',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Text 1\nHistorians once treated the Scientific Revolution as a clean break: a sudden triumph of observation over inherited authority. On this view, Galileo had only to raise his telescope and report what any honest eye would see.\n\nText 2\nRecent scholarship complicates the story. Galileo’s observations were not self-interpreting. They won authority only after he had persuaded skeptical readers to trust an instrument that, turned on earthly objects, was known to distort what it magnified. Seeing, it turned out, had first to be argued for.',
+    stem: 'Which choice best describes how Text 2 responds to the account in Text 1?',
+    choices: ['It argues that observations Text 1 treats as straightforward had to be argued into acceptance.', 'It denies Text 1’s claim that Galileo made telescopic observations at all.', 'It adds further examples confirming Text 1’s picture of a clean break.', 'It maintains that Aristotelian authority endured longer than Text 1 allows.'],
+    answer: 'A',
+    explanation: 'Correct: A. Text 2 grants that Galileo observed but insists the observations were “not self-interpreting” and won authority only through persuasion — they had to be argued into counting as evidence. D is the near-miss: Text 2 mentions “skeptical readers,” which may hint at lingering Aristotelian resistance, but its actual claim concerns how observation becomes authoritative, not how long Aristotle’s authority lasted; D adds a thesis Text 2 never states. B contradicts Text 2, which assumes Galileo did observe. C reverses Text 2, which complicates rather than confirms the “clean break.”'
+  },
+  {
+    id: 'GXR1-04',
+    skill: 'rw_main',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'For Kant the sublime is not a property of objects. A raging sea is not itself sublime; it becomes so only in the observer who, momentarily overwhelmed, discovers in reason a vantage from which even the boundless can be thought. The feeling humbles and exalts at once: we are made to feel small, yet the very capacity to register that smallness attests to a faculty no storm can reach.',
+    stem: 'Which choice best states the main idea of the text?',
+    choices: ['The sublime is chiefly a feature of powerful natural objects such as storms.', 'For Kant, the sublime discloses the mind’s power even as it registers the mind’s limits.', 'Kant held that the sublime and the beautiful produce identical responses.', 'Reason shields the observer from the physical dangers that nature presents.'],
+    answer: 'B',
+    explanation: 'Correct: B. The passage says the sublime “humbles and exalts at once”: we feel small, yet our very registering of that smallness reveals a faculty (reason) “no storm can reach.” A is the near-miss: the sea and storm are vivid here, tempting the reader to locate the sublime in them — but the opening sentence flatly denies this (“not a property of objects”), placing it in the observer. C introduces the beautiful, which the passage never mentions. D misreads “no storm can reach” as bodily safety; the protection described is mental, not physical.'
+  },
+  {
+    id: 'GXR1-05',
+    skill: 'rw_evidence',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Ecologists have proposed that the extraordinary diversity of tropical trees is sustained by specialized enemies. Seedlings that sprout near an adult of their own species die at higher rates, because species-specific soil fungi accumulate beneath each parent tree. If this mechanism operates, no species can come to dominate the ground immediately around itself, and many species coexist.',
+    stem: 'Which finding, if true, would most directly support the ecologists’ hypothesis?',
+    choices: ['Seedlings survive equally well whether they grow near or far from adults of their own species.', 'Tropical soils contain a greater variety of fungi than temperate soils do.', 'Seedlings far from same-species adults survive better than nearby ones, and applying fungicide erases the difference.', 'Adults of the same species tend to grow clustered closely together.'],
+    answer: 'C',
+    explanation: 'Correct: C. The hypothesis has two parts — higher mortality near same-species adults, caused by soil fungi. C tests both: it confirms the distance effect and shows that removing the fungi (fungicide) removes the effect. B is the near-miss: greater fungal variety in the tropics sounds supportive of a fungus-based story, but it says nothing about distance-dependent seedling death and so does not test the mechanism. A directly contradicts the hypothesis. D, clustering of adults, is at best neutral and arguably cuts against a force that should disperse same-species individuals.'
+  },
+  {
+    id: 'GXR1-06',
+    skill: 'rw_inference',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'A standing puzzle for theories of testimony is that we routinely gain knowledge from speakers whose reliability we have never independently checked. The infant does not audit her parents before learning the names of things. Some philosophers conclude that trust is our default stance, revised only when we meet a reason for suspicion. If they are right, then in ordinary talk the burden falls not on the speaker to earn belief but ______',
+    stem: 'Which choice most logically completes the text?',
+    choices: ['on the listener to produce reasons for withholding it.', 'on the speaker to establish credentials before speaking.', 'on the listener to suspend belief until the speaker’s reliability is confirmed.', 'on both parties to negotiate the terms of trust in advance.'],
+    answer: 'A',
+    explanation: 'Correct: A. If trust is the default and is “revised only when we meet a reason for suspicion,” then belief is extended automatically and doubt is what must be justified — the listener has to supply grounds to withhold trust. C is the near-miss: it also places the onus on the listener, but “suspend belief until reliability is confirmed” describes a default of distrust, the exact reverse of the view stated. B returns the burden to the speaker, contradicting the “not on the speaker” clause. D splits the burden evenly, which the passage’s asymmetric picture rejects.'
+  },
+  {
+    id: 'GXR1-07',
+    skill: 'rw_vocab',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Darwin was unusually sensible of the objections his theory would provoke. He gave over an entire chapter of the Origin to difficulties a less scrupulous author might quietly have buried, precisely because he could already feel the force of the resistance to come and preferred to meet it in the open.',
+    stem: 'As used in the text, what does the phrase “sensible of” most nearly mean?',
+    choices: ['Reasonable about', 'Resigned to', 'Sympathetic toward', 'Acutely aware of'],
+    answer: 'D',
+    explanation: 'Correct: D. “Sensible of” here means keenly conscious of; Darwin foresaw the objections so clearly that he confronted them head-on. A is a trap built on the modern sense of “sensible” (level-headed), which does not fit the idiom “sensible of.” B is the near-miss: because Darwin expected resistance, “resigned to” feels apt — but resignation implies passive acceptance, whereas the passage shows him actively meeting the objections, and “sensible of” denotes awareness, not acquiescence. C (“sympathetic toward”) misplaces feeling where the phrase means perception.'
+  },
+  {
+    id: 'GXR1-08',
+    skill: 'rw_purpose',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Adam Smith is popularly remembered as the prophet of self-interest, the man who taught that the baker feeds us not from benevolence but from regard to his own gain. Readers who stop there never reach The Theory of Moral Sentiments, in which Smith grounds the whole edifice of commercial society in our power to imagine our way into the feelings of others. The butcher and the baker are less a celebration of selfishness than an account of how sympathy is economized among strangers.',
+    stem: 'Which choice best describes the primary function of the final sentence of the text?',
+    choices: ['It restates the popular image of Smith offered at the opening.', 'It resolves an apparent tension by reinterpreting the earlier image through Smith’s other book.', 'It concedes that Smith’s two books cannot be reconciled.', 'It supplies biographical detail explaining a change in Smith’s views.'],
+    answer: 'B',
+    explanation: 'Correct: B. The final sentence takes the famous butcher-and-baker image and recasts it (“less a celebration of selfishness than an account of how sympathy is economized”), dissolving the apparent conflict with The Theory of Moral Sentiments. A is the near-miss: the sentence does return to the butcher and baker, so it can look like a restatement — but it reinterprets that image rather than repeating the popular view, which is precisely the point. C is contradicted, since the sentence reconciles the two books. D invents a biographical “change of view” the passage never asserts; Smith is presented as consistent, not converted.'
+  },
+  {
+    id: 'GXR1-09',
+    skill: 'rw_connections',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Text 1\nThe classic defense of free speech, descending from Mill, holds that truth emerges from the open collision of opinions. Even false claims earn their keep, for they compel truth to be defended afresh rather than dozed over as inherited dogma.\n\nText 2\nMill’s marketplace assumes that its participants share an interest in truth and roughly equal means of being heard. Where attention is bought and outrage rewarded, the collision of opinions may select not for what is true but for what is most provoking. The cure Mill prescribed presupposes conditions his modern admirers cannot simply assume.',
+    stem: 'Based on the two texts, the author of Text 2 would most likely characterize the defense described in Text 1 as',
+    choices: ['fundamentally mistaken about the usefulness of false opinions.', 'an obsolete view with little bearing on present controversy.', 'a covert argument for suppressing provocative speech.', 'sound in principle but reliant on conditions that may not hold.'],
+    answer: 'D',
+    explanation: 'Correct: D. Text 2 does not reject Mill’s rationale; it observes that the rationale “presupposes conditions” — a shared interest in truth, roughly equal means of being heard — that modern circumstances may not supply. That is endorsement in principle, qualified in practice. B is the near-miss: Text 2 is critical and dwells on changed conditions, so “obsolete, little bearing” tempts — but Text 2 treats Mill’s argument as valid wherever its conditions obtain, not as irrelevant. A misstates Text 2, which never disputes the usefulness of false opinions. C is unsupported; Text 2 diagnoses a problem but proposes no censorship.'
+  },
+  {
+    id: 'GXR1-10',
+    skill: 'rw_main',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'To call a translation faithful is to lean on a metaphor whose innocence dissolves under pressure. Faithful to what? The literal sense of each word, the music of the whole, the effect on an original audience now long dead — these fidelities routinely conflict, so that to honor one is to betray another. The able translator does not uncover the single faithful rendering; she decides, loss by loss, which infidelities she can live with.',
+    stem: 'Which choice best states the main idea of the text?',
+    choices: ['Translators should give priority to preserving each word’s literal sense.', 'Faithful translation is impossible because languages share nothing in common.', 'The finest translations recreate the effect a text had on its first audience.', 'Because kinds of fidelity conflict, translating is a matter of choosing which losses to accept.'],
+    answer: 'D',
+    explanation: 'Correct: D. The passage says the competing fidelities “routinely conflict” so that honoring one betrays another, and that the translator “decides, loss by loss, which infidelities she can live with.” C is the near-miss: “the effect on an original audience” appears in the text, tempting the reader to take it as the endorsed goal — but it is listed only as one of several conflicting fidelities, none of which is crowned. A likewise elevates a single fidelity (literal sense) the passage refuses to privilege. B overshoots: the text says fidelities conflict, not that languages share nothing, and it treats translation as possible though lossy.'
+  },
+  {
+    id: 'GXR1-11',
+    skill: 'rw_evidence',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Linguists ask why some languages pack many meanings into single words while others spread meaning across many short ones. One hypothesis holds that a language acquired by large numbers of adult learners drifts toward the second, simpler pattern, because adults, unlike young children, struggle to master the intricate machinery packed inside a single word.',
+    stem: 'Which finding, if true, would most strongly support the hypothesis described in the text?',
+    choices: ['Languages taken up by large numbers of adult learners tend, over generations, to shed complex word-internal structure.', 'Languages spoken in small, isolated communities tend to keep complex word-internal structure for long stretches of time.', 'Children learn synthetic and analytic languages with roughly equal ease.', 'Analytic languages tend to have simpler sound systems than synthetic ones.'],
+    answer: 'A',
+    explanation: 'Correct: A. The hypothesis is causal: many adult learners drive a language toward the simpler pattern. A instantiates exactly that link — large adult-learner populations followed by loss of word-internal complexity. B is the near-miss: the mirror-image correlation (small, isolated communities retaining complexity) is consistent with the hypothesis, but it does not isolate adult learning as the cause, since isolation covaries with many factors; it supports the idea only indirectly and so is weaker than A. C concerns children alone and does not test the adult-versus-child asymmetry the hypothesis relies on. D addresses sound systems, which the hypothesis never mentions.'
+  },
+  {
+    id: 'GXR1-12',
+    skill: 'rw_inference',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'The placebo effect poses an awkward question for medical ethics. If a sugar pill measurably eases pain, then to withhold it is to withhold a real benefit; yet to prescribe it seems to require the physician to deceive. Recent trials, however, find that some patients improve even after being told plainly that their pills contain nothing active. To the extent that such open-label results hold up, they imply that the placebo’s power does not depend on ______',
+    stem: 'Which choice most logically completes the text?',
+    choices: ['the involvement of a licensed physician.', 'any real improvement in the patient’s symptoms.', 'the patient’s being deceived about what the pill contains.', 'the presence of an active pharmacological ingredient.'],
+    answer: 'C',
+    explanation: 'Correct: C. The inference is licensed specifically by the open-label result: patients improve even when told plainly that the pill is inert, so the effect cannot require deception. D is the near-miss: it is perfectly true that a placebo has no active ingredient, and “does not depend on an active ingredient” sounds right — but that fact was already given and is not what the open-label finding newly shows; the cited evidence bears on deception, not on chemistry, so C is the completion the passage actually supports. A introduces physicians, whom the open-label finding does not address. B is contradicted by “measurably eases pain” and “some patients improve.”'
+  }
+);
+
+/* gen: xtreme_rw_2.js */
+/* gen: extreme rw 2 */
+GEN_BANK.push(
+  {
+    id: 'GXR2-01',
+    skill: 'rw_boundaries',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'The magazine profile marveled that a single venture could unite three such different ______ Ravi Menon, an aerospace engineer; Dolores Ferrán, a corporate attorney; and Kwame Osei, a documentary filmmaker who had never once set foot in a laboratory.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['individuals: ', 'individuals; ', 'individuals, ', 'individuals. '],
+    answer: 'A',
+    explanation: 'Rule: a colon follows a grammatically complete clause to introduce material that specifies or identifies what precedes it, and a series whose items already contain commas is separated by semicolons. “The magazine profile marveled that a single venture could unite three such different individuals” is a complete sentence, so the colon in (A) correctly introduces the three named people. (B) is wrong because a semicolon cannot introduce a list and what follows is not an independent clause; (C) a comma is too weak to launch the elaborating list and collides with the semicolons already separating the items; (D) a period creates a fragment, since “Ravi Menon, an aerospace engineer; …” has no main verb.'
+  },
+  {
+    id: 'GXR2-02',
+    skill: 'rw_sva',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Professor Halvorsen is one of those rare lecturers who ______ able to make even the driest statutory language feel urgent, weaving decades-old court decisions into stories her first-year students still recount long after the final exam has ended.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['is', 'are', 'was', 'were'],
+    answer: 'B',
+    explanation: 'Rule: in the construction “one of those [plural noun] who [verb],” the relative pronoun “who” refers to the plural noun, so the verb is plural; here the present-tense frame (“is,” “recount,” “feel”) also fixes the tense as present. “Who” refers to “lecturers,” giving the plural present “are.” (A) “is” and (C) “was” are singular, mistakenly agreeing with “one” rather than “lecturers”; (D) “were” is plural but past, breaking the present-tense frame of the sentence.'
+  },
+  {
+    id: 'GXR2-03',
+    skill: 'rw_verb',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Had the expedition’s radio not failed on that bitterly cold third night, the rescue teams ______ the stranded climbers days earlier, well before the second storm front swept across the ridge and buried the last of their tracks.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['would reach', 'will have reached', 'would have reached', 'had reached'],
+    answer: 'C',
+    explanation: 'Rule: the inverted clause “Had the radio not failed” is a past counterfactual condition equivalent to “If the radio had not failed,” and the result clause of a past counterfactual requires “would have” plus a past participle. “Would have reached” is correct. (A) “would reach” is the present or future counterfactual form, wrong for a hypothetical about the past; (B) “will have reached” is future perfect, but nothing here is future; (D) “had reached” is past perfect, which belongs in the condition clause, not the result clause.'
+  },
+  {
+    id: 'GXR2-04',
+    skill: 'rw_modifiers',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Long dismissed as a mere curiosity of the desert night, ______ Only in the last decade have biologists come to suspect that the animal’s uncanny ability to survive without ever drinking water might one day inform the design of drought-resistant crops.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['researchers have only recently begun to take the kangaroo rat seriously.', 'the kangaroo rat’s specialized kidneys have only recently drawn close scrutiny.', 'there is now considerable scientific interest in the kangaroo rat.', 'the kangaroo rat has only recently earned scientists’ serious attention.'],
+    answer: 'D',
+    explanation: 'Rule: an introductory participial phrase must modify the noun named immediately after the comma, and that noun must be the thing the phrase can logically describe. Only the kangaroo rat can be the creature “long dismissed as a mere curiosity of the desert night,” so (D), which places “the kangaroo rat” right after the comma, is correct. (A) makes “researchers” the thing dismissed as a curiosity; (B) makes the rat’s “kidneys” the desert curiosity; (C) supplies the placeholder “there.” Each leaves the modifier dangling.'
+  },
+  {
+    id: 'GXR2-05',
+    skill: 'rw_transitions',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'For decades, conventional wisdom held that adding lanes to a congested highway would ease traffic. The additional capacity, however, tends to attract so many new drivers that the road soon grows as clogged as it was before; ______ a number of transportation economists now contend that the surest way to relieve congestion may be to remove lanes rather than to add them.',
+    stem: 'Which choice completes the text with the most logical transition?',
+    choices: ['consequently,', 'nevertheless,', 'for example,', 'by comparison,'],
+    answer: 'A',
+    explanation: 'The clause before the blank explains that added capacity paradoxically fills up again; the economists’ recommendation is drawn as a conclusion from that fact, so the result transition “consequently” is correct. “Nevertheless” wrongly signals concession, as if the recommendation held in spite of the preceding facts, when it actually follows from them. “For example” is wrong because the economists’ argument is an inference, not an instance of the congestion. “By comparison” signals a comparison the text never makes.'
+  },
+  {
+    id: 'GXR2-06',
+    skill: 'rw_synthesis',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'While researching the history of cartography, a student has taken the following notes:\n• The Hereford Mappa Mundi (about 1300) is a medieval map of the world drawn on a single sheet of vellum.\n• It places Jerusalem at its center and puts east, rather than north, at the top.\n• It freely blends geography with biblical history, depicting scenes such as the Garden of Eden.\n• Modern maps prize measurable accuracy over symbolic or religious meaning.',
+    stem: 'The student wants to emphasize how the Hereford Mappa Mundi differs from modern maps. Which choice most effectively uses relevant information from the notes to accomplish this goal?',
+    choices: ['The Hereford Mappa Mundi, drawn around 1300, is a medieval map of the world on a single sheet of vellum.', 'Unlike modern maps, which prize measurable accuracy, the Hereford Mappa Mundi centers on Jerusalem and freely blends geography with biblical history.', 'The Hereford Mappa Mundi puts east, rather than north, at the top and places Jerusalem at its center.', 'Like the Hereford Mappa Mundi, modern maps freely combine geography with religious history.'],
+    answer: 'B',
+    explanation: 'The goal is to stress a difference from modern maps, and only (B) draws the explicit contrast, opening with “Unlike modern maps, which prize measurable accuracy.” (A) merely describes the map without any comparison; (C) lists distinctive features but never connects them to modern maps, so it does not accomplish the stated comparison; (D) asserts a similarity that flatly contradicts the note that modern maps prize accuracy over symbolic or religious meaning.'
+  },
+  {
+    id: 'GXR2-07',
+    skill: 'rw_quant',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'An analyst compared four of a company’s product lines, recording the number of units each sold last year and the profit earned on each unit:\nLine P: 40,000 units, $6 profit per unit\nLine Q: 12,000 units, $22 profit per unit\nLine R: 25,000 units, $9 profit per unit\nLine S: 8,000 units, $30 profit per unit\nThe analyst wanted to determine which line generated the greatest total profit last year.',
+    stem: 'Which choice most effectively uses data from the text to identify that line?',
+    choices: ['Line S generated the greatest total profit, because it earned the highest profit per unit.', 'Line P generated the greatest total profit, because it sold the most units.', 'Line Q generated the greatest total profit, at $264,000.', 'Line R generated the greatest total profit, at $225,000.'],
+    answer: 'C',
+    explanation: 'Total profit equals units multiplied by profit per unit, so the values are P = 40,000 × $6 = $240,000, Q = 12,000 × $22 = $264,000, R = 25,000 × $9 = $225,000, and S = 8,000 × $30 = $240,000; the greatest is Line Q, making (C) correct. (A) is lured by the highest per-unit figure (S’s $30, yet only $240,000 total); (B) is lured by the largest volume (P’s 40,000 units, again $240,000); (D) names Line R, which actually earns the least. Only (C) reflects the two-step calculation.'
+  },
+  {
+    id: 'GXR2-08',
+    skill: 'rw_boundaries',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Responding to mounting pressure from regulators, the manufacturer agreed to recall every scooter ______ had been assembled at its Ohio plant before June, even as it insisted that the units built afterward, which relied on a redesigned wiring harness, posed no danger at all.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', which ', '; which ', ', that ', 'that '],
+    answer: 'D',
+    explanation: 'Rule: a clause that restrictively identifies which noun is meant attaches directly with “that” and takes no preceding comma. The clause “____ had been assembled at its Ohio plant before June” tells the reader which scooters are recalled, so the restrictive “that” in (D) is correct. (A) “, which” makes the clause nonrestrictive, illogically implying that every scooter was assembled in Ohio before June; (B) “; which” misuses a semicolon, which cannot attach a dependent relative clause; (C) “, that” is never standard, because restrictive “that” is not preceded by a comma. The correctly nonrestrictive “which relied on a redesigned wiring harness” later in the sentence points up the contrast.'
+  },
+  {
+    id: 'GXR2-09',
+    skill: 'rw_verb',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'The safety board’s regulations leave no room for interpretation on this point: they require that every reactor operator, no matter how many years of experience he or she may happen to have, ______ the emergency shutdown drill in person at least twice in each calendar year.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['complete', 'completes', 'completed', 'has completed'],
+    answer: 'A',
+    explanation: 'Rule: a clause governed by a verb of demand or requirement, such as “require that,” takes the mandative subjunctive, which uses the base form of the verb regardless of the subject’s number. “Require that every reactor operator … complete” is correct. (B) “completes” is the ordinary indicative, wrongly pulled toward agreement with the singular “operator”; (C) “completed” is past tense; (D) “has completed” is present-perfect indicative. Only the base-form subjunctive is correct after “require that.”'
+  },
+  {
+    id: 'GXR2-10',
+    skill: 'rw_sva',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'Stored for decades in the museum’s poorly lit basement, the vast collection of pre-Columbian textiles that curators had carefully catalogued but never once put on public display ______ at last being restored, thread by fragile thread, by a team of conservators flown in from three different continents.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['are', 'is', 'were', 'have been'],
+    answer: 'B',
+    explanation: 'Rule: a verb agrees with its subject’s head noun, not with a noun in an intervening modifier. The subject is the singular “collection”; everything from “of pre-Columbian textiles” through “public display” is a modifier, so the singular “is” (“is … at last being restored”) is correct. (A) “are” and (C) “were” agree with the plural “textiles,” which is not the subject; (D) “have been” is likewise plural and, paired with “being restored,” is ungrammatical. The singular “collection” governs the verb across the long interrupter.'
+  },
+  {
+    id: 'GXR2-11',
+    skill: 'rw_synthesis',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'While studying animal cognition, a student has taken the following notes:\n• New Caledonian crows can bend straight pieces of wire into hooks to retrieve food.\n• In controlled experiments, individual crows solved novel tasks they had never encountered before.\n• Some crows fashioned tools from materials not found in their natural habitat.\n• A few researchers caution that these behaviors may be less flexible than they appear.',
+    stem: 'The student wants to present a generalization about the crows’ tool-making abilities that the experiments support. Which choice most effectively uses relevant information from the notes to accomplish this goal?',
+    choices: ['Some researchers caution that the crows’ tool-making behaviors may be less flexible than they appear.', 'New Caledonian crows can bend straight pieces of wire into hooks to retrieve food.', 'In experiments, New Caledonian crows bent wire into hooks, solved tasks they had never seen before, and used materials foreign to their habitat, evidence of a flexible capacity for tool making.', 'New Caledonian crows are without question the most intelligent of all birds.'],
+    answer: 'C',
+    explanation: 'A generalization gathers specific findings into a broader claim that the evidence supports, which only (C) does, drawing on three experimental results to support the idea of a flexible tool-making capacity. (A) reports the researchers’ caveat rather than a generalization about ability; (B) states a single specific behavior, not a generalization; (D) does generalize but goes beyond the notes, which never compare crows with other birds and so cannot support “the most intelligent of all birds.”'
+  },
+  {
+    id: 'GXR2-12',
+    skill: 'rw_transitions',
+    difficulty: 'extreme',
+    type: 'mcq',
+    passage: 'The novelist claimed in interview after interview that she never revised, that each sentence arrived whole and final on the very first attempt. Her surviving manuscripts tell a different story. ______ the drafts of her most celebrated novel are so thickly crossed out and rewritten that a number of the pages are now nearly illegible.',
+    stem: 'Which choice completes the text with the most logical transition?',
+    choices: ['However,', 'Nonetheless,', 'By contrast,', 'In fact,'],
+    answer: 'D',
+    explanation: 'The sentence after the blank supplies concrete proof for the sentence just before it, that the manuscripts “tell a different story,” so an intensifying, confirming transition is needed: “In fact.” “However” and “By contrast” wrongly signal opposition, but the blank sentence agrees with the one before it; the contradiction the passage describes lies between the novelist’s claim and her manuscripts, not between these two adjacent sentences. “Nonetheless” signals a concession the passage does not make here.'
+  }
+);
+
 /* =========================================================================
    DATA:LESSONS — Khan-style mini-lessons, one per skill.
    Schema:
@@ -4510,13 +5438,145 @@ function buildLessons() {
 
 
 /* =========================================================================
-   DATA:STRATEGIES — CookSAT-style digital-SAT tactics.
-   Schema: { id, title, icon, blurb, body(sections[]), tag(strategyTag) }
-   Each strategy links to its practice questions via `strategyTag` on questions.
-   Populated in Phase 5.
+   DATA:STRATEGIES — CookSAT-style digital-SAT tactics the classroom skips.
+   Schema: { id, title, icon, blurb, tag(strategyTag for practice),
+             practice:{ skills?, section?, type? }  // fallback filter to build a set
+             body:[ {h, p:[paragraphs]} ] }
+   Desmos can't be embedded; we teach the exact click-by-click workflow and link
+   out to desmos.com/calculator. Practice pulls questions by strategyTag first,
+   then tops up from the fallback filter.
    ========================================================================= */
 
-const STRATEGIES = [];
+const STRATEGIES = [
+  {
+    id: 'desmos_graph', icon: '📈', title: 'Desmos: graph both sides to solve anything',
+    tag: 'desmos_graph', practice: { section: 'math', skills: ['adv_quadratic', 'alg_systems', 'adv_functions', 'adv_rational'] },
+    blurb: 'Turn “solve for x” into “find the intersection.” The fastest, most error-proof move on the calculator.',
+    body: [
+      { h: 'The core trick', p: [
+        'Any equation — no matter how ugly — can be solved by graphing. Put the whole left side into $y_1$ and the whole right side into $y_2$, then read off where the two curves cross.',
+        'Example: to solve $x^2 - 3 = 2x$, type $y = x^2 - 3$ on one line and $y = 2x$ on the next. Click each intersection point Desmos marks; the $x$-values (3 and −1) are your solutions.' ] },
+      { h: 'One-variable shortcut', p: [
+        'For a single equation you can instead move everything to one side and graph $y = $ (left side) $-$ (right side). The solutions are the $x$-intercepts — click where the curve crosses the $x$-axis.',
+        'This is perfect for “how many solutions does this equation have?” — just count the crossings.' ] },
+      { h: 'Systems', p: [
+        'For a system, type both equations. The intersection point is the solution $(x, y)$. If the lines are parallel (never cross) there is no solution; if they lie on top of each other there are infinitely many.' ] },
+      { h: 'When to reach for it', p: [
+        'Use it whenever algebra would be slow or error-prone: messy quadratics, equations with fractions or radicals, “which value of $x$ satisfies…”, and any system. It costs ~15 seconds and removes almost all arithmetic risk.',
+        'Open desmos.com/calculator in another tab to drill this — the real test gives you the same calculator built in.' ] },
+    ],
+  },
+  {
+    id: 'desmos_regression', icon: '🧮', title: 'Desmos: regression to crack “which model” questions',
+    tag: 'desmos_regression', practice: { section: 'math', skills: ['alg_linear_fn', 'psda_data', 'adv_exponential', 'alg_word'] },
+    blurb: 'When a table of values asks “which equation fits,” let Desmos find the exact line or curve.',
+    body: [
+      { h: 'Type the table', p: [
+        'Add a table in Desmos and enter the data as $x_1$ and $y_1$ columns. Desmos plots the points automatically.' ] },
+      { h: 'Fit a model', p: [
+        'On a new line type $y_1 \\sim m x_1 + b$ for a linear fit (the tilde “~” means “regress”). Desmos returns the best-fit $m$ and $b$. For a quadratic use $y_1 \\sim a x_1^2 + b x_1 + c$; for exponential growth use $y_1 \\sim a \\cdot b^{x_1}$.',
+        'Match the returned coefficients to the answer choices. If the data is perfectly linear (as SAT tables usually are), the fit is exact.' ] },
+      { h: 'Why it wins', p: [
+        'It replaces slope calculations, system-solving, and guess-and-check with one line of typing. It is especially strong on “a line of best fit” and “the function that models the data” questions.' ] },
+    ],
+  },
+  {
+    id: 'desmos_table', icon: '🔢', title: 'Desmos: tables for student-produced (SPR) answers',
+    tag: 'desmos_table', practice: { section: 'math', type: 'spr' },
+    blurb: 'For grid-in answers, define a function and read the value straight off a table.',
+    body: [
+      { h: 'Define, then evaluate', p: [
+        'Type the expression as a function, e.g. $f(x) = 2x^2 - 3x + 1$. Then add a table with an $x$ column and a second column $f(x_1)$ — Desmos fills in the outputs. Read your grid-in answer directly.' ] },
+      { h: 'Find where something equals a target', p: [
+        'To answer “for what $x$ does $f(x) = 10$?”, graph $y = f(x)$ and $y = 10$ and click the intersection, or scan the table until the output hits 10.' ] },
+      { h: 'Grid-in rules to remember', p: [
+        'You can enter a fraction ($3/2$) or a decimal ($1.5$) — Ace accepts either. Don’t round unless the value is a long decimal; if you must round, give at least 3 digits. Never enter a percent sign or a comma.' ] },
+    ],
+  },
+  {
+    id: 'plug_in', icon: '🔌', title: 'Plugging in numbers',
+    tag: 'plug_in', practice: { section: 'math', skills: ['alg_word', 'adv_polynomial', 'alg_linear_fn', 'adv_functions'] },
+    blurb: 'When the answers contain variables, invent your own numbers and test.',
+    body: [
+      { h: 'How it works', p: [
+        'If a question is abstract (“…in terms of $n$”) and the choices are expressions, pick an easy number for each variable — avoid 0, 1, and any number already in the problem. Compute the real answer with your number, then plug the same number into every choice and keep the one that matches.' ] },
+      { h: 'Example', p: [
+        'If a shirt costs $d$ dollars and is discounted 20%, which expression is the new price? Let $d = 100$: the true price is \\$80. Test the choices with $d = 100$ — only $0.8d$ gives 80.' ] },
+      { h: 'Watch for', p: [
+        'If two choices both match, pick a second number and test only those two. Choose numbers that keep the arithmetic clean (10 and 100 are your friends for percents).' ] },
+    ],
+  },
+  {
+    id: 'backsolve', icon: '🎯', title: 'Backsolving from the answer choices',
+    tag: 'backsolve', practice: { section: 'math', type: 'mcq', skills: ['alg_linear_eq', 'alg_systems', 'adv_quadratic', 'alg_word'] },
+    blurb: 'The answer is already on the screen — try the choices instead of solving.',
+    body: [
+      { h: 'The method', p: [
+        'When choices are plain numbers and the question asks for a value, plug the choices into the problem’s condition. Start with the middle value (B or C): if it’s too big, go smaller; too small, go bigger. You’ll rarely test more than two.' ] },
+      { h: 'Example', p: [
+        'For “what value of $x$ satisfies $3(x - 4) = 18$?”, try C = 10: $3(10-4) = 18$. ✓ Done — no algebra.' ] },
+      { h: 'Best targets', p: [
+        'Word problems with numeric choices, equations that are annoying to isolate, and “which value could be…” questions. Backsolving turns algebra into a couple of quick substitutions.' ] },
+    ],
+  },
+  {
+    id: 'rw_elim', icon: '✂️', title: 'Reading & Writing: elimination patterns',
+    tag: 'rw_elim', practice: { section: 'rw', skills: ['rw_vocab', 'rw_inference', 'rw_main', 'rw_evidence'] },
+    blurb: 'On RW there is exactly one defensible answer. Cross out the three that aren’t.',
+    body: [
+      { h: 'Predict first', p: [
+        'Before reading the choices, answer the question in your own words from the passage. Then find the choice that matches your prediction. This stops the tempting-but-wrong options from pulling you in.' ] },
+      { h: 'Kill these', p: [
+        'Extreme language (“always,” “never,” “proves”) is usually wrong — passages hedge. Off-topic choices bring in a true-sounding fact the passage never states. Half-right choices get one clause right and one wrong — the wrong half kills the whole choice.',
+        'For “command of evidence,” the answer must connect directly to the specific claim, not just be true. For inference, the answer must be forced by the text, not merely plausible.' ] },
+      { h: 'Vocabulary in context', p: [
+        'Cover the choices, read the sentence, and predict the word. Then match. The “hardest-looking” word is not automatically the answer — precision beats sophistication.' ] },
+    ],
+  },
+  {
+    id: 'rw_boundaries_test', icon: '⚖️', title: 'Punctuation: the two-clause test',
+    tag: 'rw_boundaries_test', practice: { section: 'rw', skills: ['rw_boundaries'] },
+    blurb: 'Most boundary questions come down to one question: is each side a complete sentence?',
+    body: [
+      { h: 'Ask: independent on both sides?', p: [
+        'An independent clause can stand alone as a sentence. Check both sides of the blank.',
+        'Two independent clauses → join with a period, a semicolon, or a comma + FANBOYS conjunction (for/and/nor/but/or/yet/so). A comma alone is a comma splice (wrong).' ] },
+      { h: 'One side dependent', p: [
+        'If one side can’t stand alone (a phrase or a subordinate clause), use a comma — never a semicolon. Semicolons demand a full sentence on both sides.',
+        'A colon needs a complete sentence before it and introduces a list, explanation, or example after it.' ] },
+      { h: 'Fast rule of thumb', p: [
+        'If a semicolon works, a period works too — so if the test offers both, neither is the answer (they can’t both be right). That instantly eliminates two choices.' ] },
+    ],
+  },
+  {
+    id: 'rw_transitions_test', icon: '🔗', title: 'Transitions: name the relationship',
+    tag: 'rw_transitions_test', practice: { section: 'rw', skills: ['rw_transitions'] },
+    blurb: 'Cover the transition, decide the logical relationship, then match.',
+    body: [
+      { h: 'Two-step method', p: [
+        'Read the sentence before and after the blank with the transition covered. Decide the relationship in one word: contrast, cause/effect, example, addition, or restatement.',
+        'Then pick the transition in that family. “However/nevertheless/in contrast” = contrast. “Therefore/thus/as a result” = cause-effect. “For example/for instance” = example. “Moreover/in addition/furthermore” = addition.' ] },
+      { h: 'Traps', p: [
+        'Don’t choose by what “sounds smooth” — choose by logic. Watch for choices from the wrong family that fit the tone but not the relationship. If two choices mean the same thing (e.g., “therefore” and “thus”), neither can be the answer.' ] },
+    ],
+  },
+  {
+    id: 'pacing', icon: '⏱️', title: 'Pacing & skipping, module by module',
+    tag: 'pacing', practice: { section: 'rw' },
+    blurb: 'A plan for the clock: which questions to fight, which to flag, and when to guess.',
+    body: [
+      { h: 'The budget', p: [
+        'Reading & Writing: ~71 seconds per question (27 questions in 32 minutes). Math: ~95 seconds per question (22 in 35 minutes). Questions run roughly easy → hard, so bank time early.' ] },
+      { h: 'Flag and move', p: [
+        'If a question isn’t yielding in ~30 seconds past its budget, pick your best guess, mark it for review, and move on. Never let one hard item eat the three easy ones at the end of the module. Use the navigator to return with your leftover time.' ] },
+      { h: 'Never leave blanks', p: [
+        'There is no penalty for wrong answers. With one minute left, fill every remaining bubble — eliminate what you can, then guess. A blank is a guaranteed zero; a guess is free expected points.' ] },
+      { h: 'Adaptive stakes', p: [
+        'Module 1 sets your Module 2 difficulty (and your ceiling). Treat Module 1 as the most important minutes of the section: accuracy there unlocks the harder, higher-scoring Module 2.' ] },
+    ],
+  },
+];
+const STRATEGY_BY_ID = Object.fromEntries(STRATEGIES.map((s) => [s.id, s]));
 
 /* =========================================================================
    DATA:VOCAB — starter word set (the user imports their own 1,500-word list).
@@ -4722,17 +5782,20 @@ function bankStats() {
 function katexReady() { return typeof window.katex !== 'undefined' && window.katex && !window.__KATEX_JS_FAILED; }
 
 function texFallback(tex) {
-  // Make raw TeX readable when KaTeX is unavailable.
+  // Make raw TeX readable when KaTeX is unavailable (offline).
   let t = tex;
+  t = t.replace(/\\text(?:rm|bf|it)?\s*{([^{}]*)}/g, '$1');   // \text{...} -> plain
   t = t.replace(/\\d?frac\s*{([^{}]*)}\s*{([^{}]*)}/g, '($1)/($2)');
   t = t.replace(/\\sqrt\s*{([^{}]*)}/g, '√($1)');
   t = t.replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\div/g, '÷');
-  t = t.replace(/\\pm/g, '±').replace(/\\leq/g, '≤').replace(/\\geq/g, '≥').replace(/\\neq/g, '≠');
-  t = t.replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\Rightarrow/g, '⇒').replace(/\\approx/g, '≈');
+  t = t.replace(/\\pm/g, '±').replace(/\\mp/g, '∓').replace(/\\leq?/g, '≤').replace(/\\geq?/g, '≥').replace(/\\neq/g, '≠');
+  t = t.replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\Rightarrow/g, '⇒').replace(/\\rightarrow/g, '→').replace(/\\approx/g, '≈');
+  t = t.replace(/\\circ/g, '°').replace(/\\infty/g, '∞').replace(/\\angle/g, '∠').replace(/\\sim/g, '~');
   t = t.replace(/\\left|\\right/g, '');
   t = t.replace(/\^{([^{}]*)}/g, (m, p) => toSup(p)).replace(/\^(\w)/g, (m, p) => toSup(p));
   t = t.replace(/_{([^{}]*)}/g, (m, p) => toSub(p)).replace(/_(\w)/g, (m, p) => toSub(p));
-  t = t.replace(/[{}]/g, '').replace(/\\,/g, ' ').replace(/\\ /g, ' ');
+  t = t.replace(/\\(sin|cos|tan|log|ln)\b/g, '$1');
+  t = t.replace(/[{}]/g, '').replace(/\\,/g, ' ').replace(/\\ /g, ' ').replace(/\\!/g, '');
   return t;
 }
 const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '+': '⁺', '-': '⁻', 'n': 'ⁿ', 'x': 'ˣ', 'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 't': 'ᵗ' };
@@ -5169,7 +6232,7 @@ function markPlanTaskDone(type) {
 
 /* =========================================================================
    Sable briefing — template-generated from local data (works with no key).
-   Phase 5 optionally rewrites this in Sable's voice via the API.
+   Optionally rewritten in Sable's voice via the API when a key is present.
    ========================================================================= */
 function briefingFacts() {
   ensureToday();
@@ -5254,6 +6317,7 @@ const NAV = [
   { route: 'learn',      icon: '📖', label: 'Learn' },
   { route: 'path',       icon: '🧭', label: 'Skill Path' },
   { route: 'drills',     icon: '🎯', label: 'Drills' },
+  { route: 'extreme',    icon: '💀', label: 'Extreme' },
   { route: 'vocab',      icon: '📚', label: 'Vocabulary' },
   { route: 'mocks',      icon: '📝', label: 'Mock Exams' },
   { route: 'strategies', icon: '♟️', label: 'Strategies' },
@@ -5598,7 +6662,7 @@ function defaultSummary(sm, cfg) {
     </div></div>`;
 }
 
-/* Tutor buttons appear only when AI is configured (Phase 5 wires AI). */
+/* Tutor buttons appear only when an API key is configured. */
 function tutorButtons(q, chosen, correct) {
   if (typeof AI === 'undefined' || !AI.enabled()) return '';
   return `<div class="row wrap" style="gap:8px;margin-top:12px">
@@ -5869,22 +6933,36 @@ function startMistakeReview(dueOnly) {
   });
 }
 
-/* ---------- Extreme arena (full version in Phase 4; basic here) ---------- */
+/* ---------- Extreme arena — its own badge track ---------- */
+const EXTREME_TIERS = [[1, '💀', 'Initiate'], [10, '🔥', 'Challenger'], [25, '⚡', 'Gladiator'], [50, '👑', 'Ascendant']];
 registerView('extreme', {
   render() {
     const pool = pickQuestions({ extreme: true });
-    return `${pageHeader('Extreme Mode', 'Harder than a real hard Module 2 — for the 1500 → 1600 stretch.',
-      pool.length ? `<button class="btn gold" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button>` : '')}
-      <div class="card">
-        <div class="row spread"><div><h3 style="margin:0">${pool.length} Extreme questions</h3>
-          <div class="muted">Solved: ${S.counters.extremeSolved} · These pay the most XP.</div></div>
-          <div style="font-size:2.4rem">💀</div></div>
-      </div>`;
+    const byDom = {};
+    pool.forEach((q) => { byDom[q.section] = (byDom[q.section] || 0) + 1; });
+    const solved = S.counters.extremeSolved;
+    const nextTier = EXTREME_TIERS.find((t) => solved < t[0]);
+    const track = EXTREME_TIERS.map(([n, em, name]) => `<div class="badge-chip ${solved >= n ? 'earned' : ''}" style="flex:1">
+      <span class="em">${em}</span><div><div style="font-weight:600;font-size:.85rem">${name}</div><div class="tag">${n} solved</div></div></div>`).join('');
+    return `${pageHeader('Extreme Mode', 'Harder than a real hard Module 2 — built for the 1500 → 1600 stretch. These pay the most XP.',
+      pool.length ? `<button class="btn gold lg" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button>` : '')}
+      <div class="grid g-4" style="margin-bottom:16px">
+        ${statTile('Extreme solved', String(solved), nextTier ? `${nextTier[0] - solved} to ${nextTier[2]}` : 'Ascendant — maxed')}
+        ${statTile('In the arena', String(pool.length), 'unseen served first')}
+        ${statTile('Math', String(byDom.math || 0), 'extreme items')}
+        ${statTile('R&W', String(byDom.rw || 0), 'extreme items')}
+      </div>
+      <div class="card" style="margin-bottom:16px"><h3 style="margin-top:0">Badge track</h3>
+        <div class="row wrap" style="gap:10px">${track}</div></div>
+      ${pool.length ? `<div class="card tac" style="padding:30px;border:1px solid rgba(255,93,115,.35);background:linear-gradient(180deg,rgba(255,93,115,.06),transparent)">
+        <div style="font-size:2.4rem">💀</div><h2 style="margin:.2em 0">Think you’re ready?</h2>
+        <p class="muted">Eight of the hardest questions in the bank. No mercy.</p>
+        <button class="btn gold lg" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button></div>`
+      : `<div class="card tac" style="padding:30px"><p class="muted">Extreme questions are still loading into the bank.</p></div>`}`;
   },
-  mount() { const p = pickQuestions({ extreme: true }); if (!p.length) $('#view').querySelector('.card').insertAdjacentHTML('beforeend', '<p class="muted" style="margin-top:10px">Extreme questions arrive in a later build phase.</p>'); },
 });
 
-/* ---------- Progress / mastery (full analytics in Phase 5) ---------- */
+/* ---------- Progress / mastery + analytics ---------- */
 registerView('progress', {
   render() {
     const secRow = ['rw', 'math'].map((sec) => {
@@ -5906,21 +6984,49 @@ registerView('progress', {
           ${[['m0', '0–19'], ['m1', '20–39'], ['m2', '40–59'], ['m3', '60–79'], ['m4', '80–89'], ['m5', '90–100 · Challenge Zone']].map(([c, l]) => `<span class="row" style="gap:6px"><span class="${c}" style="width:14px;height:14px;border-radius:4px;display:inline-block"></span>${l}</span>`).join('')}
         </div>
       </div>
+      ${analyticsCards()}
       <div class="card" style="margin-top:16px"><h3 style="margin-top:0">Achievements</h3>
         <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">${badges}</div></div>`;
   },
   mount(root) { $$('#progHeat .cell', root).forEach((c) => c.addEventListener('click', () => onHeatCellClick(c.dataset.skill))); },
 });
 
+/* Pacing (sec/question vs targets), study-plan progress, and score trend. */
+function analyticsCards() {
+  const paceFor = (sec) => { const arr = S.stats.secByQ.filter((x) => x.s === sec).map((x) => x.sec); return arr.length ? avg(arr) : null; };
+  const paceRow = (sec) => {
+    const p = paceFor(sec), target = SECTIONS[sec].paceSec;
+    if (p == null) return `<div class="row spread"><span>${SECTIONS[sec].name}</span><span class="muted">no timed data yet</span></div>`;
+    const ok = p <= target * 1.1;
+    return `<div style="margin:8px 0"><div class="row spread" style="font-size:.9rem"><span>${SECTIONS[sec].name}</span>
+      <span class="mono" style="color:${ok ? 'var(--mint)' : 'var(--coral)'}">${p.toFixed(0)}s <span class="faint">/ ${target}s target</span></span></div>
+      <div class="bar" style="margin-top:4px"><span class="${ok ? '' : ''}" style="width:${clamp(target / p * 100, 5, 100)}%;background:${ok ? 'var(--mint)' : 'var(--coral)'}"></span></div></div>`;
+  };
+  const quest = getDailyQuest();
+  const doneCount = quest.items.filter((i) => i.done).length;
+  const trend = (typeof trendChart === 'function') ? trendChart() : '';
+  return `<div class="grid g-2" style="margin-top:16px;align-items:start">
+    <div class="card"><h3 style="margin-top:0">Pacing</h3>
+      <div class="muted" style="font-size:.85rem;margin-bottom:6px">Average time per question vs. the on-test target.</div>
+      ${paceRow('rw')}${paceRow('math')}</div>
+    <div class="card"><h3 style="margin-top:0">Today’s plan</h3>
+      <div class="row" style="gap:14px;align-items:baseline"><div class="stat"><div class="v">${doneCount}<small>/${quest.items.length}</small></div><div class="k">tasks done</div></div>
+      <div class="stat"><div class="v">${todayXP()}</div><div class="k">XP today</div></div></div>
+      <div class="stack" style="margin-top:10px">${quest.items.map((it) => `<div class="row" style="gap:8px"><span style="color:${it.done ? 'var(--mint)' : 'var(--faint)'}">${it.done ? '✓' : '○'}</span><span style="font-size:.88rem;${it.done ? 'opacity:.6' : ''}">${esc(it.label)}</span></div>`).join('')}</div></div>
+  </div>
+  ${trend}`;
+}
+
 /* =========================================================================
    UI — Learn (Khan-style courses + lessons + checkpoints) and the Skill Path
    (Duolingo-style winding path with unlocking nodes + optional hearts mode).
    ========================================================================= */
 
+// Neutral fallback for an unknown id (e.g. a hand-typed bad lesson/strategy link).
 function comingSoon(title, note) {
   return `${pageHeader(title)}<div class="card tac" style="padding:44px">
-    <div style="font-size:2.2rem">🚧</div><h3>${esc(title)} is being built.</h3>
-    <p class="muted">${esc(note || 'Arriving in an upcoming build phase.')}</p></div>`;
+    <div style="font-size:2.2rem">🧭</div><h3>Not found</h3>
+    <p class="muted">${esc(note || 'That item doesn’t exist. Use the menu to navigate.')}</p></div>`;
 }
 
 /* ---------- lesson status helpers ---------- */
@@ -5950,7 +7056,7 @@ registerView('learn', {
         </div></div>`;
     };
     return `${pageHeader('Learn', 'Courses that actually teach. Each unit holds one mini-lesson per skill, with a checkpoint quiz.',
-      `<button class="btn primary" onclick="navigate('path')">Follow the Skill Path →</button>`)}
+      `${aiConfigured() ? `<button class="btn ghost sm" onclick="navigate('studio')">✨ Study Studio</button>` : ''}<button class="btn primary" onclick="navigate('path')">Follow the Skill Path →</button>`)}
       <div class="grid g-2">
         <div class="stack">${domainsInSection('math').map(unit).join('')}</div>
         <div class="stack">${domainsInSection('rw').map(unit).join('')}</div>
@@ -6589,21 +7695,503 @@ registerView('vocabimport', {
 });
 
 /* =========================================================================
-   UI — Diagnostic + full adaptive Mock Exams (Bluebook-style runner) + review.
-   Full implementation in Phase 4.
+   UI + engine — Diagnostic, full adaptive Mock Exams (Bluebook-style runner),
+   scoring, and the post-test review. Exposes startMock()/startDiagnostic().
    ========================================================================= */
-registerView('mocks',      { render: () => comingSoon('Mock Exams', 'Full-length adaptive mocks in a Bluebook-style UI arrive in Phase 4.') });
-registerView('diagnostic', { render: () => comingSoon('Diagnostic', 'The first-run diagnostic arrives in Phase 4.') });
+
+/* ---------- module assembly ---------- */
+// Weighted sampling biased toward a difficulty level ('base'|'hard'|'easy').
+function weightedPickByLevel(src, target, level) {
+  const w = (q) => { const d = diffNum(q.difficulty); if (level === 'hard') return d === 3 ? 5 : d === 2 ? 2 : 1; if (level === 'easy') return d === 1 ? 5 : d === 2 ? 2 : 1; return d === 2 ? 3 : 2; };
+  const pool = src.slice(), out = [];
+  while (out.length < target && pool.length) {
+    const weights = pool.map(w), tot = sum(weights);
+    let r = Math.random() * tot, idx = 0;
+    for (; idx < pool.length; idx++) { r -= weights[idx]; if (r <= 0) break; }
+    out.push(pool.splice(Math.min(idx, pool.length - 1), 1)[0]);
+  }
+  return out;
+}
+// Build one module of `count` questions for a section, respecting domain weights,
+// preferring unseen and excluding anything already used in this exam.
+function assembleModule(sec, count, opts = {}) {
+  const used = opts.used || new Set();
+  const level = opts.level || 'base';
+  let picked = [];
+  for (const d of domainsInSection(sec)) {
+    const target = Math.max(1, Math.round(count * d.weight));
+    const all = BANK.filter((q) => q.section === sec && q.domain === d.id && !isExtreme(q) && !used.has(q.id));
+    const unseen = all.filter((q) => !S.seen[q.id]);
+    const src = unseen.length >= target ? unseen : all;
+    const chosen = weightedPickByLevel(src, Math.min(target, src.length), level);
+    chosen.forEach((q) => used.add(q.id));
+    picked = picked.concat(chosen);
+  }
+  // top up to exact count from anything remaining in the section
+  while (picked.length < count) {
+    const rest = BANK.filter((q) => q.section === sec && !isExtreme(q) && !used.has(q.id));
+    if (!rest.length) break;
+    const q = shuffle(rest)[0]; used.add(q.id); picked.push(q);
+  }
+  picked = picked.slice(0, count);
+  picked.sort((a, b) => diffNum(a.difficulty) - diffNum(b.difficulty)); // easy → hard
+  return picked;
+}
+
+/* Exam plans. Real Digital SAT: RW 27/mod 32min, Math 22/mod 35min. */
+function mockPlan() {
+  return {
+    kind: 'mock', title: 'Full Mock Exam',
+    sections: [
+      { sec: 'rw', label: 'Reading & Writing', mods: 2, count: 27, timeSec: 32 * 60, routing: true },
+      { sec: 'math', label: 'Math', mods: 2, count: 22, timeSec: 35 * 60, routing: true },
+    ],
+  };
+}
+function diagnosticPlan() {
+  return {
+    kind: 'diagnostic', title: 'Diagnostic',
+    sections: [
+      { sec: 'rw', label: 'Reading & Writing', mods: 1, count: 22, timeSec: 22 * 60, routing: false },
+      { sec: 'math', label: 'Math', mods: 1, count: 16, timeSec: 22 * 60, routing: false },
+    ],
+  };
+}
+
+/* ---------- launchers ---------- */
+function startMock() { new TestRunner(mockPlan()).begin(); }
+function startDiagnostic() { new TestRunner(diagnosticPlan()).begin(); }
 
 /* =========================================================================
-   UI — Strategy playbook (CookSAT-style). Full implementation in Phase 5.
+   TestRunner — the full-screen, quiet Bluebook-style engine.
    ========================================================================= */
-registerView('strategies', { render: () => comingSoon('Strategies', 'The digital-SAT strategy playbook arrives in Phase 5.') });
+class TestRunner {
+  constructor(plan) {
+    this.plan = plan;
+    this.used = new Set();
+    this.secIdx = 0; this.modIdx = 0; this.qIdx = 0;
+    this.responses = {};           // qid -> response
+    this.flags = new Set();        // qid flagged for review
+    this.struck = {};              // qid -> Set of struck letters
+    this.moduleResults = [];       // {sec, mod, correct, total, level}
+    this.routed = {};              // sec -> 'hard'|'easy'
+    this.curQuestions = [];
+    this.timer = null; this.remain = 0; this.timerHidden = false;
+    this.host = null;
+  }
+  curSection() { return this.plan.sections[this.secIdx]; }
+  begin() {
+    this.host = openFullscreen('testmode');
+    document.body.style.overflow = 'hidden';
+    this.buildCurrentModule();
+    this.renderIntro();
+  }
+  end() { clearInterval(this.timer); document.body.style.overflow = ''; closeFullscreen(); document.removeEventListener('keydown', this._key); }
+
+  buildCurrentModule() {
+    const s = this.curSection();
+    let level = 'base';
+    if (s.routing && this.modIdx === 1) level = this.routed[s.sec] === 'hard' ? 'hard' : 'easy';
+    this.curQuestions = assembleModule(s.sec, s.count, { used: this.used, level });
+    this.qIdx = 0;
+  }
+
+  renderIntro() {
+    const s = this.curSection();
+    const first = this.secIdx === 0 && this.modIdx === 0;
+    this.host.innerHTML = `<div class="break-screen">
+      <div style="font-size:2.4rem">${s.sec === 'math' ? '🧮' : '✍️'}</div>
+      <h1>${esc(s.label)}${s.mods > 1 ? ` — Module ${this.modIdx + 1}` : ''}</h1>
+      <p class="muted">${this.curQuestions.length} questions · ${Math.round(s.timeSec / 60)} minutes${s.sec === 'math' ? ' · calculator allowed throughout' : ''}.</p>
+      ${first ? `<p class="muted">This runs like the real thing: no answers shown until you finish. You can flag questions, cross out choices, and jump around with the navigator. ${this.plan.kind === 'diagnostic' ? 'It seeds your mastery map and first score estimate.' : ''}</p>` : ''}
+      <div class="row" style="justify-content:center;gap:10px;margin-top:20px">
+        <button class="btn" id="tabort">Exit</button>
+        <button class="btn primary lg" id="tstart">${first ? 'Start' : 'Begin module'} →</button>
+      </div></div>`;
+    $('#tstart', this.host).onclick = () => this.startModule();
+    $('#tabort', this.host).onclick = () => this.confirmAbort();
+  }
+
+  startModule() {
+    this.remain = this.curSection().timeSec;
+    clearInterval(this.timer);
+    this.timer = setInterval(() => { this.remain--; this.paintTimer(); if (this.remain <= 0) { clearInterval(this.timer); this.endModule(true); } }, 1000);
+    this.renderQuestion();
+    this._key = (e) => this.onKey(e);
+    document.addEventListener('keydown', this._key);
+  }
+
+  renderQuestion() {
+    const q = this.curQuestions[this.qIdx];
+    const s = this.curSection();
+    const n = this.curQuestions.length;
+    const chosen = this.responses[q.id];
+    const struck = this.struck[q.id] || new Set();
+    const flagged = this.flags.has(q.id);
+    const passage = q.passage ? `<div class="passage">${mathToHtml(q.passage)}</div>` : '';
+    let inputHtml;
+    if (q.type === 'spr') {
+      inputHtml = `<input type="text" class="spr-input" id="tspr" placeholder="Enter answer" autocomplete="off" value="${chosen != null ? esc(chosen) : ''}">
+        <div class="tag" style="margin-top:6px">Student-produced response.</div>`;
+    } else {
+      inputHtml = `<div class="choices" id="tchoices">${q.choices.map((c, i) => {
+        const L = LETTERS[i];
+        return `<div class="choice ${chosen === L ? 'sel' : ''} ${struck.has(L) ? 'struck' : ''}" data-letter="${L}">
+          <span class="key">${L}</span><span class="txt">${mathToHtml(c)}</span>
+          <button class="elim" title="Cross out">${struck.has(L) ? '↺' : '✕'}</button></div>`;
+      }).join('')}</div>`;
+    }
+    const body = s.sec === 'rw' && q.passage
+      ? `<div class="test-cols"><div>${passage}</div><div><div class="stem">${mathToHtml(q.stem)}</div>${inputHtml}</div></div>`
+      : `<div style="max-width:760px;margin:0 auto">${passage}<div class="stem">${mathToHtml(q.stem)}</div>${inputHtml}</div>`;
+
+    this.host.innerHTML = `
+      <div class="test-top">
+        <div class="test-title">${esc(s.label)}${s.mods > 1 ? ` · Module ${this.modIdx + 1}` : ''}</div>
+        <div class="test-timer ${this.remain < 300 ? 'low' : ''}" id="ttimer">${this.timerHidden ? 'Show' : fmtClock(this.remain)}</div>
+        <div><button class="btn ghost sm" id="texit">Exit</button></div>
+      </div>
+      <div class="test-body">
+        <div class="row spread" style="margin-bottom:12px">
+          <div class="mono" style="font-weight:700">Question ${this.qIdx + 1} <span class="muted">of ${n}</span></div>
+          <button class="btn ghost sm" id="tflag" style="${flagged ? 'color:#b0851b' : ''}">${flagged ? '⚑ Marked' : '⚐ Mark for review'}</button>
+        </div>
+        ${body}
+      </div>
+      <div class="test-foot">
+        <button class="btn" id="tnav">▤ Question ${this.qIdx + 1} of ${n}</button>
+        <div class="row" style="gap:10px">
+          <button class="btn" id="tback" ${this.qIdx === 0 ? 'disabled' : ''}>← Back</button>
+          <button class="btn primary" id="tnext">${this.qIdx + 1 >= n ? 'Review & submit' : 'Next →'}</button>
+        </div>
+      </div>`;
+    typeset(this.host);
+    this.wireQuestion(q);
+  }
+
+  wireQuestion(q) {
+    if (q.type === 'spr') {
+      const inp = $('#tspr', this.host);
+      inp.addEventListener('input', () => { this.responses[q.id] = inp.value; });
+      inp.focus();
+    } else {
+      $$('#tchoices .choice', this.host).forEach((el) => {
+        el.addEventListener('click', () => { this.responses[q.id] = el.dataset.letter; this.renderQuestion(); });
+        el.querySelector('.elim').addEventListener('click', (e) => { e.stopPropagation(); this.toggleStrike(q, el.dataset.letter); });
+      });
+    }
+    $('#ttimer', this.host).onclick = () => { this.timerHidden = !this.timerHidden; this.paintTimer(); };
+    $('#tflag', this.host).onclick = () => { if (this.flags.has(q.id)) this.flags.delete(q.id); else this.flags.add(q.id); this.renderQuestion(); };
+    $('#tnav', this.host).onclick = () => this.openNavigator();
+    $('#texit', this.host).onclick = () => this.confirmAbort();
+    $('#tback', this.host).onclick = () => { if (this.qIdx > 0) { this.qIdx--; this.renderQuestion(); } };
+    $('#tnext', this.host).onclick = () => { if (this.qIdx + 1 >= this.curQuestions.length) this.openReview(); else { this.qIdx++; this.renderQuestion(); } };
+  }
+  toggleStrike(q, L) {
+    const set = this.struck[q.id] || (this.struck[q.id] = new Set());
+    if (set.has(L)) set.delete(L); else { set.add(L); if (this.responses[q.id] === L) delete this.responses[q.id]; }
+    this.renderQuestion();
+  }
+  paintTimer() { const t = $('#ttimer', this.host); if (t) { t.textContent = this.timerHidden ? 'Show' : fmtClock(Math.max(0, this.remain)); t.classList.toggle('low', this.remain < 300); } }
+
+  openNavigator() {
+    const n = this.curQuestions.length;
+    const grid = this.curQuestions.map((q, i) => {
+      const answered = this.responses[q.id] != null && this.responses[q.id] !== '';
+      const flagged = this.flags.has(q.id);
+      return `<button class="qb ${answered ? 'answered' : ''} ${i === this.qIdx ? 'current' : ''} ${flagged ? 'flagged' : ''}" data-i="${i}">${i + 1}</button>`;
+    }).join('');
+    const host = openModal(`<h3>Question navigator</h3>
+      <div class="muted" style="margin-bottom:12px">${Object.keys(this.responses).filter((k) => this.curQuestions.some((q) => q.id === k)).length} answered · ${this.flags.size} marked</div>
+      <div class="navgrid">${grid}</div>
+      <div class="row" style="justify-content:space-between;margin-top:16px"><button class="btn" data-close>Close</button><button class="btn primary" data-rev>Go to review →</button></div>`);
+    host.el.style.color = '#1b1f2a';
+    $$('.qb', host.el).forEach((b) => b.onclick = () => { this.qIdx = parseInt(b.dataset.i); host.close(); this.renderQuestion(); });
+    host.el.querySelector('[data-close]').onclick = host.close;
+    host.el.querySelector('[data-rev]').onclick = () => { host.close(); this.openReview(); };
+  }
+  openReview() {
+    const n = this.curQuestions.length;
+    const unanswered = this.curQuestions.filter((q) => this.responses[q.id] == null || this.responses[q.id] === '').length;
+    const host = openModal(`<h3>Before you submit</h3>
+      <p class="muted">${this.curSection().label}${this.curSection().mods > 1 ? ' · Module ' + (this.modIdx + 1) : ''}: ${n - unanswered}/${n} answered${unanswered ? `, <b style="color:var(--coral)">${unanswered} left blank</b>` : ''}. ${this.flags.size ? this.flags.size + ' marked for review.' : ''}</p>
+      <div class="navgrid" style="margin:12px 0">${this.curQuestions.map((q, i) => { const a = this.responses[q.id] != null && this.responses[q.id] !== ''; return `<button class="qb ${a ? 'answered' : ''} ${this.flags.has(q.id) ? 'flagged' : ''}" data-i="${i}">${i + 1}</button>`; }).join('')}</div>
+      <div class="row" style="justify-content:space-between;margin-top:8px"><button class="btn" data-close>Keep working</button><button class="btn primary" data-submit>Submit module →</button></div>`);
+    host.el.style.color = '#1b1f2a';
+    $$('.qb', host.el).forEach((b) => b.onclick = () => { this.qIdx = parseInt(b.dataset.i); host.close(); this.renderQuestion(); });
+    host.el.querySelector('[data-close]').onclick = host.close;
+    host.el.querySelector('[data-submit]').onclick = () => { host.close(); this.endModule(false); };
+  }
+
+  endModule(auto) {
+    clearInterval(this.timer);
+    const s = this.curSection();
+    // grade this module (silent — updates mastery/mistakes/exposure, no XP/combo)
+    let correct = 0;
+    for (const q of this.curQuestions) {
+      const resp = this.responses[q.id];
+      const res = recordAnswer(q, resp == null ? '' : resp, { silent: true, fromMock: true });
+      if (res.correct) correct++;
+    }
+    const level = (s.routing && this.modIdx === 1) ? (this.routed[s.sec] === 'hard' ? 'hard' : 'easy') : 'base';
+    this.moduleResults.push({ sec: s.sec, mod: this.modIdx, correct, total: this.curQuestions.length, level, questions: this.curQuestions.map((q) => q.id) });
+    if (correct === this.curQuestions.length && this.curQuestions.length >= 10) { S.counters.perfectModules++; award('perfect_module'); }
+
+    // adaptive routing after module 1
+    if (s.routing && this.modIdx === 0) {
+      const frac = correct / this.curQuestions.length;
+      this.routed[s.sec] = frac >= ROUTE_HARD_THRESHOLD ? 'hard' : 'easy';
+      this.modIdx = 1;
+      this.buildCurrentModule();
+      if (auto) toast('Time up — moving to Module 2', 'sky');
+      this.renderIntro();
+      return;
+    }
+    // module complete → next module/section or finish
+    this.advanceSection();
+  }
+
+  advanceSection() {
+    this.modIdx = 0;
+    this.secIdx++;
+    if (this.secIdx >= this.plan.sections.length) return this.finishExam();
+    // break screen between sections (mock only)
+    this.buildCurrentModule();
+    if (this.plan.kind === 'mock') this.renderBreak();
+    else this.renderIntro();
+  }
+
+  renderBreak() {
+    let left = 10 * 60;
+    const paint = () => { const el = $('#brk', this.host); if (el) el.textContent = fmtClock(left); };
+    this.host.innerHTML = `<div class="break-screen">
+      <div style="font-size:2.4rem">☕</div><h1>Break time</h1>
+      <p class="muted">You’ve finished Reading & Writing. Take up to 10 minutes. The Math section starts when you’re ready.</p>
+      <div class="test-timer" style="display:inline-block;font-size:1.6rem;margin:10px 0" id="brk">10:00</div>
+      <div><button class="btn primary lg" id="bresume">Resume with Math →</button></div></div>`;
+    paint();
+    const iv = setInterval(() => { left--; paint(); if (left <= 0) { clearInterval(iv); this.renderIntro(); } }, 1000);
+    $('#bresume', this.host).onclick = () => { clearInterval(iv); this.renderIntro(); };
+  }
+
+  finishExam() {
+    clearInterval(this.timer);
+    // score per section
+    const bySec = {};
+    for (const r of this.moduleResults) { const b = bySec[r.sec] || (bySec[r.sec] = { correct: 0, total: 0, easy: false }); b.correct += r.correct; b.total += r.total; if (r.mod === 1 && r.level === 'easy') b.easy = true; if (this.plan.kind === 'diagnostic') b.easy = false; }
+    const scaled = {};
+    for (const sec of ['rw', 'math']) { const b = bySec[sec]; if (b) scaled[sec] = estimateScaledScore(sec, b.correct / b.total, b.easy); }
+    const total = (scaled.rw || 0) + (scaled.math || 0);
+    const summary = { kind: this.plan.kind, ts: Date.now(), bySec, scaled, total, modules: this.moduleResults };
+
+    // persist
+    S.scoreHistory.push({ ts: summary.ts, rw: scaled.rw || 0, math: scaled.math || 0, total, source: this.plan.kind });
+    if (S.scoreHistory.length > 40) S.scoreHistory = S.scoreHistory.slice(-40);
+    addXP(this.plan.kind === 'mock' ? 300 : 150);
+    if (this.plan.kind === 'mock') { S.counters.mocksDone++; award('mock1'); S.mocks.push(summary); markPlanTaskDone('mock'); }
+    else { S.diagnostic = { done: true, result: summary }; award('diagnostic'); generatePlan(true); }
+    if ((scaled.rw || 0) >= 700 || (scaled.math || 0) >= 700) award('section700');
+    touchStreak(); save(true);
+
+    this.renderResults(summary);
+  }
+
+  renderResults(sm) {
+    document.body.style.overflow = '';
+    const domainBreak = (sec) => {
+      const doms = domainsInSection(sec);
+      const ids = sm.modules.filter((m) => m.sec === sec).flatMap((m) => m.questions);
+      return doms.map((d) => {
+        const qs = ids.map(getQ).filter((q) => q && q.domain === d.id);
+        const c = qs.filter((q) => gradeQuestion(q, this.responses[q.id] == null ? '' : this.responses[q.id])).length;
+        const pctv = qs.length ? Math.round(c / qs.length * 100) : 0;
+        return `<div style="margin:6px 0"><div class="row spread" style="font-size:.85rem"><span>${esc(d.name)}</span><span class="mono">${c}/${qs.length}</span></div><div class="bar" style="margin-top:3px"><span style="width:${pctv}%"></span></div></div>`;
+      }).join('');
+    };
+    const secCard = (sec) => sm.scaled[sec] == null ? '' : `<div class="card"><div class="row spread"><h3 style="margin:0">${SECTIONS[sec].name}</h3><div class="stat" style="text-align:right"><div class="v">${sm.scaled[sec]}</div></div></div>
+      <div class="muted" style="margin:6px 0">${sm.bySec[sec].correct}/${sm.bySec[sec].total} correct${sm.bySec[sec].easy ? ' · routed to easier Module 2 (score capped)' : ''}</div>${domainBreak(sec)}</div>`;
+
+    this.host.className = 'fs';
+    this.host.style.cssText = 'position:fixed;inset:0;z-index:75;overflow:auto;';
+    this.host.innerHTML = `<div class="main" style="max-width:900px;margin:0 auto;padding:30px 20px 80px">
+      <div class="tac"><div class="eyebrow">${sm.kind === 'mock' ? 'Mock exam' : 'Diagnostic'} complete</div>
+        <div class="stat" style="align-items:center;margin:10px 0"><div class="v" style="font-size:3.4rem;color:var(--ace)">${sm.total}</div><div class="muted">estimated total · 400–1600 scale</div></div>
+        <div class="tag">Scores are estimates based on an approximate scoring curve.</div></div>
+      <div class="grid g-2" style="margin:20px 0">${secCard('rw')}${secCard('math')}</div>
+      <div class="row" style="justify-content:center;gap:10px">
+        <button class="btn primary" id="rreview">Review every question →</button>
+        <button class="btn" id="rdone">Done</button>
+      </div></div>`;
+    $('#rdone', this.host).onclick = () => { this.end(); navigate('home'); };
+    $('#rreview', this.host).onclick = () => this.renderReviewAll(sm);
+  }
+
+  renderReviewAll(sm) {
+    const allIds = sm.modules.flatMap((m) => m.questions);
+    const items = allIds.map(getQ).filter(Boolean).map((q) => {
+      const resp = this.responses[q.id]; const correct = gradeQuestion(q, resp == null ? '' : resp);
+      const yourAns = q.type === 'spr' ? (resp || '(blank)') : (resp || '(blank)');
+      return `<div class="card" style="border-left:3px solid ${correct ? 'var(--mint)' : 'var(--coral)'}">
+        <div class="row spread"><div class="row" style="gap:8px">${skillPill(q.skill)}${diffDots(q.difficulty)}</div><span class="pill ${correct ? 'mint' : 'coral'}">${correct ? 'correct' : 'incorrect'}</span></div>
+        ${q.passage ? `<div class="passage" style="margin-top:8px">${mathToHtml(q.passage)}</div>` : ''}
+        <div class="stem" style="margin-top:8px">${mathToHtml(q.stem)}</div>
+        ${q.type === 'mcq' ? `<div class="choices">${q.choices.map((c, i) => { const L = LETTERS[i]; const cls = L === q.answer ? 'correct' : (L === resp ? 'wrong' : ''); return `<div class="choice ${cls}"><span class="key">${L}</span><span class="txt">${mathToHtml(c)}</span></div>`; }).join('')}</div>` : `<div class="tag">Your answer: ${esc(String(yourAns))} · Correct: ${esc(String([].concat(q.answer)[0]))}</div>`}
+        <div class="explain" style="margin-top:10px">${mathToHtml(q.explanation)}</div></div>`;
+    }).join('');
+    this.host.innerHTML = `<div class="main" style="max-width:820px;margin:0 auto;padding:24px 20px 80px">
+      ${pageHeader('Review — every question', `${sm.kind === 'mock' ? 'Mock exam' : 'Diagnostic'} · estimated ${sm.total}`, `<button class="btn primary" id="rback">Done</button>`)}
+      <div class="stack">${items}</div>
+      <div class="tac" style="margin-top:16px"><button class="btn primary" id="rback2">Done →</button></div></div>`;
+    typeset(this.host);
+    const done = () => { this.end(); navigate('progress'); };
+    $('#rback', this.host).onclick = done; $('#rback2', this.host).onclick = done;
+  }
+
+  confirmAbort() {
+    confirmModal('Exit the test?', 'Your progress on this attempt will be lost and not scored.', () => { this.end(); navigate('home'); }, 'Exit test', 'ghost');
+  }
+
+  onKey(e) {
+    const ae = document.activeElement;
+    if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && ae.id !== 'tspr') return;
+    const q = this.curQuestions[this.qIdx]; if (!q) return;
+    if (e.key === 'ArrowRight') { $('#tnext', this.host)?.click(); }
+    else if (e.key === 'ArrowLeft') { $('#tback', this.host)?.click(); }
+    else if (q.type === 'mcq' && ae?.id !== 'tspr') { const i = LETTERS.indexOf(e.key.toUpperCase()); if (i >= 0 && i < q.choices.length) { this.responses[q.id] = LETTERS[i]; this.renderQuestion(); } }
+  }
+}
 
 /* =========================================================================
-   UI — Analytics. The 'progress' view (mastery + badges) lives in the practice
-   module; deeper analytics (projected-score trend, pacing, plan progress) are
-   layered on in Phase 5. This file is reserved for those additions.
+   Views — Mocks list + Diagnostic intro.
+   ========================================================================= */
+registerView('mocks', {
+  render() {
+    const history = S.scoreHistory.filter((h) => h.source === 'mock');
+    const rows = S.mocks.slice().reverse().map((m) => `<div class="card"><div class="row spread">
+      <div><b>${m.kind === 'mock' ? 'Mock exam' : 'Diagnostic'}</b><div class="tag">${fmtDate(m.ts)}</div></div>
+      <div class="row" style="gap:16px"><div class="stat" style="text-align:right"><div class="v" style="font-size:1.4rem">${m.total}</div><div class="k">total</div></div>
+      <div class="muted" style="align-self:center">RW ${m.scaled.rw || '–'} · Math ${m.scaled.math || '–'}</div></div></div></div>`).join('');
+    const bankOk = BANK.filter((q) => q.section === 'rw' && !isExtreme(q)).length >= 54 && BANK.filter((q) => q.section === 'math' && !isExtreme(q)).length >= 44;
+    return `${pageHeader('Mock Exams', 'Full-length, adaptive, Bluebook-style. Two sections, four modules, timed — assembled from questions you haven’t seen.',
+      `<button class="btn primary lg" onclick="startMock()">Start a mock →</button>`)}
+      <div class="card" style="margin-bottom:16px">
+        <div class="row spread wrap">
+          <div><h3 style="margin:0">How it works</h3>
+          <div class="muted" style="max-width:640px;margin-top:6px">Reading &amp; Writing (2 × 27 questions, 32 min each), then a 10-minute break, then Math (2 × 22 questions, 35 min each, calculator throughout). Module 2 adapts to your Module 1 performance. At the end you get an estimated 400–1600 score, a per-domain breakdown, and a full review.</div></div>
+          <div style="font-size:2.6rem">📝</div>
+        </div>
+        ${bankOk ? '' : '<div class="tag" style="margin-top:10px;color:var(--ace)">Tip: the bank grows as more questions load — a full mock needs 54 RW + 44 Math unseen questions.</div>'}
+      </div>
+      ${trendChart(history)}
+      ${rows ? `<h3 style="margin:20px 0 10px">History</h3><div class="stack">${rows}</div>` : ''}`;
+  },
+});
+
+registerView('diagnostic', {
+  render() {
+    if (S.diagnostic.done) {
+      const r = S.diagnostic.result;
+      return `${pageHeader('Diagnostic', 'Already complete — this seeded your plan and estimate.')}
+        <div class="card tac" style="padding:30px"><div class="eyebrow">Your diagnostic estimate</div>
+          <div class="stat" style="align-items:center;margin:8px 0"><div class="v" style="font-size:2.6rem;color:var(--ace)">${r.total}</div><div class="muted">RW ${r.scaled.rw} · Math ${r.scaled.math}</div></div>
+          <div class="row" style="justify-content:center;gap:10px;margin-top:10px"><button class="btn" onclick="navigate('progress')">See mastery</button><button class="btn primary" onclick="startMock()">Take a full mock</button></div></div>`;
+    }
+    return `${pageHeader('Diagnostic', 'A ~40-minute shortened test — one module per section — to seed your mastery map and first score estimate.')}
+      <div class="card tac" style="padding:36px">
+        <div style="font-size:2.4rem">🧭</div><h2 style="margin:.3em 0">Ready when you are</h2>
+        <p class="muted" style="max-width:560px;margin:0 auto 18px">Reading &amp; Writing (22 questions, 22 min) then Math (16 questions, 22 min). Answer honestly — this calibrates everything: your heatmap, projected score, and study plan.</p>
+        <button class="btn gold lg" onclick="startDiagnostic()">Begin diagnostic →</button>
+      </div>`;
+  },
+});
+
+/* Small SVG trend line for scores across diagnostics + mocks. */
+function trendChart(history) {
+  const pts = S.scoreHistory.slice(-10);
+  if (pts.length < 2) return '';
+  const W = 640, H = 160, pad = 30;
+  const xs = (i) => pad + i * (W - 2 * pad) / (pts.length - 1);
+  const ys = (v) => H - pad - (v - 400) / 1200 * (H - 2 * pad);
+  const line = pts.map((p, i) => `${xs(i)},${ys(p.total)}`).join(' ');
+  const dots = pts.map((p, i) => `<circle cx="${xs(i)}" cy="${ys(p.total)}" r="4" fill="var(--ace)"><title>${p.total} (${p.source})</title></circle>`).join('');
+  return `<div class="card"><div class="eyebrow">Score trend</div>
+    <svg viewBox="0 0 ${W} ${H}" class="chart" style="width:100%;height:auto;margin-top:8px">
+      ${[400, 800, 1200, 1600].map((v) => `<line class="grid" x1="${pad}" y1="${ys(v)}" x2="${W - pad}" y2="${ys(v)}"/><text x="4" y="${ys(v) + 4}">${v}</text>`).join('')}
+      <polyline fill="none" stroke="var(--violet-2)" stroke-width="2.5" points="${line}"/>${dots}
+    </svg></div>`;
+}
+
+/* =========================================================================
+   UI — Strategy Playbook (CookSAT-style). List + detail with practice sets.
+   ========================================================================= */
+
+registerView('strategies', {
+  render(params) {
+    if (params.id) return renderStrategy(params.id);
+    return `${pageHeader('Strategy Playbook', 'Digital-SAT tactics your school won’t teach — Desmos moves, plugging in, backsolving, elimination, and pacing.')}
+      <div class="grid g-2">
+        ${STRATEGIES.map((s) => `<div class="card" style="cursor:pointer" onclick="navigate('strategies',{id:'${s.id}'})">
+          <div class="row" style="gap:12px"><div style="font-size:1.8rem">${s.icon}</div>
+            <div style="flex:1"><h3 style="margin:0 0 4px">${esc(s.title)}</h3><div class="muted" style="font-size:.9rem">${esc(s.blurb)}</div></div>
+            <div class="muted">→</div></div></div>`).join('')}
+      </div>`;
+  },
+});
+
+function strategyPractice(s) {
+  const tagged = BANK.filter((q) => q.strategyTag === s.tag && !isExtreme(q));
+  const seen = new Set(tagged.map((q) => q.id));
+  let fill = BANK.filter((q) => {
+    if (seen.has(q.id) || isExtreme(q)) return false;
+    const f = s.practice || {};
+    if (f.section && q.section !== f.section) return false;
+    if (f.type && q.type !== f.type) return false;
+    if (f.skills && !f.skills.includes(q.skill)) return false;
+    return true;
+  });
+  return shuffle(tagged).concat(shuffle(fill)).slice(0, 6);
+}
+
+function renderStrategy(id) {
+  const s = STRATEGY_BY_ID[id]; if (!s) return comingSoon('Strategy');
+  const practice = strategyPractice(s);
+  const isDesmos = /desmos/.test(s.id);
+  return `${pageHeader(s.title, s.blurb, `<button class="btn ghost sm" onclick="navigate('strategies')">← All strategies</button>`)}
+    <div class="player">
+      ${s.body.map((sec) => `<div class="card pad-lg" style="margin-bottom:14px">
+        <div class="eyebrow">${esc(sec.h)}</div>
+        ${sec.p.map((p) => `<p style="font-size:1.02rem;line-height:1.65">${mathToHtml(p)}</p>`).join('')}
+      </div>`).join('')}
+      ${isDesmos ? `<div class="card" style="border-left:3px solid var(--sky)"><div class="row spread wrap"><div><b>Practice the workflow live</b><div class="muted">Ace can’t embed Desmos, but the real test uses the same calculator.</div></div>
+        <a class="btn" href="https://www.desmos.com/calculator" target="_blank" rel="noopener">Open Desmos ↗</a></div></div>` : ''}
+      <div class="card pad-lg tac" style="margin-top:14px">
+        <h3 style="margin-top:0">Drill where this strategy is fastest</h3>
+        <p class="muted">${practice.length} tagged questions where “${esc(s.title.split(':')[0])}” is the quickest route.</p>
+        ${practice.length ? `<button class="btn primary lg" onclick="startStrategyDrill('${s.id}')">Practice these ${practice.length} →</button>` : '<span class="muted">Practice questions load with the full bank.</span>'}
+      </div>
+    </div>`;
+}
+
+function startStrategyDrill(id) {
+  const s = STRATEGY_BY_ID[id];
+  const qs = strategyPractice(s);
+  if (!qs.length) { toast('No practice questions available yet.', 'coral'); return; }
+  const host = document.getElementById('view');
+  host.innerHTML = `<div id="stratRun"></div>`;
+  runQuestionSession({
+    container: document.getElementById('stratRun'), questions: qs, mode: 'drill',
+    title: s.title.split(':')[0] + ' practice',
+    onDone: (sm) => { host.innerHTML = defaultSummary(sm, { title: s.title.split(':')[0] }); typeset(host);
+      $$('[data-review]', host).forEach((b) => b.onclick = () => reviewSession(sm, {}));
+      host.insertAdjacentHTML('beforeend', `<div class="tac" style="margin-top:10px"><button class="btn" onclick="navigate('strategies',{id:'${id}'})">← Back to strategy</button></div>`); },
+  });
+}
+
+/* =========================================================================
+   UI — Analytics. The deeper analytics (mastery heatmap, badges, pacing vs.
+   targets, study-plan progress, and the projected-score trend) render inside
+   the 'progress' view (see UI:Practice) and the mock-results screen. This file
+   is intentionally a placeholder anchor in the section order.
    ========================================================================= */
 
 /* =========================================================================
@@ -6999,6 +8587,7 @@ const CommandBar = (() => {
       { icon: '🧭', t: 'Take the diagnostic', d: 'Seed your plan', run: () => navigate('diagnostic') },
       { icon: '🩹', t: 'Review mistakes', d: 'Spaced retry queue', run: () => navigate('mistakes') },
       { icon: '💬', t: 'Ask ' + S.settings.assistantName, d: 'Open the assistant', run: () => Sable.openPanel() },
+      { icon: '✨', t: 'Study Studio', d: 'Notes → flashcards or quiz (AI)', run: () => navigate('studio') },
     ];
     return acts.concat(nav);
   }
@@ -7047,7 +8636,7 @@ const CommandBar = (() => {
   return { open, close, toggle };
 })();
 
-/* AI facade used by the question player's tutor buttons (Phase 5 expands). */
+/* AI facade used by the question player's tutor buttons. */
 const AI = {
   enabled: () => aiConfigured(),
   async tutorAction(kind, q) {
@@ -7066,6 +8655,21 @@ const AI = {
       }
     } catch (e) { out.innerHTML = `<div class="tag" style="color:var(--coral);margin-top:8px">${esc(e.message)}</div>`; }
   },
+  async notesToFlashcards(notes) {
+    const t = await aiText('You are a study aide. Output valid JSON only.',
+      `From these notes, extract the key terms and produce vocabulary flashcards. Return ONLY a JSON array like [{"w":"term","def":"concise definition","ex":"a short example sentence"}]. 8–20 cards.\n\nNOTES:\n${notes}`, { max_tokens: 1500, temperature: 0.4 });
+    let arr; try { arr = JSON.parse(t.replace(/^```json?/i, '').replace(/```$/, '').trim()); } catch (e) { throw new Error('Could not parse the generated cards.'); }
+    const words = arr.map((x) => ({ w: (x.w || x.term || '').trim(), def: (x.def || x.definition || '').trim(), ex: (x.ex || x.example || '').trim() })).filter((x) => x.w && x.def);
+    if (!words.length) throw new Error('No cards found in the notes.');
+    importVocabSet('From notes · ' + new Date().toLocaleDateString(), words);
+    return words.length;
+  },
+  async notesToQuiz(notes) {
+    const t = await aiText('You are a study aide and item writer. Output valid JSON only.',
+      `From these notes, write 8 multiple-choice quiz questions that test understanding. Return ONLY a JSON array like [{"stem":"...","choices":["a","b","c","d"],"answer":"B","explanation":"why"}]. answer is the correct letter A–D.\n\nNOTES:\n${notes}`, { max_tokens: 1800, temperature: 0.5 });
+    let arr; try { arr = JSON.parse(t.replace(/^```json?/i, '').replace(/```$/, '').trim()); } catch (e) { throw new Error('Could not parse the generated quiz.'); }
+    return arr.filter((q) => q.stem && Array.isArray(q.choices) && q.answer);
+  },
   async generateSimilar(q, count = 3) {
     const schema = `Return ONLY a JSON array of ${count} objects, no prose. Each: {"skill":"${q.skill}","difficulty":${q.difficulty === 'extreme' ? '"extreme"' : q.difficulty},"type":"${q.type}","stem":"...","choices":["a","b","c","d"](omit for spr),"answer":"${q.type === 'mcq' ? 'A-D letter' : 'numeric string'}","explanation":"full worked solution + why wrong choices are wrong"}. Use $...$ for math.`;
     const t = await aiText('You are an expert Digital SAT item writer. Output valid JSON only.', `Write ${count} NEW questions similar to this one (same skill and difficulty), original stems:\n\n${q.stem}\n\n${schema}`, { max_tokens: 1600, temperature: 0.9 });
@@ -7081,6 +8685,54 @@ const AI = {
     return added;
   },
 };
+
+/* ---------- Studio: notes → study material (AI) ---------- */
+registerView('studio', {
+  render() {
+    if (!aiConfigured()) return `${pageHeader('Study Studio', 'Turn your class notes into flashcards or a quiz — powered by AI.')}
+      <div class="card tac" style="padding:40px"><div style="font-size:2.2rem">✨</div><h3>Add your API key to unlock</h3>
+      <p class="muted">Paste an Anthropic API key in Settings to generate flashcards and quizzes from your notes.</p>
+      <button class="btn primary" onclick="navigate('settings')">Open Settings →</button></div>`;
+    return `${pageHeader('Study Studio', 'Paste class notes or a passage; ' + esc(S.settings.assistantName) + ' turns them into study material.',
+      `<button class="btn ghost sm" onclick="navigate('learn')">← Learn</button>`)}
+      <div class="card">
+        <label class="fld"><span>Your notes</span><textarea id="notesIn" rows="12" placeholder="Paste lecture notes, a textbook section, or a vocab list…"></textarea></label>
+        <div class="row" style="gap:10px"><button class="btn primary" id="mkCards">🃏 Make flashcards</button><button class="btn" id="mkQuiz">📋 Make a quiz</button></div>
+        <div id="studioMsg" class="tag" style="margin-top:10px"></div>
+      </div>`;
+  },
+  mount(root) {
+    const msg = (m, bad) => { const el = $('#studioMsg', root); el.textContent = m; el.style.color = bad ? 'var(--coral)' : 'var(--muted)'; };
+    $('#mkCards', root).onclick = async () => {
+      const notes = $('#notesIn', root).value.trim(); if (notes.length < 20) return msg('Paste a bit more text first.', true);
+      msg('Generating flashcards…'); try { const n = await AI.notesToFlashcards(notes); toast(`Created a ${n}-card set`, 'mint'); navigate('vocab'); } catch (e) { msg(e.message, true); }
+    };
+    $('#mkQuiz', root).onclick = async () => {
+      const notes = $('#notesIn', root).value.trim(); if (notes.length < 20) return msg('Paste a bit more text first.', true);
+      msg('Writing a quiz…'); try { const qs = await AI.notesToQuiz(notes); if (!qs.length) return msg('No questions generated.', true); runNotesQuiz(qs); } catch (e) { msg(e.message, true); }
+    };
+  },
+});
+// Self-contained quiz over AI-generated note questions (no engine side effects).
+function runNotesQuiz(questions) {
+  const host = document.getElementById('view');
+  let i = 0, correct = 0;
+  function render() {
+    if (i >= questions.length) { host.innerHTML = `<div class="player"><div class="card pad-lg tac"><div class="eyebrow">Quiz complete</div><div class="v stat" style="font-size:2.4rem">${Math.round(correct / questions.length * 100)}%</div><div class="muted">${correct}/${questions.length}</div><div style="margin-top:14px"><button class="btn primary" onclick="navigate('studio')">Back to Studio</button></div></div></div>`; return; }
+    const q = questions[i];
+    host.innerHTML = `<div class="player">${pageHeader('Notes quiz', `${i + 1} / ${questions.length} · ${correct} correct`, `<button class="btn ghost sm" onclick="navigate('studio')">✕ End</button>`)}
+      <div class="card pad-lg"><div class="stem">${mathToHtml(q.stem)}</div>
+      <div class="choices">${q.choices.map((c, k) => `<div class="choice" data-l="${LETTERS[k]}"><span class="key">${LETTERS[k]}</span><span class="txt">${mathToHtml(c)}</span></div>`).join('')}</div></div><div id="nqfb"></div></div>`;
+    typeset(host);
+    $$('.choice', host).forEach((el) => el.onclick = () => {
+      const ok = el.dataset.l === q.answer; if (ok) correct++;
+      $$('.choice', host).forEach((x) => { x.style.pointerEvents = 'none'; if (x.dataset.l === q.answer) x.classList.add('correct'); else if (x === el) x.classList.add('wrong'); });
+      $('#nqfb', host).innerHTML = `<div class="explain ${ok ? 'correct' : 'wrong'}" style="margin-top:12px">${q.explanation ? mathToHtml(q.explanation) : ''}<div style="margin-top:10px"><button class="btn primary" id="nqn">${i + 1 >= questions.length ? 'See score' : 'Next →'}</button></div></div>`;
+    typeset($('#nqfb', host)); $('#nqn', host).focus(); $('#nqn', host).onclick = () => { i++; render(); };
+    });
+  }
+  render();
+}
 
 /* =========================================================================
    BOOT — wire everything together and start the app.

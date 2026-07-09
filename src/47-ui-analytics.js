@@ -1,5 +1,6 @@
 /* =========================================================================
-   UI — Analytics. The 'progress' view (mastery + badges) lives in the practice
-   module; deeper analytics (projected-score trend, pacing, plan progress) are
-   layered on in Phase 5. This file is reserved for those additions.
+   UI — Analytics. The deeper analytics (mastery heatmap, badges, pacing vs.
+   targets, study-plan progress, and the projected-score trend) render inside
+   the 'progress' view (see UI:Practice) and the mock-results screen. This file
+   is intentionally a placeholder anchor in the section order.
    ========================================================================= */

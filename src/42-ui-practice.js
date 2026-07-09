@@ -102,22 +102,36 @@ function startMistakeReview(dueOnly) {
   });
 }
 
-/* ---------- Extreme arena (full version in Phase 4; basic here) ---------- */
+/* ---------- Extreme arena — its own badge track ---------- */
+const EXTREME_TIERS = [[1, '💀', 'Initiate'], [10, '🔥', 'Challenger'], [25, '⚡', 'Gladiator'], [50, '👑', 'Ascendant']];
 registerView('extreme', {
   render() {
     const pool = pickQuestions({ extreme: true });
-    return `${pageHeader('Extreme Mode', 'Harder than a real hard Module 2 — for the 1500 → 1600 stretch.',
-      pool.length ? `<button class="btn gold" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button>` : '')}
-      <div class="card">
-        <div class="row spread"><div><h3 style="margin:0">${pool.length} Extreme questions</h3>
-          <div class="muted">Solved: ${S.counters.extremeSolved} · These pay the most XP.</div></div>
-          <div style="font-size:2.4rem">💀</div></div>
-      </div>`;
+    const byDom = {};
+    pool.forEach((q) => { byDom[q.section] = (byDom[q.section] || 0) + 1; });
+    const solved = S.counters.extremeSolved;
+    const nextTier = EXTREME_TIERS.find((t) => solved < t[0]);
+    const track = EXTREME_TIERS.map(([n, em, name]) => `<div class="badge-chip ${solved >= n ? 'earned' : ''}" style="flex:1">
+      <span class="em">${em}</span><div><div style="font-weight:600;font-size:.85rem">${name}</div><div class="tag">${n} solved</div></div></div>`).join('');
+    return `${pageHeader('Extreme Mode', 'Harder than a real hard Module 2 — built for the 1500 → 1600 stretch. These pay the most XP.',
+      pool.length ? `<button class="btn gold lg" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button>` : '')}
+      <div class="grid g-4" style="margin-bottom:16px">
+        ${statTile('Extreme solved', String(solved), nextTier ? `${nextTier[0] - solved} to ${nextTier[2]}` : 'Ascendant — maxed')}
+        ${statTile('In the arena', String(pool.length), 'unseen served first')}
+        ${statTile('Math', String(byDom.math || 0), 'extreme items')}
+        ${statTile('R&W', String(byDom.rw || 0), 'extreme items')}
+      </div>
+      <div class="card" style="margin-bottom:16px"><h3 style="margin-top:0">Badge track</h3>
+        <div class="row wrap" style="gap:10px">${track}</div></div>
+      ${pool.length ? `<div class="card tac" style="padding:30px;border:1px solid rgba(255,93,115,.35);background:linear-gradient(180deg,rgba(255,93,115,.06),transparent)">
+        <div style="font-size:2.4rem">💀</div><h2 style="margin:.2em 0">Think you’re ready?</h2>
+        <p class="muted">Eight of the hardest questions in the bank. No mercy.</p>
+        <button class="btn gold lg" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button></div>`
+      : `<div class="card tac" style="padding:30px"><p class="muted">Extreme questions are still loading into the bank.</p></div>`}`;
   },
-  mount() { const p = pickQuestions({ extreme: true }); if (!p.length) $('#view').querySelector('.card').insertAdjacentHTML('beforeend', '<p class="muted" style="margin-top:10px">Extreme questions arrive in a later build phase.</p>'); },
 });
 
-/* ---------- Progress / mastery (full analytics in Phase 5) ---------- */
+/* ---------- Progress / mastery + analytics ---------- */
 registerView('progress', {
   render() {
     const secRow = ['rw', 'math'].map((sec) => {
@@ -139,8 +153,35 @@ registerView('progress', {
           ${[['m0', '0–19'], ['m1', '20–39'], ['m2', '40–59'], ['m3', '60–79'], ['m4', '80–89'], ['m5', '90–100 · Challenge Zone']].map(([c, l]) => `<span class="row" style="gap:6px"><span class="${c}" style="width:14px;height:14px;border-radius:4px;display:inline-block"></span>${l}</span>`).join('')}
         </div>
       </div>
+      ${analyticsCards()}
       <div class="card" style="margin-top:16px"><h3 style="margin-top:0">Achievements</h3>
         <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">${badges}</div></div>`;
   },
   mount(root) { $$('#progHeat .cell', root).forEach((c) => c.addEventListener('click', () => onHeatCellClick(c.dataset.skill))); },
 });
+
+/* Pacing (sec/question vs targets), study-plan progress, and score trend. */
+function analyticsCards() {
+  const paceFor = (sec) => { const arr = S.stats.secByQ.filter((x) => x.s === sec).map((x) => x.sec); return arr.length ? avg(arr) : null; };
+  const paceRow = (sec) => {
+    const p = paceFor(sec), target = SECTIONS[sec].paceSec;
+    if (p == null) return `<div class="row spread"><span>${SECTIONS[sec].name}</span><span class="muted">no timed data yet</span></div>`;
+    const ok = p <= target * 1.1;
+    return `<div style="margin:8px 0"><div class="row spread" style="font-size:.9rem"><span>${SECTIONS[sec].name}</span>
+      <span class="mono" style="color:${ok ? 'var(--mint)' : 'var(--coral)'}">${p.toFixed(0)}s <span class="faint">/ ${target}s target</span></span></div>
+      <div class="bar" style="margin-top:4px"><span class="${ok ? '' : ''}" style="width:${clamp(target / p * 100, 5, 100)}%;background:${ok ? 'var(--mint)' : 'var(--coral)'}"></span></div></div>`;
+  };
+  const quest = getDailyQuest();
+  const doneCount = quest.items.filter((i) => i.done).length;
+  const trend = (typeof trendChart === 'function') ? trendChart() : '';
+  return `<div class="grid g-2" style="margin-top:16px;align-items:start">
+    <div class="card"><h3 style="margin-top:0">Pacing</h3>
+      <div class="muted" style="font-size:.85rem;margin-bottom:6px">Average time per question vs. the on-test target.</div>
+      ${paceRow('rw')}${paceRow('math')}</div>
+    <div class="card"><h3 style="margin-top:0">Today’s plan</h3>
+      <div class="row" style="gap:14px;align-items:baseline"><div class="stat"><div class="v">${doneCount}<small>/${quest.items.length}</small></div><div class="k">tasks done</div></div>
+      <div class="stat"><div class="v">${todayXP()}</div><div class="k">XP today</div></div></div>
+      <div class="stack" style="margin-top:10px">${quest.items.map((it) => `<div class="row" style="gap:8px"><span style="color:${it.done ? 'var(--mint)' : 'var(--faint)'}">${it.done ? '✓' : '○'}</span><span style="font-size:.88rem;${it.done ? 'opacity:.6' : ''}">${esc(it.label)}</span></div>`).join('')}</div></div>
+  </div>
+  ${trend}`;
+}
