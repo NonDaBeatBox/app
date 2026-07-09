@@ -43,9 +43,21 @@ function fmtClock(sec) { const m = Math.floor(sec / 60), s = Math.floor(sec % 60
    Persistence — namespaced, versioned localStorage.
    ========================================================================= */
 const LS = {
-  state: 'ace.v1.state',
+  state: 'ace.v1.state',          // legacy single-profile key (migrated on first sign-up)
+  accounts: 'ace.v1.accounts',    // { username -> {username, displayName, pass, role, createdAt} }
+  session: 'ace.v1.session',      // currently signed-in username
+  profilePrefix: 'ace.v1.profile.', // per-account state key prefix
 };
 const STATE_VERSION = 1;
+
+// Auth / multi-profile session state.
+let ACCOUNTS = {};
+let currentUser = null;   // signed-in username
+let actingUser = null;    // set when a teacher is "acting as" a student
+const profileKey = (u) => LS.profilePrefix + u;
+const activeUser = () => actingUser || currentUser;
+const currentRole = () => (currentUser && ACCOUNTS[currentUser] ? ACCOUNTS[currentUser].role : 'student');
+const isTeacher = () => currentRole() === 'teacher';
 
 function defaultState() {
   const now = Date.now();
@@ -55,8 +67,9 @@ function defaultState() {
     settings: {
       apiKey: '', model: 'claude-opus-4-8',
       heartsMode: false, voice: false, sound: true,
-      testDate: null, assistantName: 'Sable',
+      testDate: null, assistantName: 'Sable', viewMode: 'teacher',
     },
+    classroom: { imported: {} },   // teacher-only: imported student snapshots
     onboarded: false,
     xp: 0,
     combo: 0,                 // transient-ish; reset each session start
@@ -113,11 +126,28 @@ function loadState() {
 let _saveTimer = null;
 function save(now = false) {
   S.lastActive = Date.now();
-  const write = () => { try { localStorage.setItem(LS.state, JSON.stringify(S)); } catch (e) { console.error('Save failed', e); toast('Storage full — some progress may not persist', 'coral'); } };
+  const write = () => {
+    try {
+      const key = activeUser() ? profileKey(activeUser()) : LS.state;
+      localStorage.setItem(key, JSON.stringify(S));
+    } catch (e) { console.error('Save failed', e); toast('Storage full — some progress may not persist', 'coral'); }
+  };
   if (now) { clearTimeout(_saveTimer); write(); }
   else { clearTimeout(_saveTimer); _saveTimer = setTimeout(write, 400); }
 }
-function resetAll() { localStorage.removeItem(LS.state); S = defaultState(); save(true); }
+// Load a profile's state into S (does not change currentUser).
+function loadProfile(username) {
+  try { const r = localStorage.getItem(profileKey(username)); S = r ? migrate(JSON.parse(r)) : defaultState(); }
+  catch (e) { console.warn('Profile load failed:', e); S = defaultState(); }
+  return S;
+}
+// Read a profile snapshot WITHOUT changing the active S (for the teacher roster).
+function readProfile(username) {
+  try { const r = localStorage.getItem(profileKey(username)); return r ? migrate(JSON.parse(r)) : null; } catch (e) { return null; }
+}
+// Temporarily compute against another state object, then restore (read-only use).
+function withState(st, fn) { const prev = S; try { S = st; return fn(); } finally { S = prev; } }
+function resetAll() { const key = activeUser() ? profileKey(activeUser()) : LS.state; localStorage.removeItem(key); S = defaultState(); save(true); }
 
 /* =========================================================================
    Question bank — normalize authored questions, add AI + imported ones.

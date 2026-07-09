@@ -20,6 +20,19 @@ async function check(label, fn) {
   catch (e) { console.log('  FAIL ' + label + ' :: ' + e.message); errors.push('CHECK ' + label + ': ' + e.message); }
 }
 
+// Auth: sign up (first account => teacher), then land in the student view
+await check('sign up + enter app', async () => {
+  await page.waitForSelector('#upGo', { timeout: 5000 });
+  await page.fill('#upName', 'Tester');
+  await page.fill('#upUser', 'tester');
+  await page.fill('#upPass', 'pass123');
+  await page.click('#upGo');
+  await page.waitForTimeout(400);
+  if (!(await page.$('.shell'))) throw new Error('did not enter app shell after sign up');
+  await page.evaluate(() => { S.settings.viewMode = 'student'; navigate('home'); });
+  await page.waitForTimeout(150);
+});
+
 // Home rendered
 await check('home renders', async () => {
   const t = await page.textContent('#view');
@@ -194,6 +207,46 @@ await check('full mock runs (routing + break + score)', async () => {
   const mocks = await page.evaluate(() => S.mocks.length);
   if (mocks < 1) throw new Error('mock not saved to history');
   await page.click('#rdone'); await page.waitForTimeout(100);
+});
+
+// Teacher classroom: demo student + roster + detail + act-as/return
+await check('classroom + demo student + act-as', async () => {
+  await page.evaluate(() => { S.settings.viewMode = 'teacher'; navigate('classroom'); });
+  await page.waitForTimeout(150);
+  await page.evaluate(() => addDemoStudent());
+  await page.waitForTimeout(200);
+  const cards = await page.$$eval('.stu-card', els => els.length);
+  if (cards < 1) throw new Error('no student card after adding demo');
+  // open detail
+  await page.evaluate(() => { const e = studentRoster()[0]; navigate('classroom', { student: e.id }); });
+  await page.waitForTimeout(200);
+  if (!/Projected|mastery heatmap|Weakest/i.test(await page.innerHTML('#view'))) throw new Error('student detail missing');
+  // create a student account and act as them
+  const acted = await page.evaluate(() => {
+    createAccount('stud1', 'pw12', 'student', 'Student One');
+    actAsStudent('stud1');
+    return typeof actingUser !== 'undefined' ? actingUser : null;
+  });
+  await page.waitForTimeout(200);
+  if (acted !== 'stud1') throw new Error('act-as did not set actingUser');
+  const banner = await page.$('.acting-banner');
+  if (!banner) throw new Error('no acting banner');
+  await page.evaluate(() => returnToTeacher());
+  await page.waitForTimeout(150);
+  const stillActing = await page.evaluate(() => actingUser);
+  if (stillActing) throw new Error('did not return to teacher');
+});
+
+// Sign out and sign back in preserves account
+await check('sign out + sign in', async () => {
+  await page.evaluate(() => { clearSession(); renderAuth('in'); });
+  await page.waitForTimeout(150);
+  if (!(await page.$('#inGo'))) throw new Error('sign-in screen missing');
+  // select tester account and sign in
+  await page.evaluate(() => { const sel = document.getElementById('inUser'); if (sel && sel.tagName === 'SELECT') sel.value = 'tester'; document.getElementById('inPass').value = 'pass123'; });
+  await page.click('#inGo');
+  await page.waitForTimeout(300);
+  if (!(await page.$('.shell'))) throw new Error('did not sign back in');
 });
 
 // localStorage has state

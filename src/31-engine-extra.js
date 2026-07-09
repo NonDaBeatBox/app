@@ -5,6 +5,75 @@
    UI/engine sections but persist through the same state `S`.)
    ========================================================================= */
 
+/* =========================================================================
+   Accounts / sign-in — LOCAL ONLY. This is a lightweight profile gate stored
+   in this browser's localStorage, NOT real authentication or security: anyone
+   with access to this browser can read the data. Passwords are lightly hashed
+   just so they aren't stored in plain text. Each account owns its own profile
+   (progress) under ace.v1.profile.<username>.
+   ========================================================================= */
+function loadAccounts() {
+  try { ACCOUNTS = JSON.parse(localStorage.getItem(LS.accounts)) || {}; } catch (e) { ACCOUNTS = {}; }
+  return ACCOUNTS;
+}
+function saveAccounts() { try { localStorage.setItem(LS.accounts, JSON.stringify(ACCOUNTS)); } catch (e) { } }
+function hashPass(s) {              // djb2 — obfuscation, not security
+  let h = 5381; s = String(s);
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  return 'h' + h.toString(36);
+}
+function accountExists(u) { return !!ACCOUNTS[normUser(u)]; }
+function normUser(u) { return String(u || '').trim().toLowerCase(); }
+
+// Create an account. The FIRST account adopts any legacy single-profile data
+// and defaults to the teacher role ("make me the teacher").
+function createAccount(username, password, role, displayName) {
+  const u = normUser(username);
+  if (!u) return { ok: false, error: 'Choose a username.' };
+  if (!/^[a-z0-9_.-]{2,20}$/.test(u)) return { ok: false, error: 'Username: 2–20 letters, numbers, _ . -' };
+  if (accountExists(u)) return { ok: false, error: 'That username is taken.' };
+  if (!password || password.length < 4) return { ok: false, error: 'Password must be at least 4 characters.' };
+  const isFirst = Object.keys(ACCOUNTS).length === 0;
+  ACCOUNTS[u] = { username: u, displayName: (displayName || username).trim().slice(0, 30), pass: hashPass(password), role: role || (isFirst ? 'teacher' : 'student'), createdAt: Date.now() };
+  saveAccounts();
+  // initialize this account's profile (first account inherits legacy progress)
+  let init = defaultState();
+  if (isFirst) { try { const legacy = localStorage.getItem(LS.state); if (legacy) init = migrate(JSON.parse(legacy)); } catch (e) { } }
+  init.settings.viewMode = ACCOUNTS[u].role === 'teacher' ? 'teacher' : 'student';
+  localStorage.setItem(profileKey(u), JSON.stringify(init));
+  return { ok: true, username: u };
+}
+function verifyLogin(username, password) {
+  const u = normUser(username);
+  const a = ACCOUNTS[u];
+  if (!a) return { ok: false, error: 'No account with that username.' };
+  if (a.pass !== hashPass(password)) return { ok: false, error: 'Incorrect password.' };
+  return { ok: true, username: u };
+}
+function setSession(u) { currentUser = u; try { localStorage.setItem(LS.session, u); } catch (e) { } }
+function clearSession() { currentUser = null; actingUser = null; try { localStorage.removeItem(LS.session); } catch (e) { } }
+function deleteAccount(u) { u = normUser(u); delete ACCOUNTS[u]; saveAccounts(); try { localStorage.removeItem(profileKey(u)); } catch (e) { } }
+
+/* Compute a compact progress report for a student's state object. */
+function studentReport(state) {
+  if (!state) return null;
+  return withState(state, () => {
+    const proj = projectedScore();
+    const weak = weakestSkills(3).map((s) => s.name);
+    return {
+      projected: proj,
+      rwMastery: Math.round(sectionMastery('rw')), mathMastery: Math.round(sectionMastery('math')),
+      overallMastery: Math.round((sectionMastery('rw') + sectionMastery('math')) / 2),
+      streak: state.streak?.count || 0, level: levelInfo(state.xp || 0).level,
+      xp: state.xp || 0, answered: state.stats?.answered || 0,
+      accuracy: state.stats?.answered ? Math.round(state.stats.correct / state.stats.answered * 100) : 0,
+      mocks: state.counters?.mocksDone || 0, diagnostic: !!state.diagnostic?.done,
+      weakest: weak, lastActive: state.lastActive || state.createdAt || 0,
+      vocabMastered: state.counters?.wordsMastered || 0,
+    };
+  });
+}
+
 /* ---------- per-day activity counters (drive quests & briefing) ---------- */
 function ensureToday() {
   const d = dayKey();

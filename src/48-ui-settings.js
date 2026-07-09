@@ -6,8 +6,15 @@ registerView('settings', {
   render() {
     const st = S.settings;
     const bank = bankStats();
+    const acct = (typeof currentUser !== 'undefined' && currentUser) ? ACCOUNTS[currentUser] : null;
     return `
     ${pageHeader('Settings', 'Everything is stored locally in this browser. Nothing is uploaded except your own AI requests.')}
+    ${acct ? `<div class="card" style="margin-bottom:16px"><div class="row spread wrap" style="gap:12px">
+        <div class="row" style="gap:12px"><div class="user-chip" style="margin:0;border:0;background:none;padding:0"><div class="av">${esc((acct.displayName || acct.username).slice(0, 2).toUpperCase())}</div>
+          <div><div class="nm" style="font-size:1rem">${esc(acct.displayName || acct.username)}</div><div class="rl">@${esc(acct.username)} · ${esc(acct.role)}</div></div></div></div>
+        <div class="row" style="gap:8px">${acct.role === 'teacher' ? '<button class="btn" onclick="navigate(\'classroom\')">🧑‍🏫 Classroom</button>' : ''}
+          <button class="btn" id="chgPass">Change password</button><button class="btn ghost" onclick="signOut()">Sign out</button></div>
+      </div></div>` : ''}
     <div class="grid g-2" style="align-items:start">
 
       <div class="card">
@@ -61,6 +68,7 @@ registerView('settings', {
     </div>`;
   },
   mount(root) {
+    const cp = $('#chgPass', root); if (cp) cp.onclick = () => changePassword();
     const setStatus = (m, ok) => { const el = $('#aiStatus', root); el.textContent = m; el.style.color = ok ? 'var(--mint)' : 'var(--coral)'; };
     $('#saveAI', root).onclick = () => {
       S.settings.apiKey = $('#setKey', root).value.trim();

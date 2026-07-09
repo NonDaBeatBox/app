@@ -33,6 +33,7 @@ JS_PARTS = [
     "47-ui-analytics.js",
     "48-ui-settings.js",
     "49-ui-assistant.js",
+    "51-ui-accounts.js",
     "50-boot.js",
 ]
 

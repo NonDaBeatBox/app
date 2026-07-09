@@ -11,8 +11,28 @@
 
   HOW TO USE IT
   • Just double-click ace.html to open it in any modern browser. That's it.
+  • First time: create an account on the sign-up page. The FIRST account
+    becomes the teacher and keeps any progress already on this device.
   • All progress is saved automatically in your browser's localStorage, so it
     survives closing and reopening the file. (Keep using the same browser.)
+
+  ACCOUNTS & THE TEACHER CLASSROOM
+  • Sign in / sign up is LOCAL only — profiles live in this browser's
+    localStorage. It is a lightweight gate, NOT real security; anyone with
+    access to this browser can read the data.
+  • Each account has its own separate progress. The first account is the
+    teacher; you can make more accounts (teacher or student) from the sign-up
+    page or from the teacher's Classroom.
+  • Teachers get a Teacher ⇄ Student toggle in the sidebar. In Teacher view,
+    the Classroom shows every student's progress: a roster with projected
+    scores and weak skills, a class summary, and a per-student deep-dive
+    (heatmap, projected trend, pacing, mocks, achievements).
+  • Add students three ways: create a student login they use on this device,
+    import a student's exported progress file (Settings → Export on their
+    machine), or drop in a demo student to explore the dashboard.
+  • "Act as student" lets a teacher step into a student's profile (changes
+    save to that student); use "Return to teacher" to switch back.
+  • Change password / sign out live in Settings and the sidebar (⎋).
   • Start with the Diagnostic (home screen) — it seeds your mastery heatmap,
     a score estimate, and a study plan. Then follow the daily quest each day.
   • Press Cmd/Ctrl+K anywhere for the command bar; click the glowing orb

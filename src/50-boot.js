@@ -10,26 +10,23 @@ window.CommandBar = CommandBar;
 window.AI = AI;
 
 function boot() {
-  loadState();
-  ensureToday();
-  buildBank();
+  // Global, profile-independent data (lessons/path don't depend on the profile).
+  loadAccounts();
   buildLessons();
   buildPath();
-  rolloverWeekIfNeeded();
-  generatePlan();          // ensure a plan/quest exists
-  save();
-
-  if (S.settings.voice) Sable.initVoice();
 
   // Global keyboard shortcuts.
   document.addEventListener('keydown', (e) => {
+    if (!currentUser) return;                 // disabled on the auth screen
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); CommandBar.toggle(); }
     else if (e.key === 'Escape') { CommandBar.close(); }
   });
+  window.addEventListener('hashchange', () => { if (currentUser) router(); });
 
-  window.addEventListener('hashchange', router);
-  if (!location.hash) location.hash = '#/home';
-  router();
+  // Sign-in gate: resume a session, or show the auth screen.
+  const sess = localStorage.getItem(LS.session);
+  if (sess && ACCOUNTS[sess]) enterApp(sess);
+  else renderAuth();
 
   // Re-typeset math once the deferred KaTeX script is ready.
   if (!katexReady()) {

@@ -37,18 +37,35 @@ function navigate(route, params) {
 /* ---------- app shell ---------- */
 function renderShell() {
   const app = document.getElementById('app');
-  const nav = NAV.map((n) => `<div class="nav-item" data-route="${n.route}"><span class="ico">${n.icon}</span><span>${n.label}</span></div>`).join('');
+  const teacher = (typeof isTeacher === 'function') && isTeacher();
+  const acct = (typeof ACCOUNTS !== 'undefined' && currentUser) ? ACCOUNTS[currentUser] : null;
+  const dispName = acct ? (acct.displayName || acct.username) : 'You';
+  const navList = teacher ? [{ route: 'classroom', icon: '🧑‍🏫', label: 'Classroom' }].concat(NAV) : NAV;
+  const nav = navList.map((n) => `<div class="nav-item" data-route="${n.route}"><span class="ico">${n.icon}</span><span>${n.label}</span></div>`).join('');
+  const chip = acct ? `<div class="user-chip">
+      <div class="av">${esc(dispName.slice(0, 2).toUpperCase())}</div>
+      <div style="flex:1;min-width:0"><div class="nm">${esc(dispName)}</div><div class="rl">${esc(acct.role)}</div></div>
+      <button class="btn ghost sm" title="Sign out" onclick="signOut()">⎋</button>
+    </div>` : '';
+  const toggle = teacher ? `<div class="mode-toggle">
+      <button class="${S.settings.viewMode === 'teacher' ? 'on' : ''}" onclick="setViewMode('teacher')">👩‍🏫 Teacher</button>
+      <button class="${S.settings.viewMode === 'student' ? 'on' : ''}" onclick="setViewMode('student')">🎓 Student</button>
+    </div>` : '';
+  const actingBanner = (typeof actingUser !== 'undefined' && actingUser) ? `<div class="acting-banner">
+      <div>👤 You are acting as <b>${esc(ACCOUNTS[actingUser]?.displayName || actingUser)}</b> — changes save to their profile.</div>
+      <button class="btn sm" onclick="returnToTeacher()">Return to teacher</button></div>` : '';
   app.innerHTML = `
     <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
     <div class="shell">
       <aside class="sidebar" id="sidebar">
         <div class="brand"><div class="mark">A</div><div class="name"><b>A</b>ce</div></div>
+        ${chip}${toggle}
         ${nav}
         <div class="nav-sep"></div>
-        <div class="nav-item" data-route="settings"><span class="ico">🔑</span><span>API &amp; Data</span></div>
+        <div class="nav-item" data-route="settings"><span class="ico">🔑</span><span>Settings &amp; Data</span></div>
         <div class="nav-foot">Digital SAT trainer · runs offline<br>Everything stays on this device.</div>
       </aside>
-      <main class="main"><div id="view"></div></main>
+      <main class="main">${actingBanner}<div id="view"></div></main>
     </div>`;
   app.querySelectorAll('.nav-item').forEach((el) => el.addEventListener('click', () => {
     navigate(el.dataset.route);
