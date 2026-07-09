@@ -170,7 +170,7 @@ function runQuestionSession(cfg) {
             <span class="pill">${esc(cfg.title || 'Practice')}</span>
             ${skillPill(q.skill)} ${diffDots(q.difficulty)}
           </div>
-          <div class="row" style="gap:10px">${comboHtml}${heartsHtml}<span class="mono muted">${prog}</span></div>
+          <div class="row" style="gap:10px">${comboHtml}${heartsHtml}${q.section === 'math' && typeof openReferenceSheet === 'function' ? `<button class="btn ghost sm" title="Math reference" onclick="openReferenceSheet()">📐</button>` : ''}<span class="mono muted">${prog}</span></div>
         </div>
         <div class="bar" style="margin-bottom:18px"><span style="width:${(S0.idx) / qs.length * 100}%"></span></div>
         <div class="card pad-lg">${renderQuestionBody(q)}</div>

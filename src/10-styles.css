@@ -304,6 +304,22 @@ label.fld > span { display: block; font-size: .8rem; color: var(--muted); margin
 .navgrid .qb.flagged::after { content: "⚑"; position: absolute; top: -6px; right: -4px; color: #c0851b; font-size: .8rem; }
 .break-screen { max-width: 560px; margin: 8vh auto; text-align: center; }
 
+/* Bluebook-style tools: highlight/annotate + math reference sheet */
+.testmode .test-tools { display: flex; gap: 6px; }
+.hl { background: #ffe483; color: #1b1f2a; border-radius: 2px; padding: 0 1px; cursor: pointer; }
+.hl.noted { box-shadow: inset 0 -2px 0 #b0851b; }
+.annot-bar { position: fixed; z-index: 95; background: #1b1f2a; color: #fff; border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,.45); display: flex; gap: 2px; padding: 4px; transform: translate(-50%, -100%); }
+.annot-bar button { background: transparent; border: none; color: #fff; padding: 6px 11px; border-radius: 7px; cursor: pointer; font-size: .84rem; white-space: nowrap; }
+.annot-bar button:hover { background: rgba(255,255,255,.16); }
+.testmode .passage { position: relative; }
+.testmode .note-pin { display: inline-block; margin-left: 2px; color: #b0851b; cursor: pointer; font-size: .8rem; vertical-align: super; }
+.ref-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.ref-grid .rf { border: 1px solid var(--line-soft); border-radius: 12px; padding: 12px; background: var(--midnight); text-align: center; }
+.ref-grid .rf svg { display: block; margin: 0 auto 8px; }
+.ref-grid .rf .lbl { font-size: .78rem; color: var(--muted); }
+.ref-grid .rf .fx { font-family: var(--font-mono); font-size: .9rem; margin-top: 4px; }
+.ref-note { color: var(--muted); font-size: .82rem; margin-top: 12px; }
+
 /* =========================================================================
    Sable — assistant orb + command bar
    ========================================================================= */

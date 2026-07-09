@@ -82,6 +82,7 @@ class TestRunner {
     this.curQuestions = [];
     this.timer = null; this.remain = 0; this.timerHidden = false;
     this.host = null;
+    this.annot = {};               // qid -> [{text, note}]  (Bluebook highlights/notes)
   }
   curSection() { return this.plan.sections[this.secIdx]; }
   begin() {
@@ -107,7 +108,7 @@ class TestRunner {
       <div style="font-size:2.4rem">${s.sec === 'math' ? '🧮' : '✍️'}</div>
       <h1>${esc(s.label)}${s.mods > 1 ? ` — Module ${this.modIdx + 1}` : ''}</h1>
       <p class="muted">${this.curQuestions.length} questions · ${Math.round(s.timeSec / 60)} minutes${s.sec === 'math' ? ' · calculator allowed throughout' : ''}.</p>
-      ${first ? `<p class="muted">This runs like the real thing: no answers shown until you finish. You can flag questions, cross out choices, and jump around with the navigator. ${this.plan.kind === 'diagnostic' ? 'It seeds your mastery map and first score estimate.' : ''}</p>` : ''}
+      ${first ? `<p class="muted">This runs like the real thing: no answers shown until you finish. Flag questions, cross out choices, highlight passage text (select it) and add notes, open the math reference, and jump around with the navigator. ${this.plan.kind === 'diagnostic' ? 'It seeds your mastery map and first score estimate.' : ''}</p>` : ''}
       <div class="row" style="justify-content:center;gap:10px;margin-top:20px">
         <button class="btn" id="tabort">Exit</button>
         <button class="btn primary lg" id="tstart">${first ? 'Start' : 'Begin module'} →</button>
@@ -153,7 +154,10 @@ class TestRunner {
       <div class="test-top">
         <div class="test-title">${esc(s.label)}${s.mods > 1 ? ` · Module ${this.modIdx + 1}` : ''}</div>
         <div class="test-timer ${this.remain < 300 ? 'low' : ''}" id="ttimer">${this.timerHidden ? 'Show' : fmtClock(this.remain)}</div>
-        <div><button class="btn ghost sm" id="texit">Exit</button></div>
+        <div class="test-tools">
+          ${s.sec === 'math' ? '<button class="btn ghost sm" id="tref" title="Math reference">📐 Reference</button>' : ''}
+          <button class="btn ghost sm" id="texit">Exit</button>
+        </div>
       </div>
       <div class="test-body">
         <div class="row spread" style="margin-bottom:12px">
@@ -190,6 +194,73 @@ class TestRunner {
     $('#texit', this.host).onclick = () => this.confirmAbort();
     $('#tback', this.host).onclick = () => { if (this.qIdx > 0) { this.qIdx--; this.renderQuestion(); } };
     $('#tnext', this.host).onclick = () => { if (this.qIdx + 1 >= this.curQuestions.length) this.openReview(); else { this.qIdx++; this.renderQuestion(); } };
+    const ref = $('#tref', this.host); if (ref) ref.onclick = () => openReferenceSheet();
+    this.setupAnnotate(q);
+    this.applyAnnotations(q);
+  }
+
+  /* ---------- Bluebook-style highlight & note ---------- */
+  setupAnnotate(q) {
+    const pas = this.host.querySelector('.passage') || this.host.querySelector('.stem');
+    if (!pas) return;
+    pas.addEventListener('mouseup', () => setTimeout(() => this.onSelect(pas, q), 10));
+  }
+  onSelect(pas, q) {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return this.hideAnnotBar();
+    const text = sel.toString().trim();
+    if (text.length < 2 || text.length > 240) return this.hideAnnotBar();
+    if (!pas.contains(sel.anchorNode) || !pas.contains(sel.focusNode)) return this.hideAnnotBar();
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    this.showAnnotBar(rect, text, q);
+  }
+  showAnnotBar(rect, text, q) {
+    this.hideAnnotBar();
+    const bar = document.createElement('div'); bar.className = 'annot-bar';
+    bar.innerHTML = `<button data-a="hl">🖊 Highlight</button><button data-a="note">🗒 Note</button>`;
+    bar.style.left = (rect.left + rect.width / 2) + 'px';
+    bar.style.top = (rect.top - 6) + 'px';
+    document.body.appendChild(bar); this._annotBar = bar;
+    bar.querySelector('[data-a="hl"]').onmousedown = (e) => { e.preventDefault(); this.addAnn(q, text, null); };
+    bar.querySelector('[data-a="note"]').onmousedown = (e) => { e.preventDefault(); this.promptNote(q, text); };
+    this._annotDismiss = (e) => { if (this._annotBar && !this._annotBar.contains(e.target)) this.hideAnnotBar(); };
+    setTimeout(() => document.addEventListener('mousedown', this._annotDismiss), 0);
+  }
+  hideAnnotBar() { if (this._annotBar) { this._annotBar.remove(); this._annotBar = null; } if (this._annotDismiss) { document.removeEventListener('mousedown', this._annotDismiss); this._annotDismiss = null; } }
+  addAnn(q, text, note) {
+    (this.annot[q.id] || (this.annot[q.id] = [])).push({ text, note });
+    this.hideAnnotBar(); window.getSelection().removeAllRanges(); this.renderQuestion();
+  }
+  promptNote(q, text) {
+    this.hideAnnotBar();
+    const m = openModal(`<h3 style="margin-top:0">Add a note</h3>
+      <div class="muted" style="font-size:.85rem;margin-bottom:8px">On: “${esc(text.slice(0, 120))}”</div>
+      <textarea id="annNote" rows="4" placeholder="Your note…"></textarea>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-s>Save note</button></div>`);
+    m.el.style.color = '#1b1f2a';
+    setTimeout(() => $('#annNote', m.el)?.focus(), 30);
+    m.el.querySelector('[data-x]').onclick = m.close;
+    m.el.querySelector('[data-s]').onclick = () => { const n = $('#annNote', m.el).value.trim(); m.close(); window.getSelection().removeAllRanges(); this.addAnn(q, text, n || '(note)'); };
+  }
+  applyAnnotations(q) {
+    const list = this.annot[q.id]; if (!list || !list.length) return;
+    const pas = this.host.querySelector('.passage') || this.host.querySelector('.stem'); if (!pas) return;
+    list.forEach((ann, idx) => {
+      const mark = wrapFirstOccurrence(pas, ann.text, 'hl' + (ann.note ? ' noted' : ''));
+      if (mark) { mark.dataset.ann = idx; if (ann.note) mark.title = ann.note; mark.onclick = (e) => { e.stopPropagation(); this.markMenu(mark, q, idx); }; }
+    });
+  }
+  markMenu(mark, q, idx) {
+    const ann = this.annot[q.id][idx]; const rect = mark.getBoundingClientRect();
+    this.hideAnnotBar();
+    const bar = document.createElement('div'); bar.className = 'annot-bar';
+    bar.innerHTML = `${ann.note ? `<button data-a="view">🗒 ${esc(ann.note.slice(0, 30))}</button>` : ''}<button data-a="rm">✕ Remove</button>`;
+    bar.style.left = (rect.left + rect.width / 2) + 'px'; bar.style.top = (rect.top - 6) + 'px';
+    document.body.appendChild(bar); this._annotBar = bar;
+    const rm = bar.querySelector('[data-a="rm"]'); rm.onclick = () => { this.annot[q.id].splice(idx, 1); this.hideAnnotBar(); this.renderQuestion(); };
+    const v = bar.querySelector('[data-a="view"]'); if (v) v.onclick = () => { toast('Note: ' + ann.note, 'sky', 4000); this.hideAnnotBar(); };
+    this._annotDismiss = (e) => { if (this._annotBar && !this._annotBar.contains(e.target) && e.target !== mark) this.hideAnnotBar(); };
+    setTimeout(() => document.addEventListener('mousedown', this._annotDismiss), 0);
   }
   toggleStrike(q, L) {
     const set = this.struck[q.id] || (this.struck[q.id] = new Set());
@@ -408,6 +479,64 @@ registerView('diagnostic', {
       </div>`;
   },
 });
+
+/* =========================================================================
+   Bluebook-style Math Reference Sheet — the standard SAT reference, available
+   during math modules (and math drills). Figures drawn as inline SVG.
+   ========================================================================= */
+function openReferenceSheet() {
+  const st = 'stroke:var(--muted);fill:none;stroke-width:1.5';
+  const fig = {
+    circle: `<svg width="56" height="52"><circle cx="24" cy="26" r="18" style="${st}"/><line x1="24" y1="26" x2="42" y2="26" style="${st}"/><text x="30" y="22" fill="var(--faint)" font-size="9">r</text></svg>`,
+    rect: `<svg width="60" height="52"><rect x="6" y="12" width="48" height="28" style="${st}"/><text x="26" y="50" fill="var(--faint)" font-size="9">ℓ</text><text x="0" y="30" fill="var(--faint)" font-size="9">w</text></svg>`,
+    tri: `<svg width="60" height="52"><polygon points="8,42 52,42 34,10" style="${st}"/><line x1="34" y1="10" x2="34" y2="42" style="${st};stroke-dasharray:3"/><text x="26" y="51" fill="var(--faint)" font-size="9">b</text><text x="36" y="30" fill="var(--faint)" font-size="9">h</text></svg>`,
+    rtri: `<svg width="60" height="52"><polygon points="10,42 50,42 10,10" style="${st}"/><rect x="10" y="36" width="6" height="6" style="${st}"/><text x="27" y="51" fill="var(--faint)" font-size="9">a</text><text x="0" y="30" fill="var(--faint)" font-size="9">b</text><text x="34" y="22" fill="var(--faint)" font-size="9">c</text></svg>`,
+    t3060: `<svg width="70" height="52"><polygon points="10,42 58,42 10,12" style="${st}"/><rect x="10" y="36" width="6" height="6" style="${st}"/><text x="30" y="51" fill="var(--faint)" font-size="8">x√3</text><text x="0" y="30" fill="var(--faint)" font-size="8">x</text><text x="34" y="22" fill="var(--faint)" font-size="8">2x</text></svg>`,
+    t4545: `<svg width="60" height="52"><polygon points="10,42 50,42 10,12" style="${st}"/><rect x="10" y="36" width="6" height="6" style="${st}"/><text x="26" y="51" fill="var(--faint)" font-size="8">s</text><text x="0" y="30" fill="var(--faint)" font-size="8">s</text><text x="32" y="22" fill="var(--faint)" font-size="8">s√2</text></svg>`,
+    box: `<svg width="64" height="52"><rect x="8" y="16" width="34" height="26" style="${st}"/><path d="M8,16 L20,6 L54,6 L42,16 M42,42 L54,32 L54,6" style="${st}"/></svg>`,
+    cyl: `<svg width="52" height="52"><ellipse cx="26" cy="12" rx="16" ry="6" style="${st}"/><path d="M10,12 L10,40 M42,12 L42,40" style="${st}"/><ellipse cx="26" cy="40" rx="16" ry="6" style="${st}"/></svg>`,
+    sphere: `<svg width="52" height="52"><circle cx="26" cy="26" r="18" style="${st}"/><ellipse cx="26" cy="26" rx="18" ry="6" style="${st};stroke-dasharray:3"/></svg>`,
+    cone: `<svg width="52" height="52"><path d="M26,8 L10,40 M26,8 L42,40" style="${st}"/><ellipse cx="26" cy="40" rx="16" ry="6" style="${st}"/></svg>`,
+    pyr: `<svg width="60" height="52"><path d="M30,8 L10,40 L50,40 Z M30,8 L30,40" style="${st};stroke-dasharray:3"/><path d="M30,8 L10,40 M30,8 L50,40" style="${st}"/></svg>`,
+  };
+  const card = (svg, lbl, fx) => `<div class="rf">${svg}<div class="lbl">${lbl}</div><div class="fx">${mathToHtml(fx)}</div></div>`;
+  const html = `<h3 style="margin-top:0">📐 Reference</h3>
+    <div class="ref-grid">
+      ${card(fig.circle, 'Circle', '$A=\\pi r^2$,  $C=2\\pi r$')}
+      ${card(fig.rect, 'Rectangle', '$A=\\ell w$')}
+      ${card(fig.tri, 'Triangle', '$A=\\tfrac12 bh$')}
+      ${card(fig.rtri, 'Right triangle', '$a^2+b^2=c^2$')}
+      ${card(fig.t3060, '30°-60°-90°', '$x,\\ x\\sqrt3,\\ 2x$')}
+      ${card(fig.t4545, '45°-45°-90°', '$s,\\ s,\\ s\\sqrt2$')}
+      ${card(fig.box, 'Rect. solid', '$V=\\ell wh$')}
+      ${card(fig.cyl, 'Cylinder', '$V=\\pi r^2 h$')}
+      ${card(fig.sphere, 'Sphere', '$V=\\tfrac43\\pi r^3$')}
+      ${card(fig.cone, 'Cone', '$V=\\tfrac13\\pi r^2 h$')}
+      ${card(fig.pyr, 'Pyramid', '$V=\\tfrac13\\ell wh$')}
+    </div>
+    <div class="ref-note">There are 360° (2π radians) of arc in a circle. The measures of the angles in a triangle sum to 180°.</div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" data-refclose>Close</button></div>`;
+  const m = openModal(html);
+  m.el.querySelector('[data-refclose]').onclick = m.close;
+}
+
+// Wrap the first occurrence of `text` (a plain-text run) inside `root` in a
+// <mark>. Works across re-renders since it re-finds the text each time.
+function wrapFirstOccurrence(root, text, className) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.parentElement && node.parentElement.classList.contains('hl')) continue;
+    const i = node.nodeValue.indexOf(text);
+    if (i >= 0) {
+      const range = document.createRange();
+      range.setStart(node, i); range.setEnd(node, i + text.length);
+      const mark = document.createElement('mark'); mark.className = className;
+      try { range.surroundContents(mark); return mark; } catch (e) { return null; }
+    }
+  }
+  return null;
+}
 
 /* Small SVG trend line for scores across diagnostics + mocks. */
 function trendChart(history) {

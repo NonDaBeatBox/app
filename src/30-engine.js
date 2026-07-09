@@ -195,8 +195,11 @@ function texFallback(tex) {
   // Make raw TeX readable when KaTeX is unavailable (offline).
   let t = tex;
   t = t.replace(/\\text(?:rm|bf|it)?\s*{([^{}]*)}/g, '$1');   // \text{...} -> plain
-  t = t.replace(/\\d?frac\s*{([^{}]*)}\s*{([^{}]*)}/g, '($1)/($2)');
+  t = t.replace(/\\ell/g, 'ℓ');
+  t = t.replace(/\\[dt]?frac\s*{([^{}]*)}\s*{([^{}]*)}/g, '($1)/($2)');  // \frac \dfrac \tfrac (braced)
+  t = t.replace(/\\[dt]?frac\s*(\w)\s*(\w)/g, '$1/$2');       // brace-less two-token frac (e.g. \tfrac12)
   t = t.replace(/\\sqrt\s*{([^{}]*)}/g, '√($1)');
+  t = t.replace(/\\sqrt\s*(\w)/g, '√$1');                     // brace-less \sqrt3
   t = t.replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\div/g, '÷');
   t = t.replace(/\\pm/g, '±').replace(/\\mp/g, '∓').replace(/\\leq?/g, '≤').replace(/\\geq?/g, '≥').replace(/\\neq/g, '≠');
   t = t.replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\Rightarrow/g, '⇒').replace(/\\rightarrow/g, '→').replace(/\\approx/g, '≈');
