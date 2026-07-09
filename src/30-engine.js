@@ -62,6 +62,7 @@ function defaultState() {
     combo: 0,                 // transient-ish; reset each session start
     streak: { count: 0, lastDay: null, freezes: 1, freezeWeek: weekKey(now) },
     weekly: { week: weekKey(now), xp: 0, goal: 600, history: [] },
+    hearts: { count: 5, max: 5 }, // optional hearts mode (path practice)
     mastery: {},              // skillId -> 0..100
     seen: {},                 // qid -> count (exposure)
     stats: { answered: 0, correct: 0, bySkill: {}, secByQ: [] },
@@ -490,7 +491,11 @@ function recordAnswer(q, response, meta = {}) {
   // mistake bank
   if (!correct) recordMistake(q, response);
   else if (S.mistakes[q.id]) resolveMistakeAttempt(q.id, true);
-  if (meta.fromMistake) resolveMistakeAttempt(q.id, correct);
+  if (meta.fromMistake) {
+    resolveMistakeAttempt(q.id, correct);
+    // clearing a mistake in review earns back a heart (hearts mode)
+    if (correct && S.settings.heartsMode && S.hearts.count < S.hearts.max) { S.hearts.count++; }
+  }
   // counters + badges
   if (correct && isExtreme(q)) { S.counters.extremeSolved++; award('extreme1'); }
   checkAnswerBadges(q, correct);

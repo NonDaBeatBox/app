@@ -36,6 +36,27 @@ for (const route of ['learn','path','drills','vocab','mocks','strategies','progr
   });
 }
 
+// Learn: open a lesson and see concept + checkpoint
+await check('learn lesson renders', async () => {
+  await page.evaluate(() => navigate('learn', { skill: 'alg_linear_eq' }));
+  await page.waitForTimeout(150);
+  const html = await page.innerHTML('#view');
+  if (!/Concept|Worked examples|Common traps/i.test(html)) throw new Error('lesson content missing');
+});
+// Path: nodes present and a node starts a session
+await check('skill path renders nodes', async () => {
+  await page.evaluate(() => navigate('path'));
+  await page.waitForTimeout(150);
+  const n = await page.$$eval('.node', els => els.length);
+  if (n < 20) throw new Error('only ' + n + ' path nodes');
+});
+await check('path node starts a session', async () => {
+  await page.evaluate(() => startPathNode(1));
+  await page.waitForTimeout(200);
+  const html = await page.innerHTML('#view');
+  if (!/qSubmit|choices|sprIn|Micro-lesson|Got it/i.test(html)) throw new Error('node did not start');
+});
+
 // Progress heatmap has cells
 await check('progress heatmap cells', async () => {
   await page.evaluate(() => window.navigate('progress'));
@@ -86,6 +107,32 @@ await check('sable panel + rule answer', async () => {
   await page.waitForTimeout(120);
   const msgs = await page.innerHTML('#sableMsgs');
   if (!/focus|work|drill/i.test(msgs)) throw new Error('no rule-based reply');
+});
+
+// Vocabulary: seed a set and exercise modes
+await check('vocab import + modes', async () => {
+  await page.evaluate(() => {
+    const words = [];
+    for (let i = 0; i < 12; i++) words.push({ w: 'word' + i, def: 'definition number ' + i, ex: 'This is word' + i + ' in a sentence.' });
+    importVocabSet('Test Set', words);
+    navigate('vocab');
+  });
+  await page.waitForTimeout(150);
+  const html = await page.innerHTML('#view');
+  if (!/Practice modes|Flashcards|Match/i.test(html)) throw new Error('vocab home missing modes');
+  // flashcards
+  await page.evaluate(() => runVocabMode('flash'));
+  await page.waitForTimeout(120);
+  if (!(await page.$('#fcard'))) throw new Error('flashcards did not start');
+  // match
+  await page.evaluate(() => { navigate('vocab'); runVocabMode('match'); });
+  await page.waitForTimeout(120);
+  const tiles = await page.$$eval('#mgrid .card', els => els.length);
+  if (tiles !== 12) throw new Error('match grid wrong tile count: ' + tiles);
+  // quiz
+  await page.evaluate(() => { navigate('vocab'); runVocabMode('quiz'); });
+  await page.waitForTimeout(120);
+  if (!/Vocab quiz|What does|Which word/i.test(await page.innerHTML('#view'))) throw new Error('quiz did not start');
 });
 
 // localStorage has state

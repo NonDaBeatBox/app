@@ -79,6 +79,8 @@ const SKILLS = [
    and push into GEN_BANK, which is merged into the runtime bank alongside the
    hand-written seed arrays. Keeps large batches in tidy, grouped blocks. */
 const GEN_BANK = [];
+const GEN_LESSONS = [];    // generated Learn lessons push here (loaded before this file's consumers)
+const VOCAB_STARTER = [];  // generated starter vocab words push here
 
 /* Fast lookups built once. */
 const SKILL_BY_ID = Object.fromEntries(SKILLS.map(s => [s.id, s]));

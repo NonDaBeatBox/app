@@ -151,7 +151,7 @@ function runQuestionSession(cfg) {
   const qs = cfg.questions.slice();
   const S0 = {
     idx: 0, results: [], chosen: null, submitted: false, struck: new Set(),
-    hearts: cfg.hearts ? 5 : null, startTs: 0, done: false,
+    hearts: (typeof cfg.hearts === 'number') ? cfg.hearts : (cfg.hearts ? 5 : null), startTs: 0, done: false,
   };
   function cur() { return qs[S0.idx]; }
 
@@ -239,7 +239,7 @@ function runQuestionSession(cfg) {
     const sec = (Date.now() - S0.startTs) / 1000;
     const res = recordAnswer(q, S0.chosen, Object.assign({ sec }, cfg.meta || {}));
     S0.results.push({ q, correct: res.correct, chosen: S0.chosen, sec });
-    if (S0.hearts !== null && !res.correct) { S0.hearts--; }
+    if (S0.hearts !== null && !res.correct) { S0.hearts--; if (cfg.onMiss) cfg.onMiss(S0.hearts); }
     showFeedback(q, res);
     updateComboFlash(res);
   }

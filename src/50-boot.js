@@ -13,6 +13,8 @@ function boot() {
   loadState();
   ensureToday();
   buildBank();
+  buildLessons();
+  buildPath();
   rolloverWeekIfNeeded();
   generatePlan();          // ensure a plan/quest exists
   save();
