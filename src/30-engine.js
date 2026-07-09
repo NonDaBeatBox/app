@@ -44,7 +44,8 @@ function fmtClock(sec) { const m = Math.floor(sec / 60), s = Math.floor(sec % 60
    ========================================================================= */
 const LS = {
   state: 'ace.v1.state',          // legacy single-profile key (migrated on first sign-up)
-  accounts: 'ace.v1.accounts',    // { username -> {username, displayName, pass, role, createdAt} }
+  accounts: 'ace.v1.accounts',    // { username -> {username, displayName, pass, role, createdAt, classes:[code]} }
+  classes: 'ace.v1.classes',      // { code -> {code, name, teacher, createdAt} }
   session: 'ace.v1.session',      // currently signed-in username
   profilePrefix: 'ace.v1.profile.', // per-account state key prefix
 };
@@ -52,6 +53,7 @@ const STATE_VERSION = 1;
 
 // Auth / multi-profile session state.
 let ACCOUNTS = {};
+let CLASSES = {};         // code -> { code, name, teacher, createdAt }  (Google-Classroom style)
 let currentUser = null;   // signed-in username
 let actingUser = null;    // set when a teacher is "acting as" a student
 const profileKey = (u) => LS.profilePrefix + u;

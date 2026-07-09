@@ -209,32 +209,34 @@ await check('full mock runs (routing + break + score)', async () => {
   await page.click('#rdone'); await page.waitForTimeout(100);
 });
 
-// Teacher classroom: demo student + roster + detail + act-as/return
-await check('classroom + demo student + act-as', async () => {
-  await page.evaluate(() => { S.settings.viewMode = 'teacher'; navigate('classroom'); });
+// Teacher classroom: class + join code + demo student + detail + act-as/return
+await check('classroom: class + student + detail + act-as', async () => {
+  const code = await page.evaluate(() => { S.settings.viewMode = 'teacher'; const c = createClass('Test Class', 'tester'); addDemoStudent(c); return c; });
+  if (!/^[A-Z0-9]{6}$/.test(code)) throw new Error('bad class code: ' + code);
+  await page.evaluate((c) => navigate('classroom', { class: c }), code);
   await page.waitForTimeout(150);
-  await page.evaluate(() => addDemoStudent());
-  await page.waitForTimeout(200);
   const cards = await page.$$eval('.stu-card', els => els.length);
-  if (cards < 1) throw new Error('no student card after adding demo');
-  // open detail
-  await page.evaluate(() => { const e = studentRoster()[0]; navigate('classroom', { student: e.id }); });
+  if (cards < 1) throw new Error('no student card in class roster');
+  // open student detail
+  await page.evaluate((c) => { const e = classStudents(c)[0]; navigate('classroom', { class: c, student: e.id }); }, code);
   await page.waitForTimeout(200);
   if (!/Projected|mastery heatmap|Weakest/i.test(await page.innerHTML('#view'))) throw new Error('student detail missing');
-  // create a student account and act as them
-  const acted = await page.evaluate(() => {
+  // student account joins the class and gets acted-as
+  const acted = await page.evaluate((c) => {
     createAccount('stud1', 'pw12', 'student', 'Student One');
+    joinClass('stud1', c);
     actAsStudent('stud1');
     return typeof actingUser !== 'undefined' ? actingUser : null;
-  });
+  }, code);
   await page.waitForTimeout(200);
   if (acted !== 'stud1') throw new Error('act-as did not set actingUser');
-  const banner = await page.$('.acting-banner');
-  if (!banner) throw new Error('no acting banner');
+  if (!(await page.$('.acting-banner'))) throw new Error('no acting banner');
   await page.evaluate(() => returnToTeacher());
   await page.waitForTimeout(150);
-  const stillActing = await page.evaluate(() => actingUser);
-  if (stillActing) throw new Error('did not return to teacher');
+  if (await page.evaluate(() => actingUser)) throw new Error('did not return to teacher');
+  // the joined student now shows in the roster (2 students)
+  const n = await page.evaluate((c) => classStudents(c).length, code);
+  if (n < 2) throw new Error('joined student not in class roster: ' + n);
 });
 
 // Sign out and sign back in preserves account

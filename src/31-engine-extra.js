@@ -34,7 +34,7 @@ function createAccount(username, password, role, displayName) {
   if (accountExists(u)) return { ok: false, error: 'That username is taken.' };
   if (!password || password.length < 4) return { ok: false, error: 'Password must be at least 4 characters.' };
   const isFirst = Object.keys(ACCOUNTS).length === 0;
-  ACCOUNTS[u] = { username: u, displayName: (displayName || username).trim().slice(0, 30), pass: hashPass(password), role: role || (isFirst ? 'teacher' : 'student'), createdAt: Date.now() };
+  ACCOUNTS[u] = { username: u, displayName: (displayName || username).trim().slice(0, 30), pass: hashPass(password), role: role || (isFirst ? 'teacher' : 'student'), createdAt: Date.now(), classes: [] };
   saveAccounts();
   // initialize this account's profile (first account inherits legacy progress)
   let init = defaultState();
@@ -53,6 +53,45 @@ function verifyLogin(username, password) {
 function setSession(u) { currentUser = u; try { localStorage.setItem(LS.session, u); } catch (e) { } }
 function clearSession() { currentUser = null; actingUser = null; try { localStorage.removeItem(LS.session); } catch (e) { } }
 function deleteAccount(u) { u = normUser(u); delete ACCOUNTS[u]; saveAccounts(); try { localStorage.removeItem(profileKey(u)); } catch (e) { } }
+
+/* =========================================================================
+   Classes (Google-Classroom style) — teachers own classes with a join code;
+   students join by code (optional, anytime). Non-students never need a class.
+   ========================================================================= */
+function loadClasses() { try { CLASSES = JSON.parse(localStorage.getItem(LS.classes)) || {}; } catch (e) { CLASSES = {}; } return CLASSES; }
+function saveClasses() { try { localStorage.setItem(LS.classes, JSON.stringify(CLASSES)); } catch (e) { } }
+function genClassCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no ambiguous 0/O/1/I
+  let code;
+  do { code = ''; for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)]; } while (CLASSES[code]);
+  return code;
+}
+function createClass(name, teacher) {
+  const code = genClassCode();
+  CLASSES[code] = { code, name: (String(name || '').trim() || 'My Class').slice(0, 40), teacher: teacher || currentUser, createdAt: Date.now() };
+  saveClasses();
+  return code;
+}
+function joinClass(username, code) {
+  code = String(code || '').trim().toUpperCase();
+  if (!code) return { ok: false, error: 'Enter a class code.' };
+  if (!CLASSES[code]) return { ok: false, error: 'No class found with that code.' };
+  const a = ACCOUNTS[normUser(username)];
+  if (!a) return { ok: false, error: 'No account.' };
+  a.classes = a.classes || [];
+  if (!a.classes.includes(code)) a.classes.push(code);
+  saveAccounts();
+  return { ok: true, code, name: CLASSES[code].name };
+}
+function leaveClass(username, code) { const a = ACCOUNTS[normUser(username)]; if (a && a.classes) { a.classes = a.classes.filter((c) => c !== code); saveAccounts(); } }
+function teacherClasses(username) { return Object.values(CLASSES).filter((c) => c.teacher === username); }
+function studentClassesOf(username) { const a = ACCOUNTS[normUser(username)]; return ((a && a.classes) || []).map((c) => CLASSES[c]).filter(Boolean); }
+function renameClass(code, name) { if (CLASSES[code]) { CLASSES[code].name = String(name || '').trim().slice(0, 40) || CLASSES[code].name; saveClasses(); } }
+function deleteClass(code) {
+  delete CLASSES[code]; saveClasses();
+  for (const a of Object.values(ACCOUNTS)) if (a.classes) a.classes = a.classes.filter((c) => c !== code);
+  saveAccounts();
+}
 
 /* Compute a compact progress report for a student's state object. */
 function studentReport(state) {

@@ -23,18 +23,23 @@
     localStorage. It is a lightweight gate, NOT real security; anyone with
     access to this browser can read the data.
   • Each account has its own separate progress. The first account is the
-    teacher; you can make more accounts (teacher or student) from the sign-up
-    page or from the teacher's Classroom.
+    teacher by default; you can make more accounts from the sign-up page.
+  • Classes work like Google Classroom: a teacher CREATES a class and gets a
+    join CODE. Students JOIN by entering that code — when they sign up (there's
+    an optional "Class code" field for students) or anytime later from
+    Settings → Join a class. Being in a class is optional; nobody is forced to
+    join, and non-students never need one.
   • Teachers get a Teacher ⇄ Student toggle in the sidebar. In Teacher view,
-    the Classroom shows every student's progress: a roster with projected
-    scores and weak skills, a class summary, and a per-student deep-dive
-    (heatmap, projected trend, pacing, mocks, achievements).
-  • Add students three ways: create a student login they use on this device,
-    import a student's exported progress file (Settings → Export on their
-    machine), or drop in a demo student to explore the dashboard.
+    the Classroom lists your classes; open a class to see the roster (projected
+    scores, weak skills), a class summary, "what the class needs work on," and
+    a per-student deep-dive (heatmap, projected trend, pacing, mocks, badges).
+  • Add students to a class three ways: share the class code so they self-join,
+    create a student login (auto-joined), or import a student's exported
+    progress file. A demo student is available to explore the dashboard.
   • "Act as student" lets a teacher step into a student's profile (changes
     save to that student); use "Return to teacher" to switch back.
-  • Change password / sign out live in Settings and the sidebar (⎋).
+  • Change password / sign out / join or leave a class live in Settings; sign
+    out is also the ⎋ button in the sidebar.
   • Start with the Diagnostic (home screen) — it seeds your mastery heatmap,
     a score estimate, and a study plan. Then follow the daily quest each day.
   • Press Cmd/Ctrl+K anywhere for the command bar; click the glowing orb
@@ -5711,7 +5716,8 @@ function fmtClock(sec) { const m = Math.floor(sec / 60), s = Math.floor(sec % 60
    ========================================================================= */
 const LS = {
   state: 'ace.v1.state',          // legacy single-profile key (migrated on first sign-up)
-  accounts: 'ace.v1.accounts',    // { username -> {username, displayName, pass, role, createdAt} }
+  accounts: 'ace.v1.accounts',    // { username -> {username, displayName, pass, role, createdAt, classes:[code]} }
+  classes: 'ace.v1.classes',      // { code -> {code, name, teacher, createdAt} }
   session: 'ace.v1.session',      // currently signed-in username
   profilePrefix: 'ace.v1.profile.', // per-account state key prefix
 };
@@ -5719,6 +5725,7 @@ const STATE_VERSION = 1;
 
 // Auth / multi-profile session state.
 let ACCOUNTS = {};
+let CLASSES = {};         // code -> { code, name, teacher, createdAt }  (Google-Classroom style)
 let currentUser = null;   // signed-in username
 let actingUser = null;    // set when a teacher is "acting as" a student
 const profileKey = (u) => LS.profilePrefix + u;
@@ -6294,7 +6301,7 @@ function createAccount(username, password, role, displayName) {
   if (accountExists(u)) return { ok: false, error: 'That username is taken.' };
   if (!password || password.length < 4) return { ok: false, error: 'Password must be at least 4 characters.' };
   const isFirst = Object.keys(ACCOUNTS).length === 0;
-  ACCOUNTS[u] = { username: u, displayName: (displayName || username).trim().slice(0, 30), pass: hashPass(password), role: role || (isFirst ? 'teacher' : 'student'), createdAt: Date.now() };
+  ACCOUNTS[u] = { username: u, displayName: (displayName || username).trim().slice(0, 30), pass: hashPass(password), role: role || (isFirst ? 'teacher' : 'student'), createdAt: Date.now(), classes: [] };
   saveAccounts();
   // initialize this account's profile (first account inherits legacy progress)
   let init = defaultState();
@@ -6313,6 +6320,45 @@ function verifyLogin(username, password) {
 function setSession(u) { currentUser = u; try { localStorage.setItem(LS.session, u); } catch (e) { } }
 function clearSession() { currentUser = null; actingUser = null; try { localStorage.removeItem(LS.session); } catch (e) { } }
 function deleteAccount(u) { u = normUser(u); delete ACCOUNTS[u]; saveAccounts(); try { localStorage.removeItem(profileKey(u)); } catch (e) { } }
+
+/* =========================================================================
+   Classes (Google-Classroom style) — teachers own classes with a join code;
+   students join by code (optional, anytime). Non-students never need a class.
+   ========================================================================= */
+function loadClasses() { try { CLASSES = JSON.parse(localStorage.getItem(LS.classes)) || {}; } catch (e) { CLASSES = {}; } return CLASSES; }
+function saveClasses() { try { localStorage.setItem(LS.classes, JSON.stringify(CLASSES)); } catch (e) { } }
+function genClassCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no ambiguous 0/O/1/I
+  let code;
+  do { code = ''; for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)]; } while (CLASSES[code]);
+  return code;
+}
+function createClass(name, teacher) {
+  const code = genClassCode();
+  CLASSES[code] = { code, name: (String(name || '').trim() || 'My Class').slice(0, 40), teacher: teacher || currentUser, createdAt: Date.now() };
+  saveClasses();
+  return code;
+}
+function joinClass(username, code) {
+  code = String(code || '').trim().toUpperCase();
+  if (!code) return { ok: false, error: 'Enter a class code.' };
+  if (!CLASSES[code]) return { ok: false, error: 'No class found with that code.' };
+  const a = ACCOUNTS[normUser(username)];
+  if (!a) return { ok: false, error: 'No account.' };
+  a.classes = a.classes || [];
+  if (!a.classes.includes(code)) a.classes.push(code);
+  saveAccounts();
+  return { ok: true, code, name: CLASSES[code].name };
+}
+function leaveClass(username, code) { const a = ACCOUNTS[normUser(username)]; if (a && a.classes) { a.classes = a.classes.filter((c) => c !== code); saveAccounts(); } }
+function teacherClasses(username) { return Object.values(CLASSES).filter((c) => c.teacher === username); }
+function studentClassesOf(username) { const a = ACCOUNTS[normUser(username)]; return ((a && a.classes) || []).map((c) => CLASSES[c]).filter(Boolean); }
+function renameClass(code, name) { if (CLASSES[code]) { CLASSES[code].name = String(name || '').trim().slice(0, 40) || CLASSES[code].name; saveClasses(); } }
+function deleteClass(code) {
+  delete CLASSES[code]; saveClasses();
+  for (const a of Object.values(ACCOUNTS)) if (a.classes) a.classes = a.classes.filter((c) => c !== code);
+  saveAccounts();
+}
 
 /* Compute a compact progress report for a student's state object. */
 function studentReport(state) {
@@ -8553,7 +8599,13 @@ registerView('settings', {
           <div><div class="nm" style="font-size:1rem">${esc(acct.displayName || acct.username)}</div><div class="rl">@${esc(acct.username)} · ${esc(acct.role)}</div></div></div></div>
         <div class="row" style="gap:8px">${acct.role === 'teacher' ? '<button class="btn" onclick="navigate(\'classroom\')">🧑‍🏫 Classroom</button>' : ''}
           <button class="btn" id="chgPass">Change password</button><button class="btn ghost" onclick="signOut()">Sign out</button></div>
-      </div></div>` : ''}
+      </div>
+      ${acct.role === 'student' ? `<div style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px"><div class="row spread wrap" style="gap:10px">
+        <div style="flex:1"><b>Your classes</b> ${(typeof studentClassesOf === 'function' ? studentClassesOf(currentUser) : []).length
+          ? (studentClassesOf(currentUser).map((c) => `<span class="pill violet" style="margin-left:6px">${esc(c.name)} <span class="mono faint">${c.code}</span> <a onclick="leaveClassUI('${c.code}')" title="Leave" style="cursor:pointer;color:var(--coral)">✕</a></span>`).join(''))
+          : '<span class="muted" style="margin-left:6px">Not in a class — that’s completely fine.</span>'}</div>
+        <button class="btn sm" onclick="joinClassPrompt()">＋ Join a class</button></div></div>` : ''}
+      </div>` : ''}
     <div class="grid g-2" style="align-items:start">
 
       <div class="card">
@@ -9146,17 +9198,28 @@ function authSignUp() {
     <label class="fld"><span>Password</span><input type="password" id="upPass" placeholder="at least 4 characters"></label>
     <label class="fld"><span>I am a…</span>
       <div class="role-pick" id="rolePick">
-        <label class="${defRole === 'student' ? 'on' : ''}"><input type="radio" name="role" value="student" ${defRole === 'student' ? 'checked' : ''}><div class="em">🎓</div><div class="rl">Student</div></label>
-        <label class="${defRole === 'teacher' ? 'on' : ''}"><input type="radio" name="role" value="teacher" ${defRole === 'teacher' ? 'checked' : ''}><div class="em">👩‍🏫</div><div class="rl">Teacher</div></label>
+        <label class="${defRole === 'student' ? 'on' : ''}" data-role="student"><input type="radio" name="role" value="student" ${defRole === 'student' ? 'checked' : ''}><div class="em">🎓</div><div class="rl">Student</div></label>
+        <label class="${defRole === 'teacher' ? 'on' : ''}" data-role="teacher"><input type="radio" name="role" value="teacher" ${defRole === 'teacher' ? 'checked' : ''}><div class="em">👩‍🏫</div><div class="rl">Teacher</div></label>
       </div></label>
-    ${isFirst ? '<p class="tag" style="color:var(--ace)">This first account becomes the teacher and keeps any progress already on this device.</p>' : ''}
+    <label class="fld ${defRole === 'student' ? '' : 'hidden'}" id="joinField"><span>Class code <span class="faint">(optional — are you in a class? you can also join later)</span></span>
+      <input type="text" id="upCode" placeholder="e.g. ABC123" style="text-transform:uppercase"></label>
+    ${isFirst ? `<p class="tag ${defRole === 'teacher' ? '' : 'hidden'}" id="firstNote" style="color:var(--ace)">This first account keeps any progress already on this device.</p>` : ''}
     <div id="authMsg" class="tag" style="color:var(--coral);min-height:16px"></div>
     <button class="btn primary block lg" id="upGo">Create account →</button>`;
-  $$('#rolePick label', body).forEach((l) => l.onclick = () => { $$('#rolePick label', body).forEach((x) => x.classList.remove('on')); l.classList.add('on'); });
+  $$('#rolePick label', body).forEach((l) => l.onclick = () => {
+    $$('#rolePick label', body).forEach((x) => x.classList.remove('on')); l.classList.add('on');
+    document.getElementById('joinField').classList.toggle('hidden', l.dataset.role !== 'student');
+    const fn = document.getElementById('firstNote'); if (fn) fn.classList.toggle('hidden', l.dataset.role !== 'teacher');
+  });
   document.getElementById('upGo').onclick = () => {
     const role = (body.querySelector('input[name=role]:checked') || {}).value || defRole;
     const r = createAccount(document.getElementById('upUser').value, document.getElementById('upPass').value, role, document.getElementById('upName').value);
     if (!r.ok) { document.getElementById('authMsg').textContent = r.error; return; }
+    // optional: join a class by code (students only)
+    if (role === 'student') {
+      const code = document.getElementById('upCode').value.trim();
+      if (code) { const j = joinClass(r.username, code); if (!j.ok) { document.getElementById('authMsg').textContent = j.error + ' You can join later from Settings.'; } }
+    }
     setSession(r.username);
     enterApp(r.username);
     toast('Welcome to Ace, ' + (document.getElementById('upName').value || r.username) + '!', 'gold', 3500);
@@ -9198,6 +9261,10 @@ function setViewMode(mode) {
   S.settings.viewMode = mode; save();
   navigate(mode === 'teacher' ? 'classroom' : 'home');
 }
+function leaveClassUI(code) {
+  const c = CLASSES[code];
+  confirmModal('Leave ' + (c ? c.name : 'this class') + '?', 'You can rejoin anytime with the code.', () => { leaveClass(currentUser, code); toast('Left the class', 'sky'); router(); }, 'Leave', 'ghost');
+}
 
 /* ---------- acting as a student ---------- */
 function actAsStudent(username) {
@@ -9217,77 +9284,84 @@ function returnToTeacher() {
   navigate('classroom');
 }
 
-/* ---------- classroom data ---------- */
-function studentRoster() {
+/* ---------- classroom data (Google-Classroom style: classes + join codes) ---------- */
+function classStudents(code) {
   const list = [];
   for (const a of Object.values(ACCOUNTS)) {
-    if (a.username === currentUser || a.role === 'teacher') continue;
-    list.push({ kind: 'account', id: a.username, name: a.displayName || a.username, username: a.username, state: readProfile(a.username) });
+    if (a.role === 'student' && (a.classes || []).includes(code)) list.push({ kind: 'account', id: a.username, name: a.displayName || a.username, username: a.username, state: readProfile(a.username) });
   }
-  for (const [id, imp] of Object.entries((S.classroom && S.classroom.imported) || {})) list.push({ kind: 'import', id, name: imp.name, state: imp.state });
+  for (const [id, imp] of Object.entries((S.classroom && S.classroom.imported) || {})) if (imp.classCode === code) list.push({ kind: 'import', id, name: imp.name, state: imp.state });
   return list;
 }
-function rosterEntry(id) { return studentRoster().find((e) => e.id === id); }
+function classEntry(code, id) { return classStudents(code).find((e) => e.id === id); }
+function avg2(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
 
-/* ---------- Classroom view ---------- */
 registerView('classroom', {
   render(params) {
     if (!isTeacher()) return `<div class="card"><h3>Teacher tools</h3><p class="muted">Sign in with a teacher account to use the classroom.</p></div>`;
-    if (params.student) return renderStudentDetail(params.student);
-    const roster = studentRoster();
-    const reports = roster.map((e) => ({ e, r: studentReport(e.state) })).filter((x) => x.r);
-    const avg = (f) => reports.length ? Math.round(reports.reduce((a, x) => a + f(x.r), 0) / reports.length) : 0;
-    // class-wide weakest skills (lowest average mastery across students)
-    let weakAgg = '';
-    if (reports.length) {
-      const sums = {};
-      SKILLS.forEach((s) => { sums[s.id] = avg2(reports.map((x) => withState(x.e.state, () => getMastery(s.id)))); });
-      weakAgg = SKILLS.slice().sort((a, b) => sums[a.id] - sums[b.id]).slice(0, 4).map((s) => `<span class="pill coral">${esc(s.name)} · ${Math.round(sums[s.id])}</span>`).join(' ');
-    }
-    return `
-    ${pageHeader('Classroom', `${roster.length} student${roster.length === 1 ? '' : 's'} · monitor progress and step in where needed`,
-      `<button class="btn primary" onclick="addStudentMenu()">＋ Add student</button>`)}
+    if (params.class && !CLASSES[params.class]) return `<div class="card"><p class="muted">Class not found.</p><button class="btn" onclick="navigate('classroom')">← Classes</button></div>`;
+    if (params.class && params.student) return renderStudentDetail(params.class, params.student);
+    if (params.class) return renderClassRoster(params.class);
+    return renderClassList();
+  },
+  mount(root, params) {
+    if (params.class && params.student) $$('#stuHeat .cell', root).forEach((c) => c.addEventListener('click', () => { const e = classEntry(params.class, params.student); if (e) toast(SKILL_BY_ID[c.dataset.skill].name + ': ' + Math.round(withState(e.state, () => getMastery(c.dataset.skill))), 'sky'); }));
+  },
+});
+
+function renderClassList() {
+  const classes = teacherClasses(currentUser);
+  return `${pageHeader('Classroom', 'Your classes. Share a join code and students hop in — like Google Classroom.',
+    `<button class="btn primary" onclick="createClassPrompt()">＋ Create class</button>`)}
+    ${classes.length ? `<div class="roster">${classes.map((c) => { const n = classStudents(c.code).length; return `<div class="card stu-card" onclick="navigate('classroom',{class:'${c.code}'})">
+        <div class="row spread"><div><h3 style="margin:0">${esc(c.name)}</h3><div class="tag">${n} student${n === 1 ? '' : 's'}</div></div><div style="font-size:1.8rem">📚</div></div>
+        <div class="row spread" style="margin-top:12px;align-items:center"><span class="tag">Class code</span><span class="pill gold mono" style="letter-spacing:2px">${c.code}</span></div></div>`; }).join('')}</div>`
+    : `<div class="card tac" style="padding:44px"><div style="font-size:2.4rem">🧑‍🏫</div><h3>Create your first class</h3>
+       <p class="muted" style="max-width:520px;margin:0 auto 16px">You’ll get a class code to share. Students enter it when they sign up — or anytime from Settings — to join. Nobody is required to be in a class.</p>
+       <button class="btn primary" onclick="createClassPrompt()">＋ Create a class</button></div>`}`;
+}
+
+function renderClassRoster(code) {
+  const cls = CLASSES[code];
+  const roster = classStudents(code);
+  const reports = roster.map((e) => ({ e, r: studentReport(e.state) })).filter((x) => x.r);
+  const avg = (f) => reports.length ? Math.round(reports.reduce((a, x) => a + f(x.r), 0) / reports.length) : 0;
+  let weakAgg = '';
+  if (reports.length) { const sums = {}; SKILLS.forEach((s) => { sums[s.id] = avg2(reports.map((x) => withState(x.e.state, () => getMastery(s.id)))); }); weakAgg = SKILLS.slice().sort((a, b) => sums[a.id] - sums[b.id]).slice(0, 4).map((s) => `<span class="pill coral">${esc(s.name)} · ${Math.round(sums[s.id])}</span>`).join(' '); }
+  return `${pageHeader(cls.name, `Class code <b class="mono" style="letter-spacing:2px;color:var(--ace)">${code}</b> · ${roster.length} student${roster.length === 1 ? '' : 's'}`,
+    `<button class="btn" onclick="shareClass('${code}')">📣 Share code</button><button class="btn primary" onclick="addStudentMenu('${code}')">＋ Add student</button><button class="btn ghost sm" title="Class settings" onclick="classSettings('${code}')">⚙</button>`)}
+    <button class="btn ghost sm" onclick="navigate('classroom')" style="margin-bottom:12px">← All classes</button>
     ${roster.length ? `<div class="grid g-4" style="margin-bottom:16px">
-        ${statTile('Students', String(roster.length), 'in your class')}
+        ${statTile('Students', String(roster.length), 'joined')}
         ${statTile('Avg projected', String(avg((r) => r.projected.total)), 'of 1600 (est.)')}
         ${statTile('Avg mastery', avg((r) => r.overallMastery) + '/100', 'across skills')}
         ${statTile('Mocks taken', String(reports.reduce((a, x) => a + x.r.mocks, 0)), 'class total')}
       </div>
       ${weakAgg ? `<div class="card" style="margin-bottom:16px"><div class="eyebrow">Class needs work on</div><div class="row wrap" style="gap:8px;margin-top:8px">${weakAgg}</div></div>` : ''}
-      <div class="roster">${roster.map((e) => studentCard(e)).join('')}</div>`
-      : `<div class="card tac" style="padding:44px"><div style="font-size:2.4rem">🧑‍🏫</div><h3>No students yet</h3>
-         <p class="muted" style="max-width:520px;margin:0 auto 16px">Add students three ways: create a <b>student login</b> they use on this device, <b>import</b> a student’s exported progress file (from another device), or drop in a <b>demo student</b> to explore the dashboard.</p>
-         <button class="btn primary" onclick="addStudentMenu()">＋ Add your first student</button></div>`}`;
-  },
-  mount(root, params) {
-    if (params.student) $$('#stuHeat .cell', root).forEach((c) => c.addEventListener('click', () => toast(SKILL_BY_ID[c.dataset.skill].name + ': ' + Math.round(withState(rosterEntry(params.student).state, () => getMastery(c.dataset.skill))), 'sky')));
-  },
-});
-function avg2(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+      <div class="roster">${roster.map((e) => studentCard(code, e)).join('')}</div>`
+    : `<div class="card tac" style="padding:40px"><div style="font-size:2.2rem">👋</div><h3>No students yet</h3>
+       <p class="muted">Share code <b class="mono" style="letter-spacing:2px;color:var(--ace)">${code}</b> so students can join, or add one directly.</p>
+       <div class="row" style="justify-content:center;gap:10px;margin-top:12px"><button class="btn" onclick="shareClass('${code}')">📣 Share code</button><button class="btn primary" onclick="addStudentMenu('${code}')">＋ Add student</button></div></div>`}`;
+}
 
-function studentCard(e) {
+function studentCard(code, e) {
   const r = studentReport(e.state); if (!r) return '';
   const initials = e.name.slice(0, 2).toUpperCase();
   const col = ['#7b6cf6', '#2fd9a6', '#47c6f4', '#ff9e3d', '#ef476f'][e.name.charCodeAt(0) % 5];
-  return `<div class="card stu-card" onclick="navigate('classroom',{student:'${e.id}'})">
-    <div class="top">
-      <div class="av" style="background:${col}">${esc(initials)}</div>
-      <div style="flex:1;min-width:0"><div class="nm" style="font-weight:700">${esc(e.name)}</div>
-        <div class="tag">${e.kind === 'account' ? '@' + esc(e.username) : 'imported'} · ${r.answered} answered</div></div>
-      <div class="ring-mini" style="--p:${clamp(r.projected.total / 1600 * 100, 0, 100)};position:relative"><span>${r.projected.total}</span></div>
-    </div>
+  return `<div class="card stu-card" onclick="navigate('classroom',{class:'${code}',student:'${e.id}'})">
+    <div class="top"><div class="av" style="background:${col}">${esc(initials)}</div>
+      <div style="flex:1;min-width:0"><div class="nm" style="font-weight:700">${esc(e.name)}</div><div class="tag">${e.kind === 'account' ? '@' + esc(e.username) : 'imported'} · ${r.answered} answered</div></div>
+      <div class="ring-mini" style="--p:${clamp(r.projected.total / 1600 * 100, 0, 100)};position:relative"><span>${r.projected.total}</span></div></div>
     <div class="row" style="gap:10px;margin-top:12px">
       <div class="stat" style="flex:1"><div class="v" style="font-size:1.1rem">${r.rwMastery}<small>/100</small></div><div class="k">RW</div></div>
       <div class="stat" style="flex:1"><div class="v" style="font-size:1.1rem">${r.mathMastery}<small>/100</small></div><div class="k">Math</div></div>
-      <div class="stat" style="flex:1"><div class="v" style="font-size:1.1rem"><span class="flame"><span class="f">🔥</span>${r.streak}</span></div><div class="k">streak</div></div>
-    </div>
-    ${r.weakest.length ? `<div class="tag" style="margin-top:10px">Weakest: ${r.weakest.map(esc).join(', ')}</div>` : ''}
-  </div>`;
+      <div class="stat" style="flex:1"><div class="v" style="font-size:1.1rem"><span class="flame"><span class="f">🔥</span>${r.streak}</span></div><div class="k">streak</div></div></div>
+    ${r.weakest.length ? `<div class="tag" style="margin-top:10px">Weakest: ${r.weakest.map(esc).join(', ')}</div>` : ''}</div>`;
 }
 
-function renderStudentDetail(id) {
-  const e = rosterEntry(id);
-  if (!e) return `<div class="card"><p class="muted">Student not found.</p><button class="btn" onclick="navigate('classroom')">← Back</button></div>`;
+function renderStudentDetail(code, id) {
+  const e = classEntry(code, id);
+  if (!e) return `<div class="card"><p class="muted">Student not found in this class.</p><button class="btn" onclick="navigate('classroom',{class:'${code}'})">← Back</button></div>`;
   const html = withState(e.state, () => {
     const proj = projectedScore(), li = levelInfo();
     const heat = SKILLS.map((s) => masteryCell(s.id)).join('');
@@ -9317,27 +9391,66 @@ function renderStudentDetail(id) {
       ${mocks.length ? `<div class="card" style="margin-top:16px"><h3 style="margin-top:0">Recent mock exams</h3><div class="stack">${mocks.map((m) => `<div class="row spread"><span class="tag">${fmtDate(m.ts)} · ${m.kind}</span><b>${m.total}</b> <span class="muted">RW ${m.scaled.rw || '–'} · Math ${m.scaled.math || '–'}</span></div>`).join('')}</div></div>` : ''}
       ${badges.length ? `<div class="card" style="margin-top:16px"><h3 style="margin-top:0">Achievements (${badges.length})</h3><div class="row wrap" style="gap:8px">${badges.map((b) => `<span class="pill gold">${b.em} ${esc(b.name)}</span>`).join('')}</div></div>` : ''}`;
   });
-  const actions = `<button class="btn ghost sm" onclick="navigate('classroom')">← Class</button>
+  const actions = `<button class="btn ghost sm" onclick="navigate('classroom',{class:'${code}'})">← Class</button>
     ${e.kind === 'account' ? `<button class="btn" onclick="actAsStudent('${e.username}')">👤 Act as student</button>` : ''}
-    <button class="btn ghost sm" style="border-color:var(--coral);color:var(--coral)" onclick="removeStudent('${e.id}','${e.kind}')">Remove</button>`;
-  return `${pageHeader(e.name, e.kind === 'account' ? '@' + e.username + ' · student account' : 'imported snapshot', actions)}${html}`;
+    <button class="btn ghost sm" style="border-color:var(--coral);color:var(--coral)" onclick="removeFromClass('${code}','${e.id}','${e.kind}')">Remove</button>`;
+  return `${pageHeader(e.name, e.kind === 'account' ? '@' + e.username + ' · in ' + esc(CLASSES[code].name) : 'imported snapshot · ' + esc(CLASSES[code].name), actions)}${html}`;
 }
 
-/* ---------- add / import / demo / remove ---------- */
-function addStudentMenu() {
-  const m = openModal(`<h3 style="margin-top:0">Add a student</h3>
+/* ---------- class management ---------- */
+function createClassPrompt() {
+  const m = openModal(`<h3 style="margin-top:0">Create a class</h3>
+    <label class="fld"><span>Class name</span><input type="text" id="clName" placeholder="e.g. Period 3 SAT Prep"></label>
+    <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-s>Create</button></div>`);
+  m.el.querySelector('[data-x]').onclick = m.close;
+  m.el.querySelector('[data-s]').onclick = () => { const code = createClass($('#clName', m.el).value, currentUser); m.close(); toast('Class created — share code ' + code, 'mint', 3500); navigate('classroom', { class: code }); };
+}
+function shareClass(code) {
+  const cls = CLASSES[code];
+  const m = openModal(`<div class="tac"><div class="eyebrow">Class join code</div>
+    <div class="mono" style="font-size:2.6rem;letter-spacing:8px;color:var(--ace);margin:10px 0">${code}</div>
+    <p class="muted">Students join <b>${esc(cls.name)}</b> by entering this code on the sign-up page, or in <b>Settings → Join a class</b> if they already have an account.</p>
+    <div class="row" style="justify-content:center;gap:8px;margin-top:12px"><button class="btn" data-copy>Copy code</button><button class="btn primary" data-x>Done</button></div></div>`);
+  m.el.querySelector('[data-x]').onclick = m.close;
+  m.el.querySelector('[data-copy]').onclick = () => { try { navigator.clipboard.writeText(code); toast('Copied', 'mint'); } catch (e) { toast('Your code is ' + code, 'sky'); } };
+}
+function classSettings(code) {
+  const cls = CLASSES[code];
+  const m = openModal(`<h3 style="margin-top:0">Class settings</h3>
+    <label class="fld"><span>Class name</span><input type="text" id="csName" value="${esc(cls.name)}"></label>
+    <div class="row spread" style="margin-top:8px"><button class="btn ghost" style="border-color:var(--coral);color:var(--coral)" data-del>Delete class</button>
+      <div class="row" style="gap:8px"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-s>Save</button></div></div>`);
+  m.el.querySelector('[data-x]').onclick = m.close;
+  m.el.querySelector('[data-s]').onclick = () => { renameClass(code, $('#csName', m.el).value); m.close(); router(); };
+  m.el.querySelector('[data-del]').onclick = () => { m.close(); confirmModal('Delete “' + cls.name + '”?', 'Students are unenrolled (their accounts and progress remain). Imported snapshots in this class are also removed from your view.', () => { deleteClass(code); if (S.classroom) { for (const k of Object.keys(S.classroom.imported || {})) if (S.classroom.imported[k].classCode === code) delete S.classroom.imported[k]; save(true); } toast('Class deleted', 'coral'); navigate('classroom'); }, 'Delete class', 'ghost'); };
+}
+function joinClassPrompt() {
+  const m = openModal(`<h3 style="margin-top:0">Join a class</h3>
+    <p class="muted" style="margin-top:0">Enter the code your teacher shared. Joining is optional — you can leave anytime.</p>
+    <label class="fld"><span>Class code</span><input type="text" id="jcCode" placeholder="e.g. ABC123" style="text-transform:uppercase"></label>
+    <div id="jcMsg" class="tag" style="color:var(--coral)"></div>
+    <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn ghost" data-x>Cancel</button><button class="btn primary" data-s>Join</button></div>`);
+  m.el.querySelector('[data-x]').onclick = m.close;
+  m.el.querySelector('[data-s]').onclick = () => { const j = joinClass(currentUser, $('#jcCode', m.el).value); if (!j.ok) { $('#jcMsg', m.el).textContent = j.error; return; } m.close(); toast('Joined ' + j.name, 'mint'); router(); };
+}
+
+/* ---------- add / import / demo students (scoped to a class) ---------- */
+function addStudentMenu(code) {
+  const m = openModal(`<h3 style="margin-top:0">Add a student to ${esc(CLASSES[code].name)}</h3>
     <div class="stack">
-      <button class="btn block" data-a="account">🎓 Create a student login <span class="muted" style="font-weight:400">— they sign in on this device</span></button>
+      <button class="btn block" data-a="share">📣 Share the class code <span class="muted" style="font-weight:400">— students self-join (recommended)</span></button>
+      <button class="btn block" data-a="account">🎓 Create a student login <span class="muted" style="font-weight:400">— auto-joined to this class</span></button>
       <button class="btn block" data-a="import">📥 Import a progress file <span class="muted" style="font-weight:400">— from a student’s export</span></button>
-      <button class="btn block" data-a="demo">✨ Add a demo student <span class="muted" style="font-weight:400">— explore the dashboard</span></button>
+      <button class="btn block" data-a="demo">✨ Add a demo student</button>
     </div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" data-x>Cancel</button></div>`);
   m.el.querySelector('[data-x]').onclick = m.close;
-  m.el.querySelector('[data-a="account"]').onclick = () => { m.close(); addStudentAccount(); };
-  m.el.querySelector('[data-a="import"]').onclick = () => { m.close(); importStudent(); };
-  m.el.querySelector('[data-a="demo"]').onclick = () => { m.close(); addDemoStudent(); };
+  m.el.querySelector('[data-a="share"]').onclick = () => { m.close(); shareClass(code); };
+  m.el.querySelector('[data-a="account"]').onclick = () => { m.close(); addStudentAccount(code); };
+  m.el.querySelector('[data-a="import"]').onclick = () => { m.close(); importStudent(code); };
+  m.el.querySelector('[data-a="demo"]').onclick = () => { m.close(); addDemoStudent(code); };
 }
-function addStudentAccount() {
+function addStudentAccount(code) {
   const m = openModal(`<h3 style="margin-top:0">Create a student login</h3>
     <label class="fld"><span>Display name</span><input type="text" id="saName" placeholder="e.g. Jordan"></label>
     <label class="fld"><span>Username</span><input type="text" id="saUser" placeholder="username"></label>
@@ -9348,10 +9461,11 @@ function addStudentAccount() {
   m.el.querySelector('[data-s]').onclick = () => {
     const r = createAccount($('#saUser', m.el).value, $('#saPass', m.el).value, 'student', $('#saName', m.el).value);
     if (!r.ok) { $('#saMsg', m.el).textContent = r.error; return; }
-    m.close(); toast('Student account created', 'mint'); router();
+    joinClass(r.username, code);
+    m.close(); toast('Student account created & joined', 'mint'); router();
   };
 }
-function importStudent() {
+function importStudent(code) {
   const m = openModal(`<h3 style="margin-top:0">Import a student’s progress</h3>
     <label class="fld"><span>Student name</span><input type="text" id="isName" placeholder="e.g. Sam"></label>
     <label class="fld"><span>Progress JSON (their Settings → Export)</span><textarea id="isData" rows="8" placeholder="Paste the exported JSON…"></textarea></label>
@@ -9366,17 +9480,17 @@ function importStudent() {
     const name = $('#isName', m.el).value.trim() || 'Imported student';
     const id = 'imp_' + uid('s');
     if (!S.classroom) S.classroom = { imported: {} };
-    S.classroom.imported[id] = { name, state: st, addedAt: Date.now() };
+    S.classroom.imported[id] = { name, state: st, addedAt: Date.now(), classCode: code };
     save(true); m.close(); toast('Imported ' + name, 'mint'); router();
   };
 }
-function addDemoStudent() {
+function addDemoStudent(code) {
   const names = ['Ava', 'Mateo', 'Priya', 'Liam', 'Zoe', 'Noah', 'Emma', 'Kai'];
   const name = names[Math.floor(Math.random() * names.length)] + ' (demo)';
   const st = makeDemoState(name);
   const id = 'imp_' + uid('s');
   if (!S.classroom) S.classroom = { imported: {} };
-  S.classroom.imported[id] = { name, state: st, addedAt: Date.now() };
+  S.classroom.imported[id] = { name, state: st, addedAt: Date.now(), classCode: code };
   save(true); toast('Added ' + name, 'mint'); router();
 }
 function makeDemoState(name) {
@@ -9401,12 +9515,12 @@ function makeDemoState(name) {
   st.lastActive = Date.now() - Math.floor(Math.random() * 5) * DAY;
   return st;
 }
-function removeStudent(id, kind) {
-  const e = rosterEntry(id); const name = e ? e.name : 'this student';
-  confirmModal('Remove ' + name + '?', kind === 'account' ? 'This deletes the student’s local account and their progress on this device.' : 'This removes the imported snapshot (the student’s own copy is unaffected).', () => {
-    if (kind === 'account') deleteAccount(id);
+function removeFromClass(code, id, kind) {
+  const e = classEntry(code, id); const name = e ? e.name : 'this student';
+  confirmModal('Remove ' + name + ' from class?', kind === 'account' ? 'They are unenrolled from this class. Their account and progress remain.' : 'This removes the imported snapshot (the student’s own copy is unaffected).', () => {
+    if (kind === 'account') leaveClass(id, code);
     else if (S.classroom && S.classroom.imported) { delete S.classroom.imported[id]; save(true); }
-    toast('Removed', 'coral'); navigate('classroom');
+    toast('Removed from class', 'coral'); navigate('classroom', { class: code });
   }, 'Remove', 'ghost');
 }
 
@@ -9424,6 +9538,7 @@ window.AI = AI;
 function boot() {
   // Global, profile-independent data (lessons/path don't depend on the profile).
   loadAccounts();
+  loadClasses();
   buildLessons();
   buildPath();
 

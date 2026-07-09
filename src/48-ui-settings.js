@@ -14,7 +14,13 @@ registerView('settings', {
           <div><div class="nm" style="font-size:1rem">${esc(acct.displayName || acct.username)}</div><div class="rl">@${esc(acct.username)} · ${esc(acct.role)}</div></div></div></div>
         <div class="row" style="gap:8px">${acct.role === 'teacher' ? '<button class="btn" onclick="navigate(\'classroom\')">🧑‍🏫 Classroom</button>' : ''}
           <button class="btn" id="chgPass">Change password</button><button class="btn ghost" onclick="signOut()">Sign out</button></div>
-      </div></div>` : ''}
+      </div>
+      ${acct.role === 'student' ? `<div style="margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px"><div class="row spread wrap" style="gap:10px">
+        <div style="flex:1"><b>Your classes</b> ${(typeof studentClassesOf === 'function' ? studentClassesOf(currentUser) : []).length
+          ? (studentClassesOf(currentUser).map((c) => `<span class="pill violet" style="margin-left:6px">${esc(c.name)} <span class="mono faint">${c.code}</span> <a onclick="leaveClassUI('${c.code}')" title="Leave" style="cursor:pointer;color:var(--coral)">✕</a></span>`).join(''))
+          : '<span class="muted" style="margin-left:6px">Not in a class — that’s completely fine.</span>'}</div>
+        <button class="btn sm" onclick="joinClassPrompt()">＋ Join a class</button></div></div>` : ''}
+      </div>` : ''}
     <div class="grid g-2" style="align-items:start">
 
       <div class="card">

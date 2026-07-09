@@ -21,18 +21,23 @@
     localStorage. It is a lightweight gate, NOT real security; anyone with
     access to this browser can read the data.
   • Each account has its own separate progress. The first account is the
-    teacher; you can make more accounts (teacher or student) from the sign-up
-    page or from the teacher's Classroom.
+    teacher by default; you can make more accounts from the sign-up page.
+  • Classes work like Google Classroom: a teacher CREATES a class and gets a
+    join CODE. Students JOIN by entering that code — when they sign up (there's
+    an optional "Class code" field for students) or anytime later from
+    Settings → Join a class. Being in a class is optional; nobody is forced to
+    join, and non-students never need one.
   • Teachers get a Teacher ⇄ Student toggle in the sidebar. In Teacher view,
-    the Classroom shows every student's progress: a roster with projected
-    scores and weak skills, a class summary, and a per-student deep-dive
-    (heatmap, projected trend, pacing, mocks, achievements).
-  • Add students three ways: create a student login they use on this device,
-    import a student's exported progress file (Settings → Export on their
-    machine), or drop in a demo student to explore the dashboard.
+    the Classroom lists your classes; open a class to see the roster (projected
+    scores, weak skills), a class summary, "what the class needs work on," and
+    a per-student deep-dive (heatmap, projected trend, pacing, mocks, badges).
+  • Add students to a class three ways: share the class code so they self-join,
+    create a student login (auto-joined), or import a student's exported
+    progress file. A demo student is available to explore the dashboard.
   • "Act as student" lets a teacher step into a student's profile (changes
     save to that student); use "Return to teacher" to switch back.
-  • Change password / sign out live in Settings and the sidebar (⎋).
+  • Change password / sign out / join or leave a class live in Settings; sign
+    out is also the ⎋ button in the sidebar.
   • Start with the Diagnostic (home screen) — it seeds your mastery heatmap,
     a score estimate, and a study plan. Then follow the daily quest each day.
   • Press Cmd/Ctrl+K anywhere for the command bar; click the glowing orb

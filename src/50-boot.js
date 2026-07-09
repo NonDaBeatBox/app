@@ -12,6 +12,7 @@ window.AI = AI;
 function boot() {
   // Global, profile-independent data (lessons/path don't depend on the profile).
   loadAccounts();
+  loadClasses();
   buildLessons();
   buildPath();
 
