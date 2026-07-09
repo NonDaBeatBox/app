@@ -174,14 +174,32 @@ function analyticsCards() {
   const quest = getDailyQuest();
   const doneCount = quest.items.filter((i) => i.done).length;
   const trend = (typeof trendChart === 'function') ? trendChart() : '';
-  return `<div class="grid g-2" style="margin-top:16px;align-items:start">
+  return `<div class="grid g-3" style="margin-top:16px;align-items:start">
     <div class="card"><h3 style="margin-top:0">Pacing</h3>
-      <div class="muted" style="font-size:.85rem;margin-bottom:6px">Average time per question vs. the on-test target.</div>
+      <div class="muted" style="font-size:.85rem;margin-bottom:6px">Avg time per question vs. target.</div>
       ${paceRow('rw')}${paceRow('math')}</div>
     <div class="card"><h3 style="margin-top:0">Today’s plan</h3>
       <div class="row" style="gap:14px;align-items:baseline"><div class="stat"><div class="v">${doneCount}<small>/${quest.items.length}</small></div><div class="k">tasks done</div></div>
       <div class="stat"><div class="v">${todayXP()}</div><div class="k">XP today</div></div></div>
-      <div class="stack" style="margin-top:10px">${quest.items.map((it) => `<div class="row" style="gap:8px"><span style="color:${it.done ? 'var(--mint)' : 'var(--faint)'}">${it.done ? '✓' : '○'}</span><span style="font-size:.88rem;${it.done ? 'opacity:.6' : ''}">${esc(it.label)}</span></div>`).join('')}</div></div>
+      <div class="stack" style="margin-top:10px">${quest.items.slice(0, 4).map((it) => `<div class="row" style="gap:8px"><span style="color:${it.done ? 'var(--mint)' : 'var(--faint)'}">${it.done ? '✓' : '○'}</span><span style="font-size:.85rem;${it.done ? 'opacity:.6' : ''}">${esc(it.label)}</span></div>`).join('')}</div></div>
+    ${weeklyCard()}
   </div>
   ${trend}`;
+}
+// Weekly XP goal + personal-best history (solo replacement for leagues).
+function weeklyCard() {
+  const hist = S.weekly.history.slice(-8);
+  const best = Math.max(S.weekly.xp, ...hist.map((h) => h.xp), 1);
+  const goalPct = clamp(S.weekly.xp / S.weekly.goal * 100, 0, 100);
+  const bestEver = Math.max(S.weekly.xp, ...hist.map((h) => h.xp), 0);
+  const bars = hist.concat([{ week: 'now', xp: S.weekly.xp }]).map((h) => {
+    const isBest = h.xp === bestEver && bestEver > 0;
+    return `<div title="${esc(h.week)}: ${h.xp} XP" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:56px">
+      <div style="height:${clamp(h.xp / best * 100, 4, 100)}%;border-radius:4px 4px 0 0;background:${isBest ? 'linear-gradient(180deg,#ff9e3d,var(--ace))' : 'var(--violet)'}"></div></div>`;
+  }).join('');
+  return `<div class="card"><h3 style="margin-top:0">Weekly XP</h3>
+    <div class="row spread" style="font-size:.85rem"><span>${S.weekly.xp} / ${S.weekly.goal}</span><span class="pill gold">🏆 best ${bestEver}</span></div>
+    <div class="bar gold" style="margin:6px 0 10px"><span style="width:${goalPct}%"></span></div>
+    <div class="row" style="gap:4px;align-items:flex-end">${bars}</div>
+    <div class="tag" style="margin-top:4px">last ${hist.length + 1} weeks · gold = personal best</div></div>`;
 }
