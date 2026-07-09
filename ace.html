@@ -1,0 +1,2791 @@
+<!doctype html>
+<!--
+  Ace — a personal, offline-first Digital SAT trainer (single file).
+  (Full usage notes are finalized in the last build phase.)
+
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Ace — Digital SAT Trainer</title>
+<meta name="description" content="Ace: a personal, offline-first Digital SAT trainer. Learn, drill, master, and take full adaptive mock exams — with Sable, your command assistant.">
+
+<!--
+  KaTeX is the ONLY external dependency (math rendering). It is loaded from a CDN
+  but the app degrades gracefully to plain-text math when offline: see mathRender()
+  in the ENGINE section, which checks window.katex before using it.
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+      onerror="window.__KATEX_CSS_FAILED=true">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+        onerror="window.__KATEX_JS_FAILED=true"></script>
+
+<style>
+/* =========================================================================
+   STYLES — Ace design system
+   Identity: "Observatory" — a deep indigo command-center with a warm amber
+   signature (the Ace star + the winding skill path), plus violet / mint /
+   coral / sky data hues. Test mode switches to a quiet Bluebook-like light
+   surface. Display serif + system sans + mono console.
+   ========================================================================= */
+
+:root {
+  /* ---- core palette (6 named hues) ---- */
+  --midnight: #14162b;   /* app background base */
+  --night:    #1b1e3a;   /* raised panels */
+  --slate:    #262a4d;   /* cards */
+  --ace:      #ffc247;   /* signature amber-gold: stars, XP, streak, path */
+  --violet:   #7b6cf6;   /* primary interactive */
+  --mint:     #2fd9a6;   /* success / high mastery */
+  --coral:    #ff5d73;   /* error / hearts / mistakes */
+  --sky:      #47c6f4;   /* info / secondary data */
+
+  /* ---- derived surfaces & text ---- */
+  --bg:        #0f1122;
+  --surface:   var(--night);
+  --card:      var(--slate);
+  --line:      #33385f;
+  --line-soft: #282d52;
+  --fg:        #eef0ff;
+  --muted:     #9aa0c8;
+  --faint:     #6b719c;
+  --violet-2:  #a99cff;
+  --ace-2:     #ffd888;
+
+  --radius:   16px;
+  --radius-s: 10px;
+  --radius-l: 24px;
+  --shadow:   0 18px 48px -24px rgba(0,0,0,.75);
+  --shadow-s: 0 8px 24px -14px rgba(0,0,0,.7);
+  --ring:     0 0 0 3px rgba(123,108,246,.45);
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+
+  --maxw: 1120px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--fg);
+  background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(123,108,246,.16), transparent 60%),
+    radial-gradient(1000px 620px at 8% 4%, rgba(255,194,71,.08), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0 0 .4em; letter-spacing: .2px; }
+h1 { font-size: clamp(1.7rem, 3vw, 2.4rem); }
+h2 { font-size: clamp(1.35rem, 2.2vw, 1.8rem); }
+h3 { font-size: 1.18rem; }
+p { margin: 0 0 .8em; }
+a { color: var(--violet-2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+small { color: var(--muted); }
+code, kbd { font-family: var(--font-mono); }
+kbd {
+  background: var(--midnight); border: 1px solid var(--line);
+  border-bottom-width: 2px; border-radius: 6px; padding: .05em .45em;
+  font-size: .82em; color: var(--fg);
+}
+::selection { background: rgba(123,108,246,.4); }
+
+/* Focus visibility (accessibility requirement) */
+:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* ---- layout shell ---- */
+#app { min-height: 100vh; }
+.shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+.main { min-width: 0; padding: 26px clamp(16px, 3vw, 40px) 120px; max-width: var(--maxw); margin: 0 auto; width: 100%; }
+
+/* ---- sidebar nav ---- */
+.sidebar {
+  position: sticky; top: 0; align-self: start; height: 100vh;
+  background: linear-gradient(180deg, rgba(27,30,58,.92), rgba(15,17,34,.92));
+  border-right: 1px solid var(--line-soft);
+  padding: 20px 14px; display: flex; flex-direction: column; gap: 4px;
+  backdrop-filter: blur(6px);
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 16px; }
+.brand .mark {
+  width: 34px; height: 34px; flex: none; border-radius: 10px;
+  display: grid; place-items: center; font-family: var(--font-display);
+  font-weight: 700; color: var(--midnight); font-size: 1.25rem;
+  background: linear-gradient(150deg, var(--ace), #ff9e3d);
+  box-shadow: 0 6px 18px -6px rgba(255,194,71,.7);
+}
+.brand .name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; letter-spacing: .5px; }
+.brand .name b { color: var(--ace); }
+.nav-item {
+  display: flex; align-items: center; gap: 11px; padding: 9px 11px; border-radius: 10px;
+  color: var(--muted); cursor: pointer; border: 1px solid transparent; user-select: none;
+  font-size: .93rem; transition: background .15s, color .15s;
+}
+.nav-item .ico { width: 20px; text-align: center; font-size: 1.05rem; flex: none; }
+.nav-item:hover { background: rgba(123,108,246,.1); color: var(--fg); }
+.nav-item.active { background: linear-gradient(90deg, rgba(123,108,246,.24), rgba(123,108,246,.05)); color: var(--fg); border-color: rgba(123,108,246,.35); }
+.nav-item.active .ico { color: var(--violet-2); }
+.nav-sep { height: 1px; background: var(--line-soft); margin: 10px 6px; }
+.nav-foot { margin-top: auto; font-size: .72rem; color: var(--faint); padding: 8px; }
+
+/* ---- generic surfaces ---- */
+.card {
+  background: linear-gradient(180deg, rgba(38,42,77,.75), rgba(27,30,58,.75));
+  border: 1px solid var(--line-soft); border-radius: var(--radius);
+  padding: 18px; box-shadow: var(--shadow-s);
+}
+.card.pad-lg { padding: 24px; }
+.grid { display: grid; gap: 16px; }
+.g-2 { grid-template-columns: repeat(2, 1fr); }
+.g-3 { grid-template-columns: repeat(3, 1fr); }
+.g-4 { grid-template-columns: repeat(4, 1fr); }
+.row { display: flex; gap: 12px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+.tar { text-align: right; }
+.tac { text-align: center; }
+.mono { font-family: var(--font-mono); }
+.hidden { display: none !important; }
+.eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .7rem; color: var(--faint); font-weight: 700; }
+
+/* ---- buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 10px 16px; border-radius: 11px; border: 1px solid var(--line);
+  background: var(--slate); color: var(--fg); cursor: pointer; font-weight: 600;
+  font-size: .92rem; transition: transform .06s, background .15s, border-color .15s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn:hover { border-color: var(--violet); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: linear-gradient(150deg, var(--violet), #6152d8); border-color: transparent; color: #fff; box-shadow: 0 10px 26px -12px rgba(123,108,246,.8); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.gold { background: linear-gradient(150deg, var(--ace), #ff9e3d); border-color: transparent; color: #241a00; }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 6px 11px; font-size: .84rem; border-radius: 9px; }
+.btn.lg { padding: 13px 22px; font-size: 1rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.block { width: 100%; }
+
+/* ---- pills / tags / chips ---- */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700; letter-spacing: .02em; border: 1px solid var(--line); color: var(--muted); }
+.pill.gold  { color: var(--ace);    border-color: rgba(255,194,71,.4);  background: rgba(255,194,71,.08); }
+.pill.violet{ color: var(--violet-2);border-color: rgba(123,108,246,.4); background: rgba(123,108,246,.1); }
+.pill.mint  { color: var(--mint);   border-color: rgba(47,217,166,.4);  background: rgba(47,217,166,.08); }
+.pill.coral { color: var(--coral);  border-color: rgba(255,93,115,.4);  background: rgba(255,93,115,.08); }
+.pill.sky   { color: var(--sky);    border-color: rgba(71,198,244,.4);  background: rgba(71,198,244,.08); }
+.tag { font-size: .72rem; color: var(--faint); font-family: var(--font-mono); }
+
+/* difficulty dots */
+.diff { display: inline-flex; gap: 3px; vertical-align: middle; }
+.diff i { width: 6px; height: 6px; border-radius: 50%; background: var(--line); display: inline-block; }
+.diff.d1 i:nth-child(1), .diff.d2 i:nth-child(-n+2), .diff.d3 i { background: var(--ace); }
+.diff.dx i { background: var(--coral); }
+
+/* ---- progress + meters ---- */
+.bar { height: 9px; border-radius: 999px; background: var(--midnight); overflow: hidden; border: 1px solid var(--line-soft); }
+.bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--violet), var(--violet-2)); transition: width .5s cubic-bezier(.2,.8,.2,1); }
+.bar.gold > span { background: linear-gradient(90deg, #ff9e3d, var(--ace)); }
+.bar.mint > span { background: linear-gradient(90deg, #17b98a, var(--mint)); }
+
+/* ---- stat tiles ---- */
+.stat { display: flex; flex-direction: column; gap: 3px; }
+.stat .k { font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.stat .v { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; }
+.stat .v small { font-size: .9rem; color: var(--muted); font-family: var(--font-body); }
+
+/* ---- inputs ---- */
+input[type=text], input[type=password], input[type=number], input[type=search], select, textarea {
+  background: var(--midnight); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; width: 100%; color: var(--fg);
+}
+input::placeholder, textarea::placeholder { color: var(--faint); }
+textarea { resize: vertical; min-height: 96px; font-family: var(--font-mono); font-size: .86rem; }
+label.fld { display: block; margin-bottom: 14px; }
+label.fld > span { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 5px; }
+.toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.toggle input { display: none; }
+.toggle .track { width: 42px; height: 24px; border-radius: 999px; background: var(--midnight); border: 1px solid var(--line); position: relative; transition: background .2s; flex: none; }
+.toggle .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform .2s, background .2s; }
+.toggle input:checked + .track { background: rgba(47,217,166,.25); border-color: var(--mint); }
+.toggle input:checked + .track::after { transform: translateX(18px); background: var(--mint); }
+
+/* =========================================================================
+   Heatmap (mastery grid)
+   ========================================================================= */
+.heat { display: grid; gap: 7px; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+.heat .cell {
+  border-radius: 11px; padding: 10px; cursor: pointer; border: 1px solid var(--line-soft);
+  background: var(--midnight); position: relative; overflow: hidden; min-height: 66px;
+  display: flex; flex-direction: column; justify-content: space-between; transition: transform .08s;
+}
+.heat .cell:hover { transform: translateY(-2px); border-color: var(--violet); }
+.heat .cell .lbl { font-size: .74rem; line-height: 1.2; color: var(--fg); z-index: 1; }
+.heat .cell .sc { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; z-index: 1; }
+.heat .cell .fill { position: absolute; inset: 0; opacity: .9; }
+/* mastery color ramp applied inline via --m (0..100) helper classes */
+.m0 { background: linear-gradient(160deg, #3a2130, #2a1622); }   /* 0-19 */
+.m1 { background: linear-gradient(160deg, #4a2b2f, #33202b); }   /* 20-39 */
+.m2 { background: linear-gradient(160deg, #4f4326, #2f2a30); }   /* 40-59 */
+.m3 { background: linear-gradient(160deg, #2f4a44, #24333c); }   /* 60-79 */
+.m4 { background: linear-gradient(160deg, #1f5f4a, #1c4a4a); }   /* 80-89 */
+.m5 { background: linear-gradient(160deg, #216b4f, #2b5a86); box-shadow: inset 0 0 0 1px rgba(255,194,71,.5); } /* 90-100 challenge zone */
+
+/* =========================================================================
+   Skill path (signature element) — winding constellation
+   ========================================================================= */
+.path-wrap { position: relative; padding: 10px 0 40px; }
+.path-unit-h { display: flex; align-items: center; gap: 12px; margin: 28px 0 6px; }
+.path-unit-h .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ace); box-shadow: 0 0 0 4px rgba(255,194,71,.18); }
+.path-nodes { position: relative; }
+.node {
+  position: relative; width: 74px; height: 74px; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center; margin: 8px 0; border: 2px solid var(--line);
+  background: radial-gradient(circle at 50% 35%, var(--slate), var(--night));
+  transition: transform .1s; z-index: 2;
+}
+.node:hover { transform: scale(1.06); }
+.node .ic { font-size: 1.5rem; }
+.node .cap { position: absolute; top: 82px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: .74rem; color: var(--muted); }
+.node.locked { opacity: .5; cursor: not-allowed; filter: grayscale(.6); }
+.node.done { border-color: var(--mint); background: radial-gradient(circle at 50% 35%, rgba(47,217,166,.35), var(--night)); }
+.node.done .ic { color: var(--mint); }
+.node.current { border-color: var(--ace); box-shadow: 0 0 0 6px rgba(255,194,71,.14), 0 0 26px -4px rgba(255,194,71,.6); }
+.node.current::after { content: "★"; position: absolute; top: -14px; color: var(--ace); font-size: .9rem; }
+.node .ring { position: absolute; inset: -2px; border-radius: 50%; }
+
+/* =========================================================================
+   Question player
+   ========================================================================= */
+.player { max-width: 820px; margin: 0 auto; }
+.passage { background: var(--midnight); border: 1px solid var(--line-soft); border-left: 3px solid var(--sky); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; font-size: 1.02rem; line-height: 1.65; }
+.stem { font-size: 1.12rem; line-height: 1.6; margin-bottom: 18px; }
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice {
+  display: flex; gap: 12px; align-items: flex-start; padding: 13px 15px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--night); cursor: pointer; transition: border-color .12s, background .12s;
+}
+.choice:hover { border-color: var(--violet); }
+.choice .key { width: 26px; height: 26px; flex: none; border-radius: 7px; border: 1px solid var(--line); display: grid; place-items: center; font-weight: 700; font-family: var(--font-mono); font-size: .85rem; }
+.choice.sel { border-color: var(--violet); background: rgba(123,108,246,.14); }
+.choice.sel .key { background: var(--violet); border-color: var(--violet); color: #fff; }
+.choice.correct { border-color: var(--mint); background: rgba(47,217,166,.14); }
+.choice.correct .key { background: var(--mint); border-color: var(--mint); color: #05231a; }
+.choice.wrong { border-color: var(--coral); background: rgba(255,93,115,.13); }
+.choice.wrong .key { background: var(--coral); border-color: var(--coral); color: #2a0710; }
+.choice.struck { opacity: .45; }
+.choice.struck .txt { text-decoration: line-through; }
+.choice .elim { margin-left: auto; opacity: 0; font-size: .8rem; color: var(--faint); background: none; border: none; cursor: pointer; padding: 4px; }
+.choice:hover .elim { opacity: 1; }
+.spr-input { max-width: 260px; }
+.explain { margin-top: 18px; border-radius: 12px; border: 1px solid var(--line-soft); background: var(--midnight); padding: 16px 18px; }
+.explain h4 { margin-top: 0; }
+.explain.correct { border-left: 3px solid var(--mint); }
+.explain.wrong { border-left: 3px solid var(--coral); }
+
+/* =========================================================================
+   TEST MODE — quiet, clean, Bluebook-like (light surface)
+   ========================================================================= */
+.testmode { background: #f4f5f8; color: #1b1f2a; min-height: 100vh; font-family: var(--font-body); }
+.testmode .test-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-bottom: 1px solid #d7dbe6; background: #fff; position: sticky; top: 0; z-index: 5; }
+.testmode .test-title { font-weight: 700; font-size: .95rem; }
+.testmode .test-timer { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; background: #eef0f6; padding: 6px 14px; border-radius: 8px; border: 1px solid #d7dbe6; cursor: pointer; }
+.testmode .test-timer.low { color: #c0384f; border-color: #e2b3bd; }
+.testmode .test-body { max-width: 1080px; margin: 0 auto; padding: 26px 22px 140px; }
+.testmode .test-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.testmode .passage { background: #fff; border-color: #dfe3ee; border-left-color: #2b6cb0; color: #232838; }
+.testmode .stem { color: #1b1f2a; }
+.testmode .choice { background: #fff; border-color: #cfd4e2; color: #232838; }
+.testmode .choice:hover { border-color: #2b6cb0; }
+.testmode .choice .key { border-color: #b9c0d4; }
+.testmode .choice.sel { border-color: #2b6cb0; background: #e8f0fb; }
+.testmode .choice.sel .key { background: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+.testmode .choice.struck { opacity: .5; }
+.testmode input { background: #fff; border-color: #cfd4e2; color: #1b1f2a; }
+.testmode .test-foot { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #d7dbe6; padding: 12px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.testmode .btn { background: #eef0f6; color: #1b1f2a; border-color: #cfd4e2; }
+.testmode .btn.primary { background: #2b6cb0; color: #fff; border-color: transparent; box-shadow: none; }
+.testmode .btn.ghost { background: transparent; }
+.testmode .qflag { color: #b0851b; }
+.navgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px,1fr)); gap: 8px; max-width: 460px; }
+.navgrid .qb { aspect-ratio: 1; border: 1px solid #cfd4e2; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 700; font-family: var(--font-mono); position: relative; color: #1b1f2a; }
+.navgrid .qb.answered { background: #2b6cb0; color: #fff; border-color: #2b6cb0; }
+.navgrid .qb.current { outline: 2px solid #b0851b; outline-offset: 1px; }
+.navgrid .qb.flagged::after { content: "⚑"; position: absolute; top: -6px; right: -4px; color: #c0851b; font-size: .8rem; }
+.break-screen { max-width: 560px; margin: 8vh auto; text-align: center; }
+
+/* =========================================================================
+   Sable — assistant orb + command bar
+   ========================================================================= */
+.orb {
+  position: fixed; right: 22px; bottom: 22px; width: 58px; height: 58px; border-radius: 50%;
+  cursor: pointer; z-index: 60; border: none; display: grid; place-items: center;
+  background: radial-gradient(circle at 38% 32%, #8b7dff, #5a49d0 60%, #3d2fb0);
+  box-shadow: 0 12px 34px -8px rgba(123,108,246,.7), inset 0 0 18px rgba(255,255,255,.18);
+  animation: orbpulse 5s ease-in-out infinite;
+}
+.orb::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: radial-gradient(circle at 40% 34%, rgba(255,255,255,.55), transparent 42%); }
+.orb .core { width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 14px 3px rgba(255,255,255,.75); z-index: 1; }
+.orb.busy { animation: orbspin 1s linear infinite; }
+@keyframes orbpulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes orbspin { to { box-shadow: 0 12px 34px -8px rgba(123,108,246,.9), inset 0 0 26px rgba(255,255,255,.4); } }
+
+.cmd-overlay { position: fixed; inset: 0; background: rgba(6,7,18,.6); backdrop-filter: blur(4px); z-index: 80; display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh; }
+.cmd {
+  width: min(680px, 92vw); background: #1a1d38; border: 1px solid var(--line);
+  border-radius: 18px; box-shadow: var(--shadow); overflow: hidden;
+}
+.cmd .cmd-in { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line-soft); }
+.cmd .cmd-in .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 12px var(--violet); flex: none; }
+.cmd .cmd-in input { border: none; background: none; font-size: 1.05rem; padding: 0; }
+.cmd .cmd-in input:focus-visible { box-shadow: none; }
+.cmd .cmd-body { max-height: 52vh; overflow-y: auto; padding: 10px; }
+.cmd .cmd-hint { padding: 10px 14px; color: var(--faint); font-size: .8rem; border-top: 1px solid var(--line-soft); display: flex; gap: 14px; flex-wrap: wrap; }
+.cmd-act { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 10px; cursor: pointer; }
+.cmd-act:hover, .cmd-act.hi { background: rgba(123,108,246,.16); }
+.cmd-act .ico { width: 22px; text-align: center; }
+.cmd-act .t { font-weight: 600; }
+.cmd-act .d { font-size: .78rem; color: var(--muted); }
+
+/* chat bubbles (Sable panel + tutor) */
+.chat { display: flex; flex-direction: column; gap: 10px; }
+.bub { padding: 11px 14px; border-radius: 14px; max-width: 88%; line-height: 1.5; font-size: .93rem; }
+.bub.me { align-self: flex-end; background: var(--violet); color: #fff; border-bottom-right-radius: 4px; }
+.bub.sable { align-self: flex-start; background: var(--midnight); border: 1px solid var(--line-soft); border-bottom-left-radius: 4px; }
+.bub.sable .who { font-size: .68rem; color: var(--ace); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 3px; font-weight: 700; }
+.bub.tool { align-self: center; font-family: var(--font-mono); font-size: .78rem; color: var(--mint); background: rgba(47,217,166,.08); border: 1px solid rgba(47,217,166,.25); border-radius: 10px; padding: 6px 10px; }
+
+/* Sable side panel */
+.sable-panel { position: fixed; top: 0; right: 0; height: 100vh; width: min(400px, 94vw); background: linear-gradient(180deg, #1c1f3c, #14162b); border-left: 1px solid var(--line); z-index: 70; display: flex; flex-direction: column; box-shadow: -20px 0 60px -30px #000; transform: translateX(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+.sable-panel.open { transform: translateX(0); }
+.sable-head { padding: 16px 18px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 12px; }
+.sable-head .av { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #8b7dff, #4a3bc0); flex: none; }
+.sable-msgs { flex: 1; overflow-y: auto; padding: 16px; }
+.sable-foot { padding: 12px; border-top: 1px solid var(--line-soft); }
+.sable-foot .row { gap: 8px; }
+
+/* =========================================================================
+   Misc: toast, modal, badges, briefing, home hero
+   ========================================================================= */
+.toast-wrap { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.toast { background: #1c1f3c; border: 1px solid var(--line); border-left: 3px solid var(--violet); border-radius: 12px; padding: 11px 16px; box-shadow: var(--shadow); animation: toastin .3s ease; max-width: 92vw; }
+.toast.gold { border-left-color: var(--ace); }
+.toast.mint { border-left-color: var(--mint); }
+.toast.coral { border-left-color: var(--coral); }
+@keyframes toastin { from { transform: translateY(12px); opacity: 0; } }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(6,7,18,.68); backdrop-filter: blur(4px); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal { width: min(640px, 96vw); max-height: 88vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 24px; }
+
+.badge-chip { display: flex; gap: 11px; align-items: center; padding: 11px; border-radius: 12px; border: 1px solid var(--line-soft); background: var(--midnight); }
+.badge-chip .em { font-size: 1.7rem; filter: grayscale(1) opacity(.4); }
+.badge-chip.earned .em { filter: none; }
+.badge-chip.earned { border-color: rgba(255,194,71,.35); background: rgba(255,194,71,.06); }
+
+.briefing { position: relative; overflow: hidden; }
+.briefing .glow { position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(123,108,246,.4), transparent 70%); pointer-events: none; }
+.readiness { display: flex; align-items: center; gap: 18px; }
+.gauge { --p: 0; width: 128px; height: 128px; flex: none; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--ace) calc(var(--p)*1%), var(--midnight) 0); position: relative; }
+.gauge::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: var(--surface); }
+.gauge .g-in { position: relative; text-align: center; }
+.gauge .g-in b { font-family: var(--font-display); font-size: 1.7rem; display: block; }
+
+.flame { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; color: var(--ace); }
+.flame .f { filter: drop-shadow(0 0 6px rgba(255,150,40,.7)); }
+
+.quest-item { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line-soft); background: var(--midnight); }
+.quest-item.done { opacity: .6; }
+.quest-item .ck { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line); flex: none; display: grid; place-items: center; }
+.quest-item.done .ck { background: var(--mint); border-color: var(--mint); color: #05231a; }
+
+.hearts { display: inline-flex; gap: 3px; }
+.hearts .h { color: var(--coral); }
+.hearts .h.lost { color: var(--line); }
+
+/* combo flash */
+.combo { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--ace); text-shadow: 0 0 20px rgba(255,194,71,.6); pointer-events: none; z-index: 150; animation: comboPop .8s ease forwards; }
+@keyframes comboPop { 0% { transform: translate(-50%, 10px) scale(.7); opacity: 0; } 30% { opacity: 1; transform: translate(-50%,0) scale(1.1); } 100% { opacity: 0; transform: translate(-50%,-20px) scale(1); } }
+
+/* KaTeX fallback: keep plain text readable */
+.math-fallback { font-family: var(--font-mono); background: rgba(123,108,246,.1); padding: 0 3px; border-radius: 4px; }
+
+/* svg charts */
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
+.chart .axis { stroke: var(--line); }
+.chart .grid { stroke: var(--line-soft); }
+
+/* =========================================================================
+   Responsive
+   ========================================================================= */
+.menu-btn { display: none; }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; left: 0; top: 0; z-index: 100; width: 240px; transform: translateX(-100%); transition: transform .25s; }
+  .sidebar.open { transform: translateX(0); }
+  .menu-btn { display: inline-grid; place-items: center; position: fixed; top: 14px; left: 14px; z-index: 40; width: 42px; height: 42px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); cursor: pointer; }
+  .main { padding-top: 64px; }
+  .g-2, .g-3, .g-4 { grid-template-columns: 1fr; }
+  .testmode .test-cols { grid-template-columns: 1fr; }
+  .readiness { flex-direction: column; text-align: center; }
+}
+@media (max-width: 560px) {
+  .g-3, .g-4 { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+</style>
+</head>
+<body>
+<noscript><div style="padding:40px;font-family:sans-serif">Ace needs JavaScript enabled. It runs entirely in your browser — no data leaves your machine.</div></noscript>
+<div id="app"></div>
+<div id="overlays"></div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+'use strict';
+/* =========================================================================
+   DATA:SKILLS — the backbone of the whole app.
+   Domains carry the official Digital SAT weights; every skill belongs to one
+   domain. Skill ids are used everywhere (questions, lessons, path, mastery).
+   Section pacing targets: RW ~71 sec/q, Math ~95 sec/q.
+   ========================================================================= */
+
+const SECTIONS = {
+  math: { id: 'math', name: 'Math', paceSec: 95, scaleMin: 200, scaleMax: 800 },
+  rw:   { id: 'rw',   name: 'Reading & Writing', paceSec: 71, scaleMin: 200, scaleMax: 800 },
+};
+
+const DOMAINS = {
+  // Math (~35 / 35 / 15 / 15)
+  algebra:     { id: 'algebra',     section: 'math', name: 'Algebra',                         weight: 0.35 },
+  advmath:     { id: 'advmath',     section: 'math', name: 'Advanced Math',                   weight: 0.35 },
+  psda:        { id: 'psda',        section: 'math', name: 'Problem-Solving & Data Analysis', weight: 0.15 },
+  geotrig:     { id: 'geotrig',     section: 'math', name: 'Geometry & Trigonometry',         weight: 0.15 },
+  // Reading & Writing (~28 / 26 / 26 / 20)
+  craft:       { id: 'craft',       section: 'rw',   name: 'Craft & Structure',              weight: 0.28 },
+  infoideas:   { id: 'infoideas',   section: 'rw',   name: 'Information & Ideas',             weight: 0.26 },
+  conventions: { id: 'conventions', section: 'rw',   name: 'Standard English Conventions',   weight: 0.26 },
+  expression:  { id: 'expression',  section: 'rw',   name: 'Expression of Ideas',            weight: 0.20 },
+};
+
+/* 33 skills. `blurb` is the one-line concept used in tooltips & lesson intros. */
+const SKILLS = [
+  // ---- Algebra ----
+  { id: 'alg_linear_eq',  domain: 'algebra', name: 'Linear equations',        blurb: 'Solve one-variable linear equations, including those needing distribution and combining like terms.' },
+  { id: 'alg_linear_fn',  domain: 'algebra', name: 'Linear functions & slope', blurb: 'Interpret slope and intercepts; write and use slope-intercept and point-slope forms.' },
+  { id: 'alg_systems',    domain: 'algebra', name: 'Systems of equations',     blurb: 'Solve linear systems by substitution and elimination; recognize zero/infinite solutions.' },
+  { id: 'alg_inequal',    domain: 'algebra', name: 'Linear inequalities',      blurb: 'Solve and graph inequalities and systems of inequalities in context.' },
+  { id: 'alg_word',       domain: 'algebra', name: 'Linear modeling',          blurb: 'Translate real-world situations into linear equations and interpret their parts.' },
+
+  // ---- Advanced Math ----
+  { id: 'adv_quadratic',  domain: 'advmath', name: 'Quadratic equations',      blurb: 'Solve quadratics by factoring, the quadratic formula, and completing the square.' },
+  { id: 'adv_exponents',  domain: 'advmath', name: 'Exponents & radicals',     blurb: 'Apply exponent rules and rewrite radical and rational exponent expressions.' },
+  { id: 'adv_exponential',domain: 'advmath', name: 'Exponential functions',    blurb: 'Model growth and decay; connect percent change to exponential form.' },
+  { id: 'adv_polynomial', domain: 'advmath', name: 'Polynomials & factoring',  blurb: 'Factor, expand, and use the structure of polynomial expressions.' },
+  { id: 'adv_rational',   domain: 'advmath', name: 'Rational & radical eqns',  blurb: 'Solve rational and radical equations and handle extraneous solutions.' },
+  { id: 'adv_functions',  domain: 'advmath', name: 'Functions & nonlinear graphs', blurb: 'Use function notation and read features of nonlinear graphs.' },
+
+  // ---- Problem-Solving & Data Analysis ----
+  { id: 'psda_ratio',     domain: 'psda', name: 'Ratios, rates & proportions', blurb: 'Set up and solve proportional relationships and unit rates.' },
+  { id: 'psda_percent',   domain: 'psda', name: 'Percentages',                 blurb: 'Percent change, percent of, and successive/mixed percent problems.' },
+  { id: 'psda_data',      domain: 'psda', name: 'Data interpretation',         blurb: 'Read tables, bar/line graphs, and scatterplots; interpret trend lines.' },
+  { id: 'psda_stats',     domain: 'psda', name: 'Statistics & spread',         blurb: 'Mean, median, mode, range, standard deviation, and margin of error.' },
+  { id: 'psda_prob',      domain: 'psda', name: 'Probability & two-way tables',blurb: 'Compute simple and conditional probabilities from counts and tables.' },
+
+  // ---- Geometry & Trigonometry ----
+  { id: 'geo_angles',     domain: 'geotrig', name: 'Lines, angles & triangles',blurb: 'Angle relationships, similar triangles, and the triangle rules.' },
+  { id: 'geo_circles',    domain: 'geotrig', name: 'Circles',                  blurb: 'Circle equations, arcs, sectors, radians, and inscribed angles.' },
+  { id: 'geo_volume',     domain: 'geotrig', name: 'Area & volume',           blurb: 'Areas of plane figures and volumes/surface areas of solids.' },
+  { id: 'geo_trig',       domain: 'geotrig', name: 'Right-triangle trig',      blurb: 'SOH-CAH-TOA, the Pythagorean theorem, and special right triangles.' },
+
+  // ---- Craft & Structure ----
+  { id: 'rw_vocab',       domain: 'craft', name: 'Words in context',           blurb: 'Choose the word that best fits the logic and tone of a passage.' },
+  { id: 'rw_purpose',     domain: 'craft', name: 'Text structure & purpose',   blurb: 'Identify the function of a sentence and the author’s rhetorical purpose.' },
+  { id: 'rw_connections', domain: 'craft', name: 'Cross-text connections',     blurb: 'Compare how two texts relate — agreement, response, or contrast.' },
+
+  // ---- Information & Ideas ----
+  { id: 'rw_main',        domain: 'infoideas', name: 'Central ideas & details',blurb: 'Find the main idea and the details that directly support it.' },
+  { id: 'rw_evidence',    domain: 'infoideas', name: 'Command of evidence',    blurb: 'Pick the detail that best supports or weakens a given claim.' },
+  { id: 'rw_quant',       domain: 'infoideas', name: 'Quantitative evidence',  blurb: 'Use data from a graph or table to complete or support a claim.' },
+  { id: 'rw_inference',   domain: 'infoideas', name: 'Inferences',             blurb: 'Draw the conclusion the passage most logically leads to.' },
+
+  // ---- Standard English Conventions ----
+  { id: 'rw_boundaries',  domain: 'conventions', name: 'Boundaries & punctuation', blurb: 'Join and separate clauses correctly — commas, semicolons, colons, dashes.' },
+  { id: 'rw_sva',         domain: 'conventions', name: 'Subject-verb agreement',   blurb: 'Match verbs to their true subjects across interrupting phrases.' },
+  { id: 'rw_verb',        domain: 'conventions', name: 'Verb tense & form',        blurb: 'Choose consistent, logical tense and correct verb forms.' },
+  { id: 'rw_modifiers',   domain: 'conventions', name: 'Pronouns & modifiers',     blurb: 'Fix pronoun agreement/clarity and dangling or misplaced modifiers.' },
+
+  // ---- Expression of Ideas ----
+  { id: 'rw_transitions', domain: 'expression', name: 'Transitions',           blurb: 'Select the transition that matches the logical relationship between ideas.' },
+  { id: 'rw_synthesis',   domain: 'expression', name: 'Rhetorical synthesis',  blurb: 'Combine notes to meet a specific rhetorical goal efficiently.' },
+];
+
+/* Additional authored questions live in the DATA:QUESTIONS_* generated batches
+   and push into GEN_BANK, which is merged into the runtime bank alongside the
+   hand-written seed arrays. Keeps large batches in tidy, grouped blocks. */
+const GEN_BANK = [];
+
+/* Fast lookups built once. */
+const SKILL_BY_ID = Object.fromEntries(SKILLS.map(s => [s.id, s]));
+const skillSection = (id) => DOMAINS[SKILL_BY_ID[id].domain].section;
+const skillsInDomain = (dom) => SKILLS.filter(s => s.domain === dom);
+const skillsInSection = (sec) => SKILLS.filter(s => DOMAINS[s.domain].section === sec);
+const domainsInSection = (sec) => Object.values(DOMAINS).filter(d => d.section === sec);
+
+/* =========================================================================
+   DATA:QUESTIONS_MATH
+   Authoring schema (one object per question):
+     { id, skill, difficulty(1|2|3|"extreme"), type("mcq"|"spr"),
+       stem, choices:[4 strings] (mcq only), answer, explanation, strategyTag? }
+   `section` and `domain` are auto-derived from `skill` at load (normalizeQuestion),
+   so authors set `skill` only and never risk drift.
+   mcq `answer` = correct letter "A".."D".  spr `answer` = string; the grader
+   accepts equivalent fraction/decimal forms (and an optional `answers` array).
+   Every math key below was solved by hand — the worked solution is in `explanation`.
+   Grouped by domain for easy editing. Merged into one bank at runtime.
+   ========================================================================= */
+
+const QUESTIONS_MATH_ALGEBRA = [
+  { id: 'M0001', skill: 'alg_linear_eq', difficulty: 1, type: 'mcq',
+    stem: 'If $3(x - 4) = 18$, what is the value of $x$?',
+    choices: ['2', '6', '10', '22'], answer: 'C',
+    explanation: 'Distribute: $3x - 12 = 18$. Add 12: $3x = 30$. Divide by 3: $x = 10$. (B) 6 just divides 18 by 3 and ignores the −12. (D) 22 adds 12 to 18 without dividing. (A) 2 has no valid path.',
+    strategyTag: 'plug_in' },
+
+  { id: 'M0002', skill: 'alg_linear_eq', difficulty: 2, type: 'spr',
+    stem: 'If $\\frac{2x+1}{3} = 5$, what is the value of $x$?',
+    answer: '7',
+    explanation: 'Multiply both sides by 3: $2x + 1 = 15$. Subtract 1: $2x = 14$. Divide by 2: $x = 7$.' },
+
+  { id: 'M0003', skill: 'alg_linear_fn', difficulty: 2, type: 'mcq',
+    stem: 'A line passes through $(0, -3)$ and has slope 2. Which equation represents the line?',
+    choices: ['$y = 2x - 3$', '$y = -3x + 2$', '$y = 2x + 3$', '$y = -2x - 3$'], answer: 'A',
+    explanation: 'Slope-intercept form $y = mx + b$ has $m = 2$ and $y$-intercept $b = -3$, so $y = 2x - 3$. (C) uses the wrong intercept sign, (B) swaps slope and intercept, and (D) uses the wrong slope sign.' },
+
+  { id: 'M0004', skill: 'alg_linear_fn', difficulty: 2, type: 'mcq',
+    stem: 'The graph of a linear function $f$ passes through $(2, 5)$ and $(4, 11)$. What is the slope of the graph?',
+    choices: ['2', '3', '4', '6'], answer: 'B',
+    explanation: 'Slope $= \\frac{11 - 5}{4 - 2} = \\frac{6}{2} = 3$. (D) 6 forgets to divide by the run. (A),(C) mis-subtract the coordinates.' },
+
+  { id: 'M0005', skill: 'alg_systems', difficulty: 2, type: 'mcq',
+    stem: 'For the system $y = 2x + 1$ and $y = -x + 7$, what is the value of $x$ at the solution?',
+    choices: ['1', '2', '3', '4'], answer: 'B',
+    explanation: 'Set the right sides equal: $2x + 1 = -x + 7 \\Rightarrow 3x = 6 \\Rightarrow x = 2$ (and $y = 5$). Plug the other options into both equations and they fail.',
+    strategyTag: 'backsolve' },
+
+  { id: 'M0006', skill: 'alg_systems', difficulty: 3, type: 'spr',
+    stem: 'If $3x + 2y = 16$ and $x - 2y = 0$, what is the value of $x$?',
+    answer: '4',
+    explanation: 'Add the equations to eliminate $y$: $(3x + 2y) + (x - 2y) = 16 + 0 \\Rightarrow 4x = 16 \\Rightarrow x = 4$.',
+    strategyTag: 'plug_in' },
+
+  { id: 'M0007', skill: 'alg_inequal', difficulty: 2, type: 'mcq',
+    stem: 'Which value of $x$ satisfies $-2x + 5 > 1$?',
+    choices: ['$x = 4$', '$x = 3$', '$x = 1$', '$x = 2$'], answer: 'C',
+    explanation: 'Solve: $-2x + 5 > 1 \\Rightarrow -2x > -4$. Dividing by a negative flips the sign: $x < 2$. Only $x = 1$ is less than 2. $x = 2$ gives exactly 1, which is not greater than 1.' },
+
+  { id: 'M0008', skill: 'alg_word', difficulty: 2, type: 'spr',
+    stem: 'A gym charges a \\$30 sign-up fee plus \\$20 per month. After how many months does the total cost reach \\$170?',
+    answer: '7',
+    explanation: 'Total cost: $30 + 20m = 170$. Subtract 30: $20m = 140$. Divide by 20: $m = 7$ months.' },
+
+  { id: 'M0009', skill: 'alg_word', difficulty: 3, type: 'mcq',
+    stem: 'A printer produces pages at a constant rate. It prints 90 pages in 4 minutes. At this rate, how many pages does it print in 10 minutes?',
+    choices: ['180', '200', '225', '250'], answer: 'C',
+    explanation: 'Rate $= 90 \\div 4 = 22.5$ pages/min. In 10 minutes: $22.5 \\times 10 = 225$. (A) 180 doubles the 4-minute count; (B),(D) misuse the rate.',
+    strategyTag: 'plug_in' },
+];
+
+const QUESTIONS_MATH_ADVANCED = [
+  { id: 'M0101', skill: 'adv_quadratic', difficulty: 2, type: 'mcq',
+    stem: 'What are the solutions to $x^2 - 5x + 6 = 0$?',
+    choices: ['$x = -2$ and $x = -3$', '$x = 2$ and $x = 3$', '$x = 1$ and $x = 6$', '$x = -1$ and $x = 6$'], answer: 'B',
+    explanation: 'Factor: $(x - 2)(x - 3) = 0$, so $x = 2$ or $x = 3$. (A) has flipped signs (those solve $x^2 + 5x + 6$). (C),(D) mis-factor 6 as $1 \\cdot 6$.' },
+
+  { id: 'M0102', skill: 'adv_quadratic', difficulty: 3, type: 'spr',
+    stem: 'One solution to $x^2 - 6x + 4 = 0$ can be written as $3 + \\sqrt{k}$. What is the value of $k$?',
+    answer: '5',
+    explanation: 'Quadratic formula: $x = \\frac{6 \\pm \\sqrt{36 - 16}}{2} = \\frac{6 \\pm \\sqrt{20}}{2} = 3 \\pm \\sqrt{5}$. Matching $3 + \\sqrt{k}$ gives $k = 5$.' },
+
+  { id: 'M0103', skill: 'adv_exponents', difficulty: 2, type: 'mcq',
+    stem: 'Which expression is equivalent to $\\dfrac{x^5 \\cdot x^3}{x^2}$ for $x \\neq 0$?',
+    choices: ['$x^6$', '$x^7$', '$x^{10}$', '$x^{-4}$'], answer: 'A',
+    explanation: 'Add exponents when multiplying, subtract when dividing: $x^{5+3-2} = x^6$. (B) forgets the $-2$, (C) multiplies the exponents, (D) reverses the operations.' },
+
+  { id: 'M0104', skill: 'adv_exponents', difficulty: 3, type: 'mcq',
+    stem: 'If $x > 0$, which expression is equivalent to $\\sqrt{50x^4}$?',
+    choices: ['$5x^2\\sqrt{2}$', '$25x^2\\sqrt{2}$', '$5x\\sqrt{2}$', '$10x^2$'], answer: 'A',
+    explanation: '$\\sqrt{50x^4} = \\sqrt{25 \\cdot 2 \\cdot x^4} = 5x^2\\sqrt{2}$. (B) keeps 25 outside the root, (C) mishandles $x^4$, (D) drops the $\\sqrt{2}$.' },
+
+  { id: 'M0105', skill: 'adv_exponential', difficulty: 3, type: 'mcq',
+    stem: 'A culture of 200 bacteria doubles every 3 hours. Which function gives the population after $t$ hours?',
+    choices: ['$P = 200(2)^{t/3}$', '$P = 200(2)^{3t}$', '$P = 200 + \\tfrac{2t}{3}$', '$P = 200(3)^{t/2}$'], answer: 'A',
+    explanation: 'Doubling means base 2; "every 3 hours" places $t/3$ in the exponent: $P = 200(2)^{t/3}$. (B) triples the rate, (C) is linear, (D) uses the wrong base and exponent.' },
+
+  { id: 'M0106', skill: 'adv_polynomial', difficulty: 2, type: 'mcq',
+    stem: 'Which expression is equivalent to $(2x - 3)(x + 5)$?',
+    choices: ['$2x^2 + 7x - 15$', '$2x^2 - 15$', '$2x^2 + 10x - 15$', '$2x^2 + 7x + 15$'], answer: 'A',
+    explanation: 'FOIL: $2x \\cdot x + 2x \\cdot 5 - 3 \\cdot x - 3 \\cdot 5 = 2x^2 + 10x - 3x - 15 = 2x^2 + 7x - 15$. (C) forgets the $-3x$ term, (B) drops the middle terms, (D) has the wrong constant sign.' },
+
+  { id: 'M0107', skill: 'adv_functions', difficulty: 2, type: 'spr',
+    stem: 'If $f(x) = 2x^2 - 3x + 1$, what is the value of $f(3)$?',
+    answer: '10',
+    explanation: 'Substitute $x = 3$: $f(3) = 2(3)^2 - 3(3) + 1 = 18 - 9 + 1 = 10$.' },
+
+  { id: 'M0108', skill: 'adv_rational', difficulty: 3, type: 'mcq',
+    stem: 'If $\\dfrac{x}{x-2} = 3$, what is the value of $x$?',
+    choices: ['2', '3', '4', '6'], answer: 'B',
+    explanation: 'Multiply both sides by $(x-2)$: $x = 3(x-2) = 3x - 6$. Then $-2x = -6$, so $x = 3$. Check: $\\frac{3}{1} = 3$. ✓ (C) 4 gives $\\frac{4}{2}=2$; (A) 2 makes the denominator 0.' },
+];
+
+const QUESTIONS_MATH_PSDA = [
+  { id: 'M0201', skill: 'psda_ratio', difficulty: 1, type: 'spr',
+    stem: 'If 4 pencils cost \\$1.20, what is the cost, in dollars, of 10 pencils?',
+    answer: '3',
+    explanation: 'Unit price $= 1.20 \\div 4 = \\$0.30$ per pencil. Then $10 \\times 0.30 = \\$3.00$.' },
+
+  { id: 'M0202', skill: 'psda_percent', difficulty: 2, type: 'mcq',
+    stem: 'A jacket priced at \\$80 is discounted by 25%. What is the sale price?',
+    choices: ['\\$55', '\\$60', '\\$65', '\\$75'], answer: 'B',
+    explanation: 'A 25% discount keeps 75%: $80 \\times 0.75 = \\$60$. Equivalently, 25% of 80 is \\$20 off. (A) subtracts \\$25 instead of 25%; (C),(D) use the wrong percent.' },
+
+  { id: 'M0203', skill: 'psda_percent', difficulty: 3, type: 'mcq',
+    stem: 'A population grows from 250 to 320. What is the percent increase, to the nearest percent?',
+    choices: ['22%', '28%', '35%', '70%'], answer: 'B',
+    explanation: 'Percent increase $= \\frac{320 - 250}{250} = \\frac{70}{250} = 0.28 = 28\\%$. (A) divides by 320, (D) reports the raw difference 70, (C) is a rounding error.' },
+
+  { id: 'M0204', skill: 'psda_stats', difficulty: 2, type: 'mcq',
+    stem: 'For the data set 4, 8, 8, 10, 20, which statement is true?',
+    choices: ['mean < median', 'mean = median', 'mean > median', 'mean = mode'], answer: 'C',
+    explanation: 'Mean $= 50 \\div 5 = 10$; median (middle value) $= 8$; so mean > median — the outlier 20 pulls the mean up. The mode is 8, not equal to the mean, so the last option is false.' },
+
+  { id: 'M0205', skill: 'psda_prob', difficulty: 2, type: 'mcq',
+    stem: 'A bag has 5 red, 3 blue, and 2 green marbles. If one marble is drawn at random, what is the probability it is blue?',
+    choices: ['$\\tfrac{3}{10}$', '$\\tfrac{3}{7}$', '$\\tfrac{1}{3}$', '$\\tfrac{2}{5}$'], answer: 'A',
+    explanation: 'There are $5 + 3 + 2 = 10$ marbles and 3 are blue, so $P(\\text{blue}) = \\frac{3}{10}$. (B) uses 7 as the total, ignoring blue itself; (C),(D) miscount.' },
+
+  { id: 'M0206', skill: 'psda_data', difficulty: 2, type: 'spr',
+    stem: 'A survey found that 60% of 450 students walk to school. How many students walk to school?',
+    answer: '270',
+    explanation: '$0.60 \\times 450 = 270$ students.' },
+];
+
+const QUESTIONS_MATH_GEOTRIG = [
+  { id: 'M0301', skill: 'geo_trig', difficulty: 2, type: 'mcq',
+    stem: 'In a right triangle, the two legs have lengths 6 and 8. What is the length of the hypotenuse?',
+    choices: ['10', '12', '14', '$\\sqrt{28}$'], answer: 'A',
+    explanation: 'Pythagorean theorem: hypotenuse $= \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10$ (a 6-8-10 triangle). (C) 14 just adds the legs; (D) subtracts instead of adds.' },
+
+  { id: 'M0302', skill: 'geo_circles', difficulty: 3, type: 'mcq',
+    stem: 'A circle in the $xy$-plane has equation $(x - 2)^2 + (y + 1)^2 = 25$. What is the radius of the circle?',
+    choices: ['5', '25', '$\\sqrt{5}$', '10'], answer: 'A',
+    explanation: 'In $(x - h)^2 + (y - k)^2 = r^2$, the right side equals $r^2$. Here $r^2 = 25$, so $r = 5$. (B) reports $r^2$; (C) takes an extra root; (D) doubles $r$.' },
+
+  { id: 'M0303', skill: 'geo_volume', difficulty: 2, type: 'mcq',
+    stem: 'A rectangular box has length 5, width 3, and height 4. What is its volume?',
+    choices: ['12', '47', '60', '94'], answer: 'C',
+    explanation: 'Volume $= l \\times w \\times h = 5 \\times 3 \\times 4 = 60$. (D) 94 is the surface area, (B) sums face pairs, (A) adds the dimensions.' },
+
+  { id: 'M0304', skill: 'geo_angles', difficulty: 2, type: 'mcq',
+    stem: 'In a triangle, two angles measure $50°$ and $70°$. What is the measure of the third angle?',
+    choices: ['$40°$', '$50°$', '$60°$', '$120°$'], answer: 'C',
+    explanation: 'The angles of a triangle sum to $180°$: $180 - 50 - 70 = 60°$. (D) 120 forgets to subtract from 180; (A),(B) mis-add.' },
+];
+
+/* All math questions in one array for the loader. */
+const QUESTIONS_MATH = [].concat(
+  QUESTIONS_MATH_ALGEBRA, QUESTIONS_MATH_ADVANCED, QUESTIONS_MATH_PSDA, QUESTIONS_MATH_GEOTRIG
+);
+
+/* =========================================================================
+   DATA:QUESTIONS_RW
+   Same authoring schema as math, plus a `passage` (25–150 words) on every
+   question — Digital SAT RW items are standalone with their own short passage.
+   ========================================================================= */
+
+const QUESTIONS_RW_CRAFT = [
+  { id: 'R0001', skill: 'rw_vocab', difficulty: 2, type: 'mcq',
+    passage: 'Although the new expense policy was meant to simplify approvals, employees found it so ______ that many gave up midway, tangled in redundant forms and unclear steps.',
+    stem: 'Which choice completes the text with the most logical and precise word?',
+    choices: ['convoluted', 'transparent', 'lenient', 'concise'], answer: 'A',
+    explanation: 'The clues "tangled," "redundant," and "unclear" describe something overly complicated — "convoluted." "Transparent" and "concise" mean clear or brief (the opposite); "lenient" means permissive, which does not fit.',
+    strategyTag: 'rw_elim' },
+
+  { id: 'R0002', skill: 'rw_vocab', difficulty: 3, type: 'mcq',
+    passage: 'The critic praised the novel’s ______ prose: every sentence felt polished to a high shine, with not a word out of place.',
+    stem: 'Which choice completes the text with the most logical and precise word?',
+    choices: ['meticulous', 'careless', 'verbose', 'ambiguous'], answer: 'A',
+    explanation: '"Polished" and "not a word out of place" signal painstaking care — "meticulous." "Careless" is the opposite, "verbose" means wordy, and "ambiguous" means unclear — none matches praise for precision.',
+    strategyTag: 'rw_elim' },
+
+  { id: 'R0003', skill: 'rw_purpose', difficulty: 2, type: 'mcq',
+    passage: 'In her essay, Alvarez first lists the objections critics have raised against urban beekeeping. She then devotes the remaining pages to answering each objection in turn, citing safety data and interviews with longtime beekeepers.',
+    stem: 'Which choice best describes the overall structure of Alvarez’s essay as it is presented?',
+    choices: ['It raises objections and then systematically responds to them.', 'It compares beekeeping in cities and rural areas.', 'It narrates the history of urban beekeeping.', 'It argues that beekeeping should be banned.'], answer: 'A',
+    explanation: 'The description is objections first, then point-by-point responses — choice A. No urban/rural comparison (B) or history (C) appears, and Alvarez defends beekeeping rather than calling for a ban (D).' },
+
+  { id: 'R0004', skill: 'rw_connections', difficulty: 3, type: 'mcq',
+    passage: 'Text 1: Historian Lee argues that the printing press caused literacy to spread rapidly, since cheap books gave ordinary people reasons to learn to read. Text 2: Historian Ortiz counters that literacy rose mainly where schools already existed; the press, she says, met a demand that schooling had created, rather than creating it.',
+    stem: 'Based on the texts, how would Ortiz most likely respond to Lee’s argument?',
+    choices: ['By noting that the press followed rising literacy rather than driving it', 'By agreeing that cheap books were the single cause of literacy', 'By denying that literacy rose at all during the period', 'By arguing that schools discouraged reading'], answer: 'A',
+    explanation: 'Ortiz credits pre-existing schools and says the press "met a demand," so she would say the press followed literacy rather than caused it — choice A. (B) contradicts her, (C) and (D) state claims neither historian makes.' },
+];
+
+const QUESTIONS_RW_INFOIDEAS = [
+  { id: 'R0101', skill: 'rw_main', difficulty: 2, type: 'mcq',
+    passage: 'Octopuses can change not only the color but also the texture of their skin, raising tiny bumps to mimic coral or smoothing out to slip past a predator. This camouflage is controlled directly by the nervous system, allowing near-instant shifts.',
+    stem: 'Which choice best states the main idea of the text?',
+    choices: ['Octopuses use fast, nervous-system-controlled changes in skin color and texture to camouflage.', 'Octopuses are the ocean’s most dangerous predators.', 'Coral reefs depend on octopuses for their protection.', 'Octopuses cannot survive unless they change color constantly.'], answer: 'A',
+    explanation: 'The text focuses on how octopuses camouflage by rapidly changing color and texture under nervous-system control — choice A. (B) and (C) add claims never made; (D) overstates a survival requirement the passage does not assert.' },
+
+  { id: 'R0102', skill: 'rw_evidence', difficulty: 3, type: 'mcq',
+    passage: 'A researcher claims that a plant species growing along a mountain trail has spread mainly because hikers unknowingly carry its seeds on their boots.',
+    stem: 'Which finding, if true, would most directly support the researcher’s claim?',
+    choices: ['The plant is far denser within one meter of the trail than deeper in the forest.', 'The plant produces flowers that attract many bees.', 'The plant grows well in a wide variety of soil types.', 'The trail was built more recently than the surrounding forest.'], answer: 'A',
+    explanation: 'If the plant clusters right along the trail (where boots pass) and thins out away from it, that pattern fits seed transport by hikers — choice A. Bee attraction (B) and soil tolerance (C) point to other means of spreading; trail age (D) does not link the spread to hikers.' },
+
+  { id: 'R0103', skill: 'rw_inference', difficulty: 3, type: 'mcq',
+    passage: 'The museum’s oldest manuscripts are kept in a sealed room where light, temperature, and humidity never vary. Visitors see only high-resolution digital copies; the originals are handled just a few times each decade, and then only by conservators wearing gloves.',
+    stem: 'Which choice most logically completes the text?\n\nThe museum’s practices suggest that ______',
+    choices: ['preserving the manuscripts is treated as more important than displaying the originals.', 'the manuscripts are of little historical value.', 'the digital copies are more accurate than the originals.', 'visitors are not interested in the manuscripts.'], answer: 'A',
+    explanation: 'Sealing the originals away and showing copies signals that protection is prioritized over public display — choice A. (B) contradicts the care taken; (C) and (D) are unsupported — copies are shown for preservation, not accuracy, and visitor interest is never discussed.' },
+
+  { id: 'R0104', skill: 'rw_quant', difficulty: 2, type: 'mcq',
+    passage: 'A study measured average daily water use in four neighborhoods. The results were: Ash 180 L, Birch 240 L, Cedar 150 L, Dover 300 L per person. The researchers noted that one neighborhood used far more water per person than the others.',
+    stem: 'Which choice most effectively uses data from the text to complete the observation?',
+    choices: ['Dover, at 300 L per person, used the most water of the four neighborhoods.', 'Cedar, at 150 L per person, used the most water of the four.', 'Ash and Birch used identical amounts of water.', 'All four neighborhoods used about the same amount of water.'], answer: 'A',
+    explanation: 'The observation is about the highest user; Dover’s 300 L is the largest figure — choice A. (B) names the lowest, (C) is false (180 ≠ 240), and (D) contradicts the stated variation.' },
+];
+
+const QUESTIONS_RW_CONVENTIONS = [
+  { id: 'R0201', skill: 'rw_boundaries', difficulty: 2, type: 'mcq',
+    passage: 'The greenhouse held dozens of orchids ______ each one labeled with its species and the date it first bloomed.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: [', ', '; ', ', and ', ': '], answer: 'A',
+    explanation: '"each one labeled with its species…" is a describing (participial) phrase, not a complete sentence, so a comma attaches it. A semicolon (B) and "and" (C) both need a full independent clause after them, and a colon (D) is not used to introduce a simple modifier.',
+    strategyTag: 'rw_boundaries_test' },
+
+  { id: 'R0202', skill: 'rw_sva', difficulty: 2, type: 'mcq',
+    passage: 'The collection of rare coins, gathered over three decades by a single dedicated hobbyist, ______ now on display at the national museum.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['is', 'are', 'were', 'have been'], answer: 'A',
+    explanation: 'The subject is "collection" (singular); "of rare coins…" is just a modifier. A singular subject takes "is." "Are," "were," and "have been" all agree with the plural "coins," which is not the true subject.' },
+
+  { id: 'R0203', skill: 'rw_verb', difficulty: 2, type: 'mcq',
+    passage: 'By the time the results were announced last spring, the committee ______ the proposals for nearly six months.',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['had been reviewing', 'reviews', 'reviewing', 'will review'], answer: 'A',
+    explanation: 'The reviewing spanned a period ending before a past event ("were announced"), so the past perfect progressive "had been reviewing" fits. "Reviews" (present) and "will review" (future) clash with the past timeframe; "reviewing" alone is not a complete verb.' },
+
+  { id: 'R0204', skill: 'rw_modifiers', difficulty: 2, type: 'mcq',
+    passage: 'Adjusting the telescope carefully, ______',
+    stem: 'Which choice completes the text so that it conforms to the conventions of Standard English?',
+    choices: ['the students finally brought Saturn’s rings into focus.', 'the faint rings of Saturn finally came into focus.', 'Saturn’s rings were finally visible in the eyepiece.', 'it was finally possible to see Saturn’s rings.'], answer: 'A',
+    explanation: 'The opening modifier "Adjusting the telescope carefully" must describe whoever is adjusting, so the subject right after the comma should be "the students" — choice A. In the others the rings, a passive verb, or "it" cannot logically be doing the adjusting, leaving the modifier dangling.' },
+];
+
+const QUESTIONS_RW_EXPRESSION = [
+  { id: 'R0301', skill: 'rw_transitions', difficulty: 2, type: 'mcq',
+    passage: 'The city’s ferry service is famously punctual. ______ riders can plan tight connections without much worry, confident the boat will leave exactly on schedule.',
+    stem: 'Which choice completes the text with the most logical transition?',
+    choices: ['As a result,', 'Nevertheless,', 'In contrast,', 'For example,'], answer: 'A',
+    explanation: 'The second sentence is a consequence of the ferry being punctual, so a cause-effect transition — "As a result" — fits. "Nevertheless" and "In contrast" signal opposition; "For example" would introduce an illustration, not an effect.',
+    strategyTag: 'rw_transitions_test' },
+
+  { id: 'R0302', skill: 'rw_transitions', difficulty: 3, type: 'mcq',
+    passage: 'Solar panels have become far cheaper over the past decade. ______ many homeowners still hesitate to install them, put off by the upfront cost of batteries and wiring.',
+    stem: 'Which choice completes the text with the most logical transition?',
+    choices: ['Even so,', 'Therefore,', 'Likewise,', 'In short,'], answer: 'A',
+    explanation: 'Cheaper panels would predict more adoption, but the sentence describes hesitation — a contrast — so "Even so" fits. "Therefore" and "In short" signal agreement or summary; "Likewise" signals similarity, none of which matches the reversal.' },
+
+  { id: 'R0303', skill: 'rw_synthesis', difficulty: 2, type: 'mcq',
+    passage: 'Notes:\n• Halley’s Comet completes one orbit every 76 years.\n• It was last visible from Earth in 1986.\n• Its next appearance is predicted for 2061.\n• It is named after astronomer Edmond Halley.',
+    stem: 'The student wants to emphasize when the comet will next be seen. Which choice most effectively uses the notes to accomplish this goal?',
+    choices: ['Last seen in 1986, Halley’s Comet is predicted to next appear in 2061.', 'Halley’s Comet, named for Edmond Halley, orbits every 76 years.', 'Edmond Halley studied a comet that orbits the Sun.', 'Halley’s Comet has an orbital period of 76 years.'], answer: 'A',
+    explanation: 'The goal is to stress the next sighting, and only choice A names 2061 as the next appearance. The others emphasize the comet’s name or orbital period instead of when it will next be seen.' },
+];
+
+const QUESTIONS_RW = [].concat(
+  QUESTIONS_RW_CRAFT, QUESTIONS_RW_INFOIDEAS, QUESTIONS_RW_CONVENTIONS, QUESTIONS_RW_EXPRESSION
+);
+
+/* =========================================================================
+   DATA:LESSONS — Khan-style mini-lessons, one per skill.
+   Schema:
+     { skill, title, concept(html-ish string),
+       examples:[{q, work}], traps:[string], checkpoint:[questionIds or inline] }
+   Checkpoint questions are pulled live from the bank by skill, so lessons stay
+   lean. Populated in Phase 2.
+   ========================================================================= */
+
+const LESSONS = [];
+
+/* =========================================================================
+   DATA:STRATEGIES — CookSAT-style digital-SAT tactics.
+   Schema: { id, title, icon, blurb, body(sections[]), tag(strategyTag) }
+   Each strategy links to its practice questions via `strategyTag` on questions.
+   Populated in Phase 5.
+   ========================================================================= */
+
+const STRATEGIES = [];
+
+/* =========================================================================
+   DATA:VOCAB — starter word set (the user imports their own 1,500-word list).
+   Schema per word: { word, def, example? }. Grouped into named sets at runtime
+   inside the vocab engine. A small, high-frequency SAT starter set ships so the
+   vocab games work out of the box before any import. Expanded in Phase 3.
+   ========================================================================= */
+
+const VOCAB_STARTER = [];
+
+/* =========================================================================
+   ENGINE — state, persistence, question bank, mastery, scoring, XP,
+   streaks, mistake bank, math rendering. No DOM view code here (that's UI).
+   Everything is plain functions over a single persisted state object `S`.
+   ========================================================================= */
+
+/* ---------- tiny utilities ---------- */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+const avg = (arr) => (arr.length ? sum(arr) / arr.length : 0);
+const uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pct = (n) => Math.round(n * 100);
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+function shuffle(arr) {              // Fisher-Yates (non-mutating)
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function sample(arr, n) { return shuffle(arr).slice(0, n); }
+
+/* date helpers use local day boundaries */
+const DAY = 86400000;
+function dayKey(ts = Date.now()) { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function daysBetween(k1, k2) { return Math.round((Date.parse(k2 + 'T00:00') - Date.parse(k1 + 'T00:00')) / DAY); }
+function weekKey(ts = Date.now()) {  // ISO-ish week bucket
+  const d = new Date(ts); const onejan = new Date(d.getFullYear(), 0, 1);
+  const wk = Math.ceil(((d - onejan) / DAY + onejan.getDay() + 1) / 7);
+  return `${d.getFullYear()}-W${String(wk).padStart(2, '0')}`;
+}
+function fmtDate(ts) { return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+function fmtClock(sec) { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${String(s).padStart(2, '0')}`; }
+
+/* =========================================================================
+   Persistence — namespaced, versioned localStorage.
+   ========================================================================= */
+const LS = {
+  state: 'ace.v1.state',
+};
+const STATE_VERSION = 1;
+
+function defaultState() {
+  const now = Date.now();
+  return {
+    version: STATE_VERSION,
+    createdAt: now, lastActive: now,
+    settings: {
+      apiKey: '', model: 'claude-opus-4-8',
+      heartsMode: false, voice: false, sound: true,
+      testDate: null, assistantName: 'Sable',
+    },
+    onboarded: false,
+    xp: 0,
+    combo: 0,                 // transient-ish; reset each session start
+    streak: { count: 0, lastDay: null, freezes: 1, freezeWeek: weekKey(now) },
+    weekly: { week: weekKey(now), xp: 0, goal: 600, history: [] },
+    mastery: {},              // skillId -> 0..100
+    seen: {},                 // qid -> count (exposure)
+    stats: { answered: 0, correct: 0, bySkill: {}, secByQ: [] },
+    mistakes: {},             // qid -> {qid, chosen, ts, stage, dueTs, streak}
+    badges: {},               // badgeId -> ts
+    bests: { match: {} },     // setId -> best seconds
+    vocab: { sets: {}, srs: {}, dailyKey: null, newToday: 0, activeSet: null },
+    plan: null,               // {week, tasks:[...], ts}
+    diagnostic: { done: false, result: null },
+    mocks: [],                // finished mock summaries
+    scoreHistory: [],         // {ts, total, rw, math, source}
+    path: {},                 // nodeId -> 'done'
+    ai: { questions: [] },    // AI-generated question objects appended to bank
+    counters: { extremeSolved: 0, mocksDone: 0, wordsMastered: 0, perfectModules: 0 },
+    quest: { day: null, items: [] },
+    seenTutorial: false,
+  };
+}
+
+let S = defaultState();
+
+function migrate(st) {
+  if (!st || typeof st !== 'object') return defaultState();
+  if (st.version !== STATE_VERSION) {
+    // Shallow-merge unknown/older shapes onto defaults so new keys appear.
+    const base = defaultState();
+    const merged = Object.assign(base, st);
+    merged.settings = Object.assign(base.settings, st.settings || {});
+    merged.version = STATE_VERSION;
+    return merged;
+  }
+  // Ensure any newly-added top-level keys exist even on same version.
+  const base = defaultState();
+  for (const k of Object.keys(base)) if (!(k in st)) st[k] = base[k];
+  st.settings = Object.assign(base.settings, st.settings || {});
+  return st;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS.state);
+    if (raw) S = migrate(JSON.parse(raw));
+    else S = defaultState();
+  } catch (e) { console.warn('State load failed, starting fresh:', e); S = defaultState(); }
+  return S;
+}
+
+let _saveTimer = null;
+function save(now = false) {
+  S.lastActive = Date.now();
+  const write = () => { try { localStorage.setItem(LS.state, JSON.stringify(S)); } catch (e) { console.error('Save failed', e); toast('Storage full — some progress may not persist', 'coral'); } };
+  if (now) { clearTimeout(_saveTimer); write(); }
+  else { clearTimeout(_saveTimer); _saveTimer = setTimeout(write, 400); }
+}
+function resetAll() { localStorage.removeItem(LS.state); S = defaultState(); save(true); }
+
+/* =========================================================================
+   Question bank — normalize authored questions, add AI + imported ones.
+   ========================================================================= */
+function normalizeQuestion(q) {
+  const skill = SKILL_BY_ID[q.skill];
+  const domain = skill ? DOMAINS[skill.domain] : null;
+  return Object.assign({}, q, {
+    domain: skill ? skill.domain : (q.domain || 'algebra'),
+    section: domain ? domain.section : (q.section || 'math'),
+    difficulty: q.difficulty === 'extreme' ? 'extreme' : Number(q.difficulty) || 1,
+  });
+}
+
+let BANK = [];
+let BANK_BY_ID = {};
+function buildBank() {
+  const authored = [].concat(
+    typeof QUESTIONS_MATH !== 'undefined' ? QUESTIONS_MATH : [],
+    typeof QUESTIONS_RW !== 'undefined' ? QUESTIONS_RW : [],
+    typeof GEN_BANK !== 'undefined' ? GEN_BANK : [],
+    (S.ai && S.ai.questions) ? S.ai.questions : []
+  );
+  BANK = []; BANK_BY_ID = {};
+  for (const raw of authored) {
+    if (!raw || !raw.id || BANK_BY_ID[raw.id]) continue;   // skip dupes by id
+    const q = normalizeQuestion(raw);
+    BANK.push(q); BANK_BY_ID[q.id] = q;
+  }
+}
+const getQ = (id) => BANK_BY_ID[id];
+
+/* difficulty helpers */
+const diffNum = (d) => (d === 'extreme' ? 4 : d);
+const isExtreme = (q) => q.difficulty === 'extreme';
+
+/* Filtered selection. opts: {section, domain, skill, difficulty, excludeSeen, limit, extreme} */
+function pickQuestions(opts = {}) {
+  let pool = BANK.filter((q) => {
+    if (opts.extreme) { if (!isExtreme(q)) return false; }
+    else if (isExtreme(q) && !opts.includeExtreme) return false;
+    if (opts.section && q.section !== opts.section) return false;
+    if (opts.domain && q.domain !== opts.domain) return false;
+    if (opts.skill && q.skill !== opts.skill) return false;
+    if (opts.difficulty && q.difficulty !== opts.difficulty) return false;
+    if (opts.difficultyMax && diffNum(q.difficulty) > opts.difficultyMax) return false;
+    return true;
+  });
+  if (opts.excludeSeen) {
+    const fresh = pool.filter((q) => !S.seen[q.id]);
+    if (fresh.length >= (opts.limit || 1)) pool = fresh;   // only exclude if enough remain
+  }
+  if (opts.excludeIds) pool = pool.filter((q) => !opts.excludeIds.includes(q.id));
+  pool = shuffle(pool);
+  if (opts.sortByDifficulty) pool.sort((a, b) => diffNum(a.difficulty) - diffNum(b.difficulty));
+  return opts.limit ? pool.slice(0, opts.limit) : pool;
+}
+function bankStats() {
+  const s = { total: BANK.length, math: 0, rw: 0, extreme: 0, bySkill: {}, byDiff: { 1: 0, 2: 0, 3: 0, extreme: 0 } };
+  for (const q of BANK) {
+    if (isExtreme(q)) s.extreme++; else s[q.section]++;
+    s.byDiff[q.difficulty] = (s.byDiff[q.difficulty] || 0) + 1;
+    s.bySkill[q.skill] = (s.bySkill[q.skill] || 0) + 1;
+  }
+  return s;
+}
+
+/* =========================================================================
+   Math rendering — KaTeX when available, readable plain-text fallback offline.
+   Content uses $...$ (inline) and $$...$$ (display).
+   ========================================================================= */
+function katexReady() { return typeof window.katex !== 'undefined' && window.katex && !window.__KATEX_JS_FAILED; }
+
+function texFallback(tex) {
+  // Make raw TeX readable when KaTeX is unavailable.
+  let t = tex;
+  t = t.replace(/\\d?frac\s*{([^{}]*)}\s*{([^{}]*)}/g, '($1)/($2)');
+  t = t.replace(/\\sqrt\s*{([^{}]*)}/g, '√($1)');
+  t = t.replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\div/g, '÷');
+  t = t.replace(/\\pm/g, '±').replace(/\\leq/g, '≤').replace(/\\geq/g, '≥').replace(/\\neq/g, '≠');
+  t = t.replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\Rightarrow/g, '⇒').replace(/\\approx/g, '≈');
+  t = t.replace(/\\left|\\right/g, '');
+  t = t.replace(/\^{([^{}]*)}/g, (m, p) => toSup(p)).replace(/\^(\w)/g, (m, p) => toSup(p));
+  t = t.replace(/_{([^{}]*)}/g, (m, p) => toSub(p)).replace(/_(\w)/g, (m, p) => toSub(p));
+  t = t.replace(/[{}]/g, '').replace(/\\,/g, ' ').replace(/\\ /g, ' ');
+  return t;
+}
+const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '+': '⁺', '-': '⁻', 'n': 'ⁿ', 'x': 'ˣ', 'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 't': 'ᵗ' };
+const SUB = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉', 'n': 'ₙ', 'x': 'ₓ' };
+const toSup = (s) => s.split('').map((c) => SUP[c] || c).join('');
+const toSub = (s) => s.split('').map((c) => SUB[c] || c).join('');
+
+// Convert a string with $...$ segments into safe HTML.
+// A backslash-escaped \$ is a literal dollar sign (money) and never a delimiter.
+const _DOLLAR = String.fromCharCode(1);
+function mathToHtml(text) {
+  if (text == null) return '';
+  const s = String(text).replace(/\\\$/g, _DOLLAR);
+  const parts = s.split(/(\$\$[^$]*\$\$|\$[^$]*\$)/g);
+  return parts.map((p) => {
+    if (/^\$\$[^$]*\$\$$/.test(p)) return mathSpan(p.slice(2, -2), true);
+    if (/^\$[^$]*\$$/.test(p)) return mathSpan(p.slice(1, -1), false);
+    return esc(p).split(_DOLLAR).join('$').replace(/\n/g, '<br>');
+  }).join('');
+}
+function mathSpan(tex, display) {
+  return `<span class="math" data-tex="${esc(tex)}" data-display="${display ? 1 : 0}">` +
+    `<span class="math-fallback">${esc(texFallback(tex))}</span></span>`;
+}
+// After inserting HTML, typeset any .math spans with KaTeX (if ready).
+function typeset(root = document) {
+  if (!katexReady()) return;
+  $$('.math', root).forEach((span) => {
+    if (span.dataset.done) return;
+    const tex = span.dataset.tex;
+    try {
+      span.innerHTML = window.katex.renderToString(tex, { throwOnError: false, displayMode: span.dataset.display === '1' });
+      span.dataset.done = '1';
+    } catch (e) { /* keep fallback */ }
+  });
+}
+// Re-typeset once KaTeX finishes loading (deferred script).
+window.addEventListener('load', () => { setTimeout(() => typeset(document), 60); });
+
+/* =========================================================================
+   SmartScore mastery (IXL-style, 0..100).
+   - correct raises more for harder Qs, diminishing near the top;
+   - the 90..100 Challenge Zone only opens to difficulty-3 / extreme questions;
+   - misses drop more when your score is high (an easy miss stings).
+   ========================================================================= */
+const CHALLENGE_ZONE = 90;
+function getMastery(skillId) { return S.mastery[skillId] ?? 0; }
+
+function applyMastery(skillId, correct, difficulty) {
+  const m = getMastery(skillId);
+  const hard = difficulty === 3 || difficulty === 'extreme';
+  let next = m;
+  if (correct) {
+    const base = { 1: 6, 2: 9, 3: 13, extreme: 16 }[difficulty] || 8;
+    const gain = base * (0.35 + 0.65 * (1 - m / 100));     // diminishing near top
+    next = m + gain;
+    if (!hard) next = Math.min(next, Math.max(m, CHALLENGE_ZONE)); // easy Qs can't climb the zone
+    next = Math.min(100, next);
+  } else {
+    const penaltyBase = m >= CHALLENGE_ZONE ? 12 : m >= 70 ? 9 : m >= 40 ? 6 : 4;
+    const soften = hard ? 0.65 : 1;                        // missing a hard Q hurts a bit less
+    next = Math.max(0, m - penaltyBase * soften);
+  }
+  S.mastery[skillId] = Math.round(next * 10) / 10;
+  return { from: m, to: S.mastery[skillId] };
+}
+function masteryTier(m) {           // -> {cls, label}
+  if (m >= 90) return { cls: 'm5', label: 'Mastered' };
+  if (m >= 80) return { cls: 'm4', label: 'Strong' };
+  if (m >= 60) return { cls: 'm3', label: 'Proficient' };
+  if (m >= 40) return { cls: 'm2', label: 'Developing' };
+  if (m >= 20) return { cls: 'm1', label: 'Beginning' };
+  return { cls: 'm0', label: 'Not started' };
+}
+function sectionMastery(sec) {
+  const skills = skillsInSection(sec);
+  // weight each skill by its domain weight (so heavy domains matter more)
+  let wsum = 0, msum = 0;
+  for (const sk of skills) {
+    const w = DOMAINS[sk.domain].weight;
+    wsum += w; msum += w * getMastery(sk.id);
+  }
+  return wsum ? msum / wsum : 0;
+}
+function weakestSkills(n = 3, sec = null) {
+  let list = SKILLS.slice();
+  if (sec) list = list.filter((s) => skillSection(s.id) === sec);
+  // prioritize skills that have been touched but are low, then untouched
+  return list
+    .map((s) => ({ s, m: getMastery(s.id), seen: (S.stats.bySkill[s.id]?.n || 0) }))
+    .sort((a, b) => (a.m - b.m) || (b.seen - a.seen))
+    .slice(0, n).map((x) => x.s);
+}
+
+/* =========================================================================
+   Scoring model — raw -> scaled (200..800) via anchor tables approximating
+   released Digital SAT curves; easier Module 2 imposes a lower ceiling.
+   Clearly an ESTIMATE; every UI surface labels it so.
+   ========================================================================= */
+const SCORE_ANCHORS = {
+  // percent-correct -> scaled score (per section). Interpolated linearly.
+  rw:   [[0, 200], [10, 230], [20, 290], [30, 360], [40, 430], [50, 500], [60, 560], [70, 620], [80, 680], [90, 740], [97, 780], [100, 800]],
+  math: [[0, 200], [10, 240], [20, 310], [30, 390], [40, 460], [50, 530], [60, 590], [70, 650], [80, 710], [90, 760], [97, 785], [100, 800]],
+};
+const EASY_MODULE_CEIL = 630;  // routing to the easier Module 2 caps the section (approx.)
+const ROUTE_HARD_THRESHOLD = 0.65; // module-1 accuracy to unlock the harder Module 2
+
+function interp(anchors, x) {
+  if (x <= anchors[0][0]) return anchors[0][1];
+  const last = anchors[anchors.length - 1];
+  if (x >= last[0]) return last[1];
+  for (let i = 1; i < anchors.length; i++) {
+    if (x <= anchors[i][0]) {
+      const [x0, y0] = anchors[i - 1], [x1, y1] = anchors[i];
+      return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+    }
+  }
+  return last[1];
+}
+// estimateScaledScore: section 'rw'|'math', fraction correct 0..1, easyModule bool
+function estimateScaledScore(section, fractionCorrect, easyModule = false) {
+  const raw = interp(SCORE_ANCHORS[section], clamp(fractionCorrect, 0, 1) * 100);
+  let scaled = Math.round(raw / 10) * 10;
+  if (easyModule) scaled = Math.min(scaled, EASY_MODULE_CEIL);
+  return clamp(scaled, 200, 800);
+}
+// Projected total from mastery, blended toward recent mocks/diagnostics.
+function projectedScore() {
+  const fromMastery = (sec) => {
+    const m = sectionMastery(sec) / 100;
+    const acc = clamp(0.32 + 0.63 * m, 0, 0.99);   // mastery -> expected accuracy
+    return estimateScaledScore(sec, acc, false);
+  };
+  let rw = fromMastery('rw'), math = fromMastery('math');
+  // blend with recent measured results (weighted toward most recent)
+  const recent = S.scoreHistory.slice(-4);
+  if (recent.length) {
+    let wsum = 0, rwS = 0, mS = 0;
+    recent.forEach((h, i) => { const w = i + 1; wsum += w; rwS += w * h.rw; mS += w * h.math; });
+    const mRw = rwS / wsum, mMath = mS / wsum;
+    rw = Math.round(0.45 * rw + 0.55 * mRw);
+    math = Math.round(0.45 * math + 0.55 * mMath);
+  }
+  rw = clamp(Math.round(rw / 10) * 10, 200, 800);
+  math = clamp(Math.round(math / 10) * 10, 200, 800);
+  return { rw, math, total: rw + math };
+}
+
+/* =========================================================================
+   XP, levels, combo, streak.
+   ========================================================================= */
+const XP_BASE = { 1: 10, 2: 15, 3: 25, extreme: 50 };
+function comboMultiplier() { return Math.min(2, 1 + Math.min(S.combo, 10) * 0.1); }
+function xpForAnswer(difficulty) { return Math.round((XP_BASE[difficulty] || 10) * comboMultiplier()); }
+
+const LEVEL_TITLES = [
+  [1, 'Rookie'], [3, 'Apprentice'], [5, 'Scholar'], [8, 'Sharpshooter'],
+  [11, 'Strategist'], [15, 'Analyst'], [19, 'Tactician'], [24, 'Virtuoso'],
+  [30, 'Ace Cadet'], [37, 'Ace'], [45, 'Grandmaster'], [55, 'Perfectionist'],
+];
+function xpToReach(level) { return Math.round(80 * (level - 1) + 20 * (level - 1) * (level - 1)); } // cumulative
+function levelInfo(xp = S.xp) {
+  let level = 1;
+  while (xpToReach(level + 1) <= xp) level++;
+  const curMin = xpToReach(level), nextMin = xpToReach(level + 1);
+  let title = LEVEL_TITLES[0][1];
+  for (const [lvl, t] of LEVEL_TITLES) if (level >= lvl) title = t;
+  return { level, title, curMin, nextMin, into: xp - curMin, span: nextMin - curMin, pct: (xp - curMin) / (nextMin - curMin) };
+}
+function addXP(n) {
+  const before = levelInfo().level;
+  S.xp += n;
+  S.weekly.xp += n;
+  const after = levelInfo();
+  if (after.level > before) toast(`Level ${after.level} — ${after.title}!`, 'gold', 4000);
+  return after;
+}
+
+function rolloverWeekIfNeeded() {
+  const wk = weekKey();
+  if (S.weekly.week !== wk) {
+    S.weekly.history.push({ week: S.weekly.week, xp: S.weekly.xp, goal: S.weekly.goal });
+    if (S.weekly.history.length > 20) S.weekly.history = S.weekly.history.slice(-20);
+    S.weekly.week = wk; S.weekly.xp = 0;
+  }
+  if (S.streak.freezeWeek !== wk) {   // grant the weekly earnable freeze
+    S.streak.freezeWeek = wk;
+    S.streak.freezes = Math.min(2, (S.streak.freezes || 0) + 1);
+  }
+}
+// Record daily activity; maintains the streak (auto-uses a freeze for a single gap).
+function touchStreak() {
+  const today = dayKey();
+  const st = S.streak;
+  if (st.lastDay === today) return st.count;
+  if (st.lastDay == null) { st.count = 1; }
+  else {
+    const gap = daysBetween(st.lastDay, today);
+    if (gap === 1) st.count += 1;
+    else if (gap === 2 && st.freezes > 0) { st.freezes -= 1; st.count += 1; toast('Streak-freeze used — streak saved ❄️', 'sky'); }
+    else st.count = 1;
+  }
+  st.lastDay = today;
+  if (st.count > 0 && st.count % 7 === 0) award('streak7');
+  save();
+  return st.count;
+}
+
+/* =========================================================================
+   Mistake bank — auto-capture, spaced retry (2 then 5 days), leave after
+   2 consecutive correct retries.
+   ========================================================================= */
+const MISTAKE_STEPS = [2, 5];  // days
+function recordMistake(q, chosen) {
+  const ex = S.mistakes[q.id];
+  const now = Date.now();
+  if (ex) { ex.chosen = chosen; ex.ts = now; ex.streak = 0; ex.stage = Math.min(ex.stage, MISTAKE_STEPS.length - 1); ex.dueTs = now + MISTAKE_STEPS[ex.stage] * DAY; }
+  else S.mistakes[q.id] = { qid: q.id, chosen, ts: now, stage: 0, streak: 0, dueTs: now + MISTAKE_STEPS[0] * DAY };
+}
+function resolveMistakeAttempt(qid, correct) {
+  const m = S.mistakes[qid]; if (!m) return;
+  if (correct) {
+    m.streak += 1;
+    if (m.streak >= 2) { delete S.mistakes[qid]; toast('Cleared from mistake bank ✓', 'mint'); return; }
+    m.stage = Math.min(m.stage + 1, MISTAKE_STEPS.length - 1);
+    m.dueTs = Date.now() + MISTAKE_STEPS[m.stage] * DAY;
+  } else { m.streak = 0; m.stage = 0; m.dueTs = Date.now() + MISTAKE_STEPS[0] * DAY; }
+}
+function dueMistakes() {
+  const now = Date.now();
+  return Object.values(S.mistakes).filter((m) => m.dueTs <= now && getQ(m.qid)).map((m) => getQ(m.qid));
+}
+function allMistakes() { return Object.values(S.mistakes).filter((m) => getQ(m.qid)); }
+
+/* =========================================================================
+   SPR grading — accept equivalent fraction/decimal forms.
+   ========================================================================= */
+function parseNumeric(str) {
+  if (str == null) return null;
+  let s = String(str).trim().replace(/\s+/g, '');
+  if (s === '') return null;
+  if (/^[-+]?\d*\.?\d+$/.test(s)) return parseFloat(s);
+  const frac = s.match(/^([-+]?\d*\.?\d+)\/([-+]?\d*\.?\d+)$/);
+  if (frac) { const d = parseFloat(frac[2]); return d === 0 ? null : parseFloat(frac[1]) / d; }
+  return null;
+}
+function gradeSPR(userStr, q) {
+  const answers = [].concat(q.answer, q.answers || []);
+  const un = parseNumeric(userStr);
+  for (const a of answers) {
+    const an = parseNumeric(a);
+    if (un != null && an != null && Math.abs(un - an) < 1e-6) return true;
+    if (String(userStr).trim() === String(a).trim()) return true;
+  }
+  return false;
+}
+function gradeQuestion(q, response) {
+  if (q.type === 'spr') return gradeSPR(response, q);
+  return response === q.answer; // mcq: response is a letter
+}
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+/* =========================================================================
+   Central answer recorder — the one place a graded answer updates all state.
+   meta: { sec (seconds taken), fromMistake, fromMock, silent (no xp/combo) }
+   ========================================================================= */
+function recordAnswer(q, response, meta = {}) {
+  const correct = gradeQuestion(q, response);
+  // exposure
+  S.seen[q.id] = (S.seen[q.id] || 0) + 1;
+  // stats
+  S.stats.answered++; if (correct) S.stats.correct++;
+  const bs = S.stats.bySkill[q.skill] || (S.stats.bySkill[q.skill] = { n: 0, c: 0 });
+  bs.n++; if (correct) bs.c++;
+  bumpToday('answered', 1); if (correct) bumpToday('correct', 1);
+  if (q.section === 'math') bumpToday('math', 1); else if (q.section === 'rw') bumpToday('rw', 1);
+  if (typeof meta.sec === 'number') { S.stats.secByQ.push({ s: q.section, sec: meta.sec }); if (S.stats.secByQ.length > 400) S.stats.secByQ = S.stats.secByQ.slice(-400); }
+  // mastery
+  const mv = applyMastery(q.skill, correct, q.difficulty);
+  // combo + xp (skip for silent/mock scoring which is handled separately)
+  let xpGain = 0;
+  if (!meta.silent) {
+    if (correct) { S.combo++; xpGain = xpForAnswer(q.difficulty); addXP(xpGain); }
+    else S.combo = 0;
+  }
+  // mistake bank
+  if (!correct) recordMistake(q, response);
+  else if (S.mistakes[q.id]) resolveMistakeAttempt(q.id, true);
+  if (meta.fromMistake) resolveMistakeAttempt(q.id, correct);
+  // counters + badges
+  if (correct && isExtreme(q)) { S.counters.extremeSolved++; award('extreme1'); }
+  checkAnswerBadges(q, correct);
+  touchStreak();
+  save();
+  return { correct, xpGain, mastery: mv, combo: S.combo };
+}
+
+/* =========================================================================
+   Badges / achievements.
+   ========================================================================= */
+const BADGES = [
+  { id: 'first_drill', em: '🎯', name: 'First Steps', desc: 'Finish your first drill.' },
+  { id: 'streak7', em: '🔥', name: 'Weeklong', desc: 'Reach a 7-day streak.' },
+  { id: 'extreme1', em: '💀', name: 'Into the Deep', desc: 'Solve your first Extreme question.' },
+  { id: 'section700', em: '🚀', name: 'Sky High', desc: 'Estimate 700+ on a section.' },
+  { id: 'mock1', em: '📝', name: 'Test Pilot', desc: 'Finish your first full mock exam.' },
+  { id: 'perfect_module', em: '💯', name: 'Flawless', desc: 'Get a perfect module on a mock.' },
+  { id: 'vocab100', em: '📚', name: 'Wordsmith', desc: 'Master 100 vocabulary words.' },
+  { id: 'heatcol', em: '🏛️', name: 'Pillar', desc: 'Master every skill in one domain.' },
+  { id: 'combo10', em: '⚡', name: 'On Fire', desc: 'Hit a 10-answer combo.' },
+  { id: 'level10', em: '⭐', name: 'Rising Star', desc: 'Reach level 10.' },
+  { id: 'diagnostic', em: '🧭', name: 'Know Thyself', desc: 'Complete the diagnostic.' },
+  { id: 'full_heatmap', em: '🌟', name: 'Complete Command', desc: 'Reach 90+ mastery on every skill.' },
+];
+const BADGE_BY_ID = Object.fromEntries(BADGES.map((b) => [b.id, b]));
+function award(id) {
+  if (S.badges[id]) return false;
+  S.badges[id] = Date.now();
+  const b = BADGE_BY_ID[id];
+  if (b) toast(`Badge unlocked: ${b.em} ${b.name}`, 'gold', 4500);
+  save();
+  return true;
+}
+function checkAnswerBadges(q, correct) {
+  if (S.combo >= 10) award('combo10');
+  if (levelInfo().level >= 10) award('level10');
+  // domain-column mastery
+  for (const dom of Object.values(DOMAINS)) {
+    if (skillsInDomain(dom.id).every((s) => getMastery(s.id) >= 90)) award('heatcol');
+  }
+  if (SKILLS.every((s) => getMastery(s.id) >= 90)) award('full_heatmap');
+}
+
+/* =========================================================================
+   Toast (used across engine + UI). Defined here so engine can call it.
+   ========================================================================= */
+let _toastHost = null;
+function toast(msg, kind = '', ms = 2600) {
+  if (!_toastHost) _toastHost = document.getElementById('toasts');
+  if (!_toastHost) return;
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.innerHTML = mathToHtml(msg);
+  _toastHost.appendChild(el);
+  typeset(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(8px)'; setTimeout(() => el.remove(), 300); }, ms);
+}
+
+/* =========================================================================
+   ENGINE (extra) — daily activity, study planner + daily quest, Sable
+   briefing generator, and the AI client + assistant tools. Split out to keep
+   the core engine readable. (Vocab SRS and mock assembly live in their own
+   UI/engine sections but persist through the same state `S`.)
+   ========================================================================= */
+
+/* ---------- per-day activity counters (drive quests & briefing) ---------- */
+function ensureToday() {
+  const d = dayKey();
+  if (!S.today || S.today.day !== d) {
+    // archive yesterday's snapshot for the briefing before resetting
+    if (S.today && S.today.day) S.yesterday = S.today;
+    S.today = { day: d, answered: 0, correct: 0, math: 0, rw: 0, lessons: 0, vocab: 0, nodes: 0, mocks: 0, xpStart: S.xp };
+  }
+}
+function bumpToday(field, n = 1) { ensureToday(); S.today[field] = (S.today[field] || 0) + n; }
+function todayXP() { ensureToday(); return S.xp - (S.today.xpStart || S.xp); }
+
+/* =========================================================================
+   Study planner — a rolling weekly plan (or day-by-day countdown when a test
+   date is set). Produces the daily quest. Regenerated weekly, or when empty.
+   ========================================================================= */
+function daysUntilTest() {
+  if (!S.settings.testDate) return null;
+  const d = daysBetween(dayKey(), S.settings.testDate);
+  return d;
+}
+function generatePlan(force = false) {
+  const wk = weekKey();
+  if (!force && S.plan && S.plan.week === wk) return S.plan;
+  const weak = weakestSkills(6);
+  const countdown = daysUntilTest();
+  const tasks = [];
+  const push = (t) => tasks.push(Object.assign({ id: uid('t'), done: false }, t));
+
+  // Core recurring tasks
+  push({ type: 'lesson', label: `Study a lesson: ${SKILL_BY_ID[weak[0].id].name}`, skill: weak[0].id, route: 'learn', params: { skill: weak[0].id } });
+  push({ type: 'drill', label: `Drill your weakest skill: ${SKILL_BY_ID[weak[0].id].name}`, skill: weak[0].id, route: 'drills', params: { skill: weak[0].id }, goal: 8 });
+  push({ type: 'drill', label: `Drill: ${SKILL_BY_ID[weak[1].id].name}`, skill: weak[1].id, route: 'drills', params: { skill: weak[1].id }, goal: 8 });
+  push({ type: 'vocab', label: 'Clear your vocabulary review queue', route: 'vocab', goal: 15 });
+  if (allMistakes().length) push({ type: 'mistakes', label: 'Review your mistake bank', route: 'mistakes' });
+
+  // Weekly rhythm: a mock roughly weekly (or more often near a test date)
+  const mocksDone = S.counters.mocksDone || 0;
+  const wantMock = countdown != null ? countdown <= 21 : (mocksDone < 3 || (Date.now() % 7 === 0));
+  if (wantMock) push({ type: 'mock', label: 'Take a full adaptive mock exam', route: 'mocks' });
+
+  S.plan = { week: wk, ts: Date.now(), tasks, countdown };
+  save();
+  return S.plan;
+}
+
+/* The daily quest = a slice of the plan for today, plus streak-safety hint.
+   Completion is derived live from today's activity counters. */
+function getDailyQuest() {
+  ensureToday();
+  const plan = generatePlan();
+  const day = dayKey();
+  if (!S.quest || S.quest.day !== day) {
+    // pick up to 4 tasks for today, rotating by day
+    const items = plan.tasks.slice(0, 4).map((t) => ({ ...t, done: false }));
+    S.quest = { day, items };
+    save();
+  }
+  // derive completion from live activity
+  for (const it of S.quest.items) {
+    if (it.type === 'drill' || it.type === 'mistakes') it.done = it.done || (S.today.answered >= (it.goal || 8));
+    if (it.type === 'lesson') it.done = it.done || (S.today.lessons >= 1);
+    if (it.type === 'vocab') it.done = it.done || (S.today.vocab >= (it.goal || 15));
+    if (it.type === 'mock') it.done = it.done || (S.today.mocks >= 1);
+  }
+  return S.quest;
+}
+function questComplete() { const q = getDailyQuest(); return q.items.length > 0 && q.items.every((i) => i.done); }
+function markPlanTaskDone(type) {
+  // called when a matching activity happens; the derived logic mostly handles it
+  const q = getDailyQuest();
+  const it = q.items.find((i) => i.type === type && !i.done);
+  if (it) { it.done = true; save(); }
+}
+
+/* =========================================================================
+   Sable briefing — template-generated from local data (works with no key).
+   Phase 5 optionally rewrites this in Sable's voice via the API.
+   ========================================================================= */
+function briefingFacts() {
+  ensureToday();
+  const proj = projectedScore();
+  const streak = S.streak.count;
+  const yd = S.yesterday;
+  const weak = weakestSkills(3).map((s) => s.name);
+  const dut = daysUntilTest();
+  return { proj, streak, yesterday: yd, weak, daysUntilTest: dut, quest: getDailyQuest(), due: dueMistakes().length };
+}
+function templateBriefing() {
+  const f = briefingFacts();
+  const name = S.settings.assistantName;
+  const parts = [];
+  // greeting
+  const hr = new Date().getHours();
+  const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+  parts.push(`${greet}. ${f.proj.total >= 1500 ? 'You are knocking on the door of a perfect score.' : `Projected total sits at about ${f.proj.total} (${f.proj.rw} RW · ${f.proj.math} Math) — an estimate, of course.`}`);
+  // yesterday
+  if (f.yesterday && f.yesterday.answered) {
+    const acc = f.yesterday.answered ? Math.round(f.yesterday.correct / f.yesterday.answered * 100) : 0;
+    parts.push(`Yesterday you answered ${f.yesterday.answered} question${f.yesterday.answered === 1 ? '' : 's'} at ${acc}% accuracy.`);
+  }
+  // streak
+  parts.push(f.streak > 0 ? `Your streak stands at ${f.streak} day${f.streak === 1 ? '' : 's'}${questComplete() ? ' and today is already secured' : '; finish today\'s quest to keep it'}.` : `No streak yet — a single completed quest starts one.`);
+  // plan / focus
+  parts.push(`Today I\'d focus on ${f.weak.slice(0, 2).join(' and ')}${f.due ? `, and you have ${f.due} question${f.due === 1 ? '' : 's'} due in the mistake bank` : ''}.`);
+  // countdown
+  if (f.daysUntilTest != null) parts.push(f.daysUntilTest >= 0 ? `${f.daysUntilTest} day${f.daysUntilTest === 1 ? '' : 's'} until test day. We have a plan.` : `Test day has passed — set a new date when you\'re ready.`);
+  return parts.join(' ');
+}
+
+/* =========================================================================
+   AI client — Anthropic Messages API, called directly from the browser.
+   Small, well-commented. Everything degrades gracefully with no key.
+   Assistant tools + tutor actions are wired in the assistant UI module; this
+   is the low-level transport plus a helper for tool-use loops.
+   ========================================================================= */
+const AI_ENDPOINT = 'https://api.anthropic.com/v1/messages';
+function aiConfigured() { return !!(S.settings.apiKey && S.settings.apiKey.trim()); }
+
+async function aiCall({ system, messages, tools, max_tokens = 1024, temperature = 0.7 }) {
+  if (!aiConfigured()) throw new Error('No API key set.');
+  const body = { model: S.settings.model || 'claude-opus-4-8', max_tokens, messages };
+  if (system) body.system = system;
+  if (tools) body.tools = tools;
+  if (temperature != null) body.temperature = temperature;
+  const res = await fetch(AI_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': S.settings.apiKey.trim(),
+      'anthropic-version': '2023-06-01',
+      // Required to call the API directly from a browser (local personal use).
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let msg = `API error ${res.status}`;
+    try { const j = await res.json(); msg = j.error?.message || msg; } catch (e) { }
+    throw new Error(msg);
+  }
+  return res.json();
+}
+// Convenience: single-turn text completion.
+async function aiText(system, userText, opts = {}) {
+  const data = await aiCall({ system, messages: [{ role: 'user', content: userText }], ...opts });
+  return (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
+}
+
+/* =========================================================================
+   UI — core framework: router, app shell, nav, reusable question session,
+   shared render helpers. View modules register themselves into VIEWS.
+   ========================================================================= */
+
+const VIEWS = {};                 // name -> { title, render(params)->html, mount(root,params) }
+function registerView(name, def) { VIEWS[name] = def; }
+
+const NAV = [
+  { route: 'home',       icon: '🏠', label: 'Home' },
+  { route: 'learn',      icon: '📖', label: 'Learn' },
+  { route: 'path',       icon: '🧭', label: 'Skill Path' },
+  { route: 'drills',     icon: '🎯', label: 'Drills' },
+  { route: 'vocab',      icon: '📚', label: 'Vocabulary' },
+  { route: 'mocks',      icon: '📝', label: 'Mock Exams' },
+  { route: 'strategies', icon: '♟️', label: 'Strategies' },
+  { route: 'progress',   icon: '📈', label: 'Progress' },
+  { route: 'mistakes',   icon: '🩹', label: 'Mistake Bank' },
+  { route: 'settings',   icon: '⚙️', label: 'Settings' },
+];
+
+/* ---------- route parsing (#/route?k=v&...) ---------- */
+function parseHash() {
+  const raw = location.hash.replace(/^#\/?/, '');
+  const [path, query] = raw.split('?');
+  const params = {};
+  if (query) for (const kv of query.split('&')) { const [k, v] = kv.split('='); params[decodeURIComponent(k)] = decodeURIComponent(v || ''); }
+  return { route: path || 'home', params };
+}
+function navigate(route, params) {
+  let h = '#/' + route;
+  if (params && Object.keys(params).length) h += '?' + Object.entries(params).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+  if (location.hash === h) router(); else location.hash = h;
+}
+
+/* ---------- app shell ---------- */
+function renderShell() {
+  const app = document.getElementById('app');
+  const nav = NAV.map((n) => `<div class="nav-item" data-route="${n.route}"><span class="ico">${n.icon}</span><span>${n.label}</span></div>`).join('');
+  app.innerHTML = `
+    <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+    <div class="shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand"><div class="mark">A</div><div class="name"><b>A</b>ce</div></div>
+        ${nav}
+        <div class="nav-sep"></div>
+        <div class="nav-item" data-route="settings"><span class="ico">🔑</span><span>API &amp; Data</span></div>
+        <div class="nav-foot">Digital SAT trainer · runs offline<br>Everything stays on this device.</div>
+      </aside>
+      <main class="main"><div id="view"></div></main>
+    </div>`;
+  app.querySelectorAll('.nav-item').forEach((el) => el.addEventListener('click', () => {
+    navigate(el.dataset.route);
+    document.getElementById('sidebar').classList.remove('open');
+  }));
+  const mb = document.getElementById('menuBtn');
+  if (mb) mb.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+  ensureOrb();
+}
+function setActiveNav(route) {
+  $$('.nav-item').forEach((el) => el.classList.toggle('active', el.dataset.route === route));
+}
+
+/* ---------- router ---------- */
+let _shellBuilt = false;
+function router() {
+  const { route, params } = parseHash();
+  if (!_shellBuilt) { renderShell(); _shellBuilt = true; }
+  else if (!document.querySelector('.shell')) { renderShell(); }  // rebuild after a takeover
+  const host = document.getElementById('view');
+  const def = VIEWS[route] || VIEWS['_missing'];
+  setActiveNav(route);
+  try {
+    host.innerHTML = def.render ? def.render(params) : '';
+    typeset(host);
+    if (def.mount) def.mount(host, params);
+    window.scrollTo(0, 0);
+    host.focus?.();
+  } catch (e) {
+    console.error('View error:', e);
+    host.innerHTML = `<div class="card"><h3>Something went wrong rendering this screen.</h3><p class="muted">${esc(e.message)}</p></div>`;
+  }
+}
+registerView('_missing', { render: () => `<div class="card"><h2>Not found</h2><p class="muted">That screen doesn’t exist yet.</p></div>` });
+
+/* ---------- fullscreen takeover (test mode, match game) ---------- */
+let _fsEl = null;
+function openFullscreen(className = '') {
+  closeFullscreen();
+  _fsEl = document.createElement('div');
+  _fsEl.className = 'fs ' + className;
+  _fsEl.style.cssText = 'position:fixed;inset:0;z-index:75;overflow:auto;';
+  document.body.appendChild(_fsEl);
+  return _fsEl;
+}
+function closeFullscreen() { if (_fsEl) { _fsEl.remove(); _fsEl = null; } }
+
+/* =========================================================================
+   Shared render helpers.
+   ========================================================================= */
+function pageHeader(title, sub, right = '') {
+  return `<div class="row spread wrap" style="margin-bottom:18px;align-items:flex-end">
+    <div><h1 style="margin:0">${esc(title)}</h1>${sub ? `<div class="muted">${sub}</div>` : ''}</div>
+    <div class="row wrap" style="gap:8px">${right}</div></div>`;
+}
+function diffDots(d) {
+  const cls = d === 'extreme' ? 'dx' : 'd' + d;
+  return `<span class="diff ${cls}" title="${d === 'extreme' ? 'Extreme' : 'Difficulty ' + d}"><i></i><i></i><i></i></span>`;
+}
+function skillPill(skillId) {
+  const s = SKILL_BY_ID[skillId]; if (!s) return '';
+  return `<span class="pill violet">${esc(s.name)}</span>`;
+}
+function masteryCell(skillId) {
+  const s = SKILL_BY_ID[skillId], m = getMastery(skillId), t = masteryTier(m);
+  return `<div class="cell" data-skill="${skillId}" title="${esc(s.name)} — ${t.label}">
+    <div class="fill ${t.cls}"></div>
+    <div class="lbl">${esc(s.name)}</div>
+    <div class="sc">${Math.round(m)}</div></div>`;
+}
+function confirmModal(title, body, onYes, yesLabel = 'Confirm', kind = 'primary') {
+  const host = document.getElementById('overlays');
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-overlay';
+  wrap.innerHTML = `<div class="modal"><h3>${esc(title)}</h3><div class="muted" style="margin-bottom:18px">${body}</div>
+    <div class="row" style="justify-content:flex-end;gap:10px"><button class="btn ghost" data-x>Cancel</button><button class="btn ${kind}" data-y>${esc(yesLabel)}</button></div></div>`;
+  host.appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) close(); });
+  wrap.querySelector('[data-x]').onclick = close;
+  wrap.querySelector('[data-y]').onclick = () => { close(); onYes(); };
+}
+function openModal(html, opts = {}) {
+  const host = document.getElementById('overlays');
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-overlay';
+  wrap.innerHTML = `<div class="modal">${html}</div>`;
+  host.appendChild(wrap);
+  typeset(wrap);
+  const close = () => wrap.remove();
+  wrap.addEventListener('click', (e) => { if (e.target === wrap && !opts.sticky) close(); });
+  return { el: wrap, close };
+}
+
+/* =========================================================================
+   Reusable Question Session — powers drills, mistakes, checkpoints, path
+   practice, extreme, and quizzes. Renders into a container; calls onDone.
+   ========================================================================= */
+function runQuestionSession(cfg) {
+  const box = cfg.container;
+  const qs = cfg.questions.slice();
+  const S0 = {
+    idx: 0, results: [], chosen: null, submitted: false, struck: new Set(),
+    hearts: cfg.hearts ? 5 : null, startTs: 0, done: false,
+  };
+  function cur() { return qs[S0.idx]; }
+
+  function render() {
+    if (S0.idx >= qs.length || (S0.hearts !== null && S0.hearts <= 0)) return finish();
+    const q = cur();
+    S0.chosen = null; S0.submitted = false; S0.struck = new Set(); S0.startTs = Date.now();
+    const prog = `${S0.idx + 1} / ${qs.length}`;
+    const heartsHtml = S0.hearts !== null ? `<span class="hearts">${Array.from({ length: 5 }, (_, i) => `<span class="h ${i < S0.hearts ? '' : 'lost'}">♥</span>`).join('')}</span>` : '';
+    const comboHtml = (!cfg.meta?.silent && S.combo > 1) ? `<span class="pill gold">🔥 ${S.combo} combo</span>` : '';
+    box.innerHTML = `
+      <div class="player">
+        <div class="row spread" style="margin-bottom:14px">
+          <div class="row" style="gap:10px">
+            <span class="pill">${esc(cfg.title || 'Practice')}</span>
+            ${skillPill(q.skill)} ${diffDots(q.difficulty)}
+          </div>
+          <div class="row" style="gap:10px">${comboHtml}${heartsHtml}<span class="mono muted">${prog}</span></div>
+        </div>
+        <div class="bar" style="margin-bottom:18px"><span style="width:${(S0.idx) / qs.length * 100}%"></span></div>
+        <div class="card pad-lg">${renderQuestionBody(q)}</div>
+        <div class="row spread" style="margin-top:16px">
+          <div id="qHintSlot"></div>
+          <div class="row" style="gap:10px">
+            <button class="btn ghost" id="qSkip">Skip</button>
+            <button class="btn primary" id="qSubmit" disabled>Submit</button>
+          </div>
+        </div>
+        <div id="qExplain"></div>
+      </div>`;
+    typeset(box);
+    wire(q);
+  }
+
+  function renderQuestionBody(q) {
+    const passage = q.passage ? `<div class="passage">${mathToHtml(q.passage)}</div>` : '';
+    const stem = `<div class="stem">${mathToHtml(q.stem)}</div>`;
+    let input;
+    if (q.type === 'spr') {
+      input = `<div><input type="text" class="spr-input" id="sprIn" placeholder="Type your answer" autocomplete="off" inputmode="text">
+        <div class="tag" style="margin-top:6px">Student-produced response — fractions or decimals accepted.</div></div>`;
+    } else {
+      input = `<div class="choices" id="choices">${q.choices.map((c, i) => `
+        <div class="choice" data-i="${i}" data-letter="${LETTERS[i]}">
+          <span class="key">${LETTERS[i]}</span>
+          <span class="txt">${mathToHtml(c)}</span>
+          <button class="elim" title="Cross out (X)" tabindex="-1">✕</button>
+        </div>`).join('')}</div>`;
+    }
+    return passage + stem + input;
+  }
+
+  function wire(q) {
+    const submitBtn = $('#qSubmit', box);
+    if (q.type === 'spr') {
+      const inp = $('#sprIn', box);
+      inp.addEventListener('input', () => { S0.chosen = inp.value; submitBtn.disabled = inp.value.trim() === ''; });
+      inp.focus();
+    } else {
+      $$('#choices .choice', box).forEach((el) => {
+        el.addEventListener('click', () => selectChoice(el));   // whole row is clickable
+        el.querySelector('.elim').addEventListener('click', (e) => { e.stopPropagation(); toggleStrike(el); });
+      });
+    }
+    submitBtn.addEventListener('click', () => S0.submitted ? next() : submit(q));
+    $('#qSkip', box).addEventListener('click', () => { if (!S0.submitted) { S0.idx++; render(); } });
+  }
+  function selectChoice(el) {
+    if (S0.submitted) return;
+    $$('#choices .choice', box).forEach((c) => c.classList.remove('sel'));
+    el.classList.add('sel'); el.classList.remove('struck'); S0.struck.delete(el.dataset.letter);
+    S0.chosen = el.dataset.letter;
+    $('#qSubmit', box).disabled = false;
+  }
+  function toggleStrike(el) {
+    if (S0.submitted) return;
+    const L = el.dataset.letter;
+    if (S0.struck.has(L)) { S0.struck.delete(L); el.classList.remove('struck'); }
+    else { S0.struck.add(L); el.classList.add('struck'); if (el.classList.contains('sel')) { el.classList.remove('sel'); S0.chosen = null; $('#qSubmit', box).disabled = true; } }
+  }
+
+  function submit(q) {
+    if (S0.chosen == null || (typeof S0.chosen === 'string' && S0.chosen.trim() === '')) return;
+    S0.submitted = true;
+    const sec = (Date.now() - S0.startTs) / 1000;
+    const res = recordAnswer(q, S0.chosen, Object.assign({ sec }, cfg.meta || {}));
+    S0.results.push({ q, correct: res.correct, chosen: S0.chosen, sec });
+    if (S0.hearts !== null && !res.correct) { S0.hearts--; }
+    showFeedback(q, res);
+    updateComboFlash(res);
+  }
+
+  function showFeedback(q, res) {
+    // annotate choices
+    if (q.type === 'mcq') {
+      $$('#choices .choice', box).forEach((el) => {
+        const L = el.dataset.letter;
+        if (L === q.answer) el.classList.add('correct');
+        else if (L === S0.chosen) el.classList.add('wrong');
+        el.querySelector('.txt').style.pointerEvents = 'none';
+        el.querySelector('.key').style.pointerEvents = 'none';
+      });
+    } else {
+      const inp = $('#sprIn', box); inp.disabled = true;
+      inp.style.borderColor = res.correct ? 'var(--mint)' : 'var(--coral)';
+    }
+    const correctText = q.type === 'spr' ? `Correct answer: <b>${esc([].concat(q.answer)[0])}</b>` :
+      `Correct answer: <b>${q.answer}</b> — ${mathToHtml(q.choices[LETTERS.indexOf(q.answer)])}`;
+    const dm = res.mastery;
+    const masteryLine = dm ? `<div class="tag" style="margin-top:8px">Mastery of ${esc(SKILL_BY_ID[q.skill].name)}: ${Math.round(dm.from)} → <b style="color:${res.correct ? 'var(--mint)' : 'var(--coral)'}">${Math.round(dm.to)}</b></div>` : '';
+    const tutor = tutorButtons(q, S0.chosen, res.correct);
+    $('#qExplain', box).innerHTML = `
+      <div class="explain ${res.correct ? 'correct' : 'wrong'}">
+        <div class="row spread"><h4 style="margin:0">${res.correct ? '✓ Correct' : '✗ Not quite'}</h4>
+          ${!cfg.meta?.silent && res.correct ? `<span class="pill gold">+${res.xpGain} XP</span>` : ''}</div>
+        ${res.correct ? '' : `<p style="margin:.5em 0">${correctText}</p>`}
+        <div>${mathToHtml(q.explanation)}</div>
+        ${masteryLine}
+        ${tutor}
+      </div>`;
+    typeset($('#qExplain', box));
+    wireTutor(q);
+    const sb = $('#qSubmit', box);
+    sb.textContent = S0.idx + 1 >= qs.length ? 'Finish' : 'Next';
+    sb.disabled = false;
+    $('#qSkip', box).style.display = 'none';
+    sb.focus();
+  }
+  function next() { S0.idx++; render(); }
+
+  function updateComboFlash(res) {
+    if (!cfg.meta?.silent && res.correct && S.combo >= 3 && S.combo % 3 === 0) {
+      const c = document.createElement('div'); c.className = 'combo'; c.textContent = `${S.combo}× COMBO`;
+      document.body.appendChild(c); setTimeout(() => c.remove(), 800);
+    }
+  }
+
+  function finish() {
+    S0.done = true; teardownKeys();
+    const total = S0.results.length;
+    const correct = S0.results.filter((r) => r.correct).length;
+    const acc = total ? Math.round(correct / total * 100) : 0;
+    const xp = S0.results.filter((r) => r.correct).reduce((a, r) => a + (XP_BASE[r.q.difficulty] || 10), 0);
+    const summary = { total, correct, acc, results: S0.results, heartsOut: S0.hearts === 0 };
+    if (cfg.mode === 'drill' && total > 0) award('first_drill');
+    if (cfg.onDone) { cfg.onDone(summary); return; }
+    box.innerHTML = defaultSummary(summary, cfg);
+    typeset(box);
+    $$('[data-again]', box).forEach((b) => b.onclick = () => cfg.restart && cfg.restart());
+    $$('[data-review]', box).forEach((b) => b.onclick = () => reviewSession(summary, cfg));
+  }
+
+  // keyboard shortcuts
+  function onKey(e) {
+    if (S0.done) return;
+    const ae = document.activeElement;
+    // Don't hijack keys while typing in the assistant / command bar / other inputs.
+    if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && ae.id !== 'sprIn') return;
+    const q = cur(); if (!q) return;
+    if (e.key === 'Enter') { e.preventDefault(); const sb = $('#qSubmit', box); if (sb && !sb.disabled) sb.click(); return; }
+    if (S0.submitted) return;
+    if (q.type === 'mcq') {
+      const k = e.key.toUpperCase();
+      const i = LETTERS.indexOf(k);
+      if (i >= 0 && i < q.choices.length) { const el = $$('#choices .choice', box)[i]; if (e.shiftKey) toggleStrike(el); else selectChoice(el); }
+    }
+  }
+  function teardownKeys() { document.removeEventListener('keydown', onKey); }
+  document.addEventListener('keydown', onKey);
+
+  render();
+  return { finishNow: finish };
+}
+
+function reviewSession(summary, cfg) {
+  const host = openModal(`<h3>Review</h3><div class="stack" id="revList" style="max-height:64vh;overflow:auto"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" data-close>Close</button></div>`);
+  const list = $('#revList', host.el);
+  list.innerHTML = summary.results.map((r) => `
+    <div class="card" style="border-left:3px solid ${r.correct ? 'var(--mint)' : 'var(--coral)'}">
+      ${r.q.passage ? `<div class="muted" style="font-size:.85rem;margin-bottom:6px">${mathToHtml(r.q.passage)}</div>` : ''}
+      <div style="font-weight:600;margin-bottom:6px">${mathToHtml(r.q.stem)}</div>
+      <div class="tag">Your answer: ${esc(String(r.chosen))} · ${r.correct ? 'correct' : 'answer: ' + esc(String([].concat(r.q.answer)[0]))}</div>
+      <div style="margin-top:8px;font-size:.9rem">${mathToHtml(r.q.explanation)}</div>
+    </div>`).join('');
+  typeset(list);
+  host.el.querySelector('[data-close]').onclick = host.close;
+}
+
+function defaultSummary(sm, cfg) {
+  const grade = sm.acc >= 85 ? 'Excellent' : sm.acc >= 70 ? 'Solid' : sm.acc >= 50 ? 'Getting there' : 'Keep grinding';
+  return `<div class="player">
+    <div class="card pad-lg tac">
+      <div class="eyebrow">${esc(cfg.title || 'Session')} complete</div>
+      <div class="stat" style="align-items:center;margin:10px 0"><div class="v" style="font-size:3rem">${sm.acc}%</div><div class="muted">${sm.correct} of ${sm.total} correct · ${grade}</div></div>
+      <div class="row" style="justify-content:center;gap:10px;margin-top:14px">
+        <button class="btn" data-review>Review answers</button>
+        ${cfg.restart ? '<button class="btn primary" data-again>Another set</button>' : ''}
+        <button class="btn ghost" onclick="navigate('home')">Home</button>
+      </div>
+    </div></div>`;
+}
+
+/* Tutor buttons appear only when AI is configured (Phase 5 wires AI). */
+function tutorButtons(q, chosen, correct) {
+  if (typeof AI === 'undefined' || !AI.enabled()) return '';
+  return `<div class="row wrap" style="gap:8px;margin-top:12px">
+    <button class="btn sm" data-tutor="explain">✨ Explain it differently</button>
+    <button class="btn sm" data-tutor="chat">💬 Ask ${esc(S.settings.assistantName)}</button>
+    <button class="btn sm" data-tutor="similar">➕ 3 similar questions</button>
+  </div><div id="tutorOut"></div>`;
+}
+function wireTutor(q) {
+  if (typeof AI === 'undefined' || !AI.enabled()) return;
+  $$('[data-tutor]').forEach((b) => b.onclick = () => AI.tutorAction(b.dataset.tutor, q));
+}
+
+/* ---------- Sable orb (panel logic lives in the assistant module) ---------- */
+function ensureOrb() {
+  if (document.getElementById('sableOrb')) return;
+  const orb = document.createElement('button');
+  orb.id = 'sableOrb'; orb.className = 'orb'; orb.setAttribute('aria-label', 'Open assistant');
+  orb.innerHTML = '<span class="core"></span>';
+  orb.addEventListener('click', () => { if (typeof Sable !== 'undefined') Sable.togglePanel(); });
+  document.body.appendChild(orb);
+}
+
+/* =========================================================================
+   UI — Home dashboard: Sable briefing, 1600-readiness meter, streak, daily
+   quest, projected score, mastery heatmap preview, weakest-3 panel.
+   ========================================================================= */
+
+registerView('home', {
+  render() {
+    ensureToday();
+    const proj = projectedScore();
+    const li = levelInfo();
+    const gaugePct = clamp(proj.total / 1600 * 100, 0, 100);
+    const dut = daysUntilTest();
+    const quest = getDailyQuest();
+    const weak = weakestSkills(3);
+    const wk = S.weekly;
+    const goalPct = clamp(wk.xp / wk.goal * 100, 0, 100);
+    const briefing = templateBriefing();
+
+    const diagCard = !S.diagnostic.done ? `
+      <div class="card" style="border:1px solid rgba(255,194,71,.35);background:linear-gradient(180deg,rgba(255,194,71,.08),transparent)">
+        <div class="row spread wrap">
+          <div><div class="eyebrow">Start here</div><h3 style="margin:.2em 0">Take the diagnostic</h3>
+          <div class="muted">A ~40-minute shortened test seeds your mastery map and first score estimate.</div></div>
+          <button class="btn gold lg" onclick="navigate('diagnostic')">Begin diagnostic →</button>
+        </div>
+      </div>` : '';
+
+    return `
+    ${pageHeader('Home', `${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}`,
+      `<button class="btn ghost sm" onclick="Sable.togglePanel()">💬 Ask ${esc(S.settings.assistantName)}</button>
+       <button class="btn sm" onclick="startQuickDrill()">🎯 Quick drill</button>`)}
+
+    <div class="grid" style="grid-template-columns: 1.5fr 1fr; align-items:stretch">
+      <div class="card pad-lg briefing">
+        <div class="glow"></div>
+        <div class="row" style="gap:12px;align-items:flex-start">
+          <div class="sable-head" style="padding:0;border:0"><div class="av"></div></div>
+          <div style="flex:1">
+            <div class="row spread"><div class="eyebrow" style="color:var(--ace)">${esc(S.settings.assistantName)} · Daily briefing</div>
+            ${aiConfigured() ? `<button class="btn sm ghost" id="briefRewrite" title="Rewrite in Sable's voice">✨</button>` : ''}</div>
+            <p id="briefText" style="font-size:1.05rem;line-height:1.6;margin:.4em 0 0">${esc(briefing)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card pad-lg readiness">
+        <div class="gauge" style="--p:${gaugePct}"><div class="g-in"><b>${proj.total}</b><small class="muted">of 1600</small></div></div>
+        <div style="flex:1">
+          <div class="eyebrow">1600 readiness</div>
+          <div class="muted" style="font-size:.9rem;margin:.3em 0">Projected estimate · RW ${proj.rw} · Math ${proj.math}</div>
+          <div class="bar gold" style="margin:.4em 0"><span style="width:${gaugePct}%"></span></div>
+          ${dut != null ? `<div class="pill gold" style="margin-top:6px">🗓️ ${dut >= 0 ? dut + ' days to test day' : 'test date passed'}</div>`
+            : `<div class="tag">Set a test date in Settings for countdown mode</div>`}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid g-4" style="margin-top:16px">
+      ${statTile('Streak', `<span class="flame"><span class="f">🔥</span>${S.streak.count}</span>`, plural(S.streak.freezes, 'freeze') + ' saved')}
+      ${statTile('Level', `${li.level}`, li.title)}
+      ${statTile('Weekly XP', `${wk.xp}<small> / ${wk.goal}</small>`, pct(goalPct / 100) + '% of goal')}
+      ${statTile('Answered', `${S.stats.answered}`, `${S.stats.answered ? Math.round(S.stats.correct / S.stats.answered * 100) : 0}% all-time`)}
+    </div>
+
+    ${diagCard ? `<div style="margin-top:16px">${diagCard}</div>` : ''}
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:16px; align-items:start">
+      <div class="card">
+        <div class="row spread"><h3 style="margin:0">Today’s quest</h3>${questComplete() ? '<span class="pill mint">Complete ✓</span>' : '<span class="pill">Protects your streak</span>'}</div>
+        <div class="stack" style="margin-top:12px">
+          ${quest.items.map((it) => `
+            <div class="quest-item ${it.done ? 'done' : ''}" ${it.route ? `onclick="navigate('${it.route}'${it.params ? `,${JSON.stringify(it.params).replace(/"/g, '&quot;')}` : ''})"` : ''} style="cursor:${it.route ? 'pointer' : 'default'}">
+              <span class="ck">${it.done ? '✓' : ''}</span>
+              <span style="flex:1">${esc(it.label)}</span>
+              ${it.route ? '<span class="muted">→</span>' : ''}
+            </div>`).join('') || '<div class="muted">No tasks yet — take the diagnostic to build your plan.</div>'}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row spread"><h3 style="margin:0">Weakest skills</h3><a onclick="navigate('progress')" style="cursor:pointer">All skills →</a></div>
+        <div class="stack" style="margin-top:12px">
+          ${weak.map((s) => {
+            const m = getMastery(s.id), t = masteryTier(m);
+            return `<div class="row spread" style="gap:10px">
+              <div style="flex:1"><div style="font-weight:600">${esc(s.name)}</div>
+                <div class="bar ${t.cls === 'm5' || t.cls === 'm4' ? 'mint' : ''}" style="margin-top:5px"><span style="width:${m}%"></span></div></div>
+              <div class="mono" style="width:34px;text-align:right">${Math.round(m)}</div>
+              <button class="btn sm primary" onclick="navigate('drills',{skill:'${s.id}'})">Drill</button>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="row spread"><h3 style="margin:0">Mastery heatmap</h3><a onclick="navigate('progress')" style="cursor:pointer">Open full grid →</a></div>
+      <div class="heat" id="homeHeat" style="margin-top:12px">${SKILLS.map((s) => masteryCell(s.id)).join('')}</div>
+    </div>
+    `;
+  },
+  mount(root) {
+    $$('#homeHeat .cell', root).forEach((c) => c.addEventListener('click', () => onHeatCellClick(c.dataset.skill)));
+    const rw = $('#briefRewrite', root);
+    if (rw) rw.onclick = async () => {
+      rw.disabled = true; rw.textContent = '…';
+      try {
+        const txt = await aiText(SABLE_SYSTEM(), `Rewrite this daily briefing in your own voice — calm, dry, a touch witty, 3-4 sentences, no preamble:\n\n"${templateBriefing()}"`, { max_tokens: 400, temperature: 0.8 });
+        if (txt) $('#briefText', root).textContent = txt;
+      } catch (e) { toast('Sable: ' + e.message, 'coral'); }
+      rw.disabled = false; rw.textContent = '✨';
+    };
+  },
+});
+
+function statTile(k, v, sub) {
+  return `<div class="card stat"><div class="k">${esc(k)}</div><div class="v">${v}</div>${sub ? `<div class="muted" style="font-size:.8rem">${esc(sub)}</div>` : ''}</div>`;
+}
+function onHeatCellClick(skillId) {
+  const m = getMastery(skillId);
+  const s = SKILL_BY_ID[skillId];
+  confirmModalChoice(s.name, `Mastery ${Math.round(m)} — ${masteryTier(m).label}. What would you like to do?`, [
+    { label: '📖 Lesson', fn: () => navigate('learn', { skill: skillId }) },
+    { label: '🎯 Drill', fn: () => navigate('drills', { skill: skillId }), primary: true },
+  ]);
+}
+// small choice modal
+function confirmModalChoice(title, body, choices) {
+  const host = document.getElementById('overlays');
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-overlay';
+  wrap.innerHTML = `<div class="modal"><h3>${esc(title)}</h3><div class="muted" style="margin-bottom:18px">${esc(body)}</div>
+    <div class="row" style="justify-content:flex-end;gap:10px">${choices.map((c, i) => `<button class="btn ${c.primary ? 'primary' : ''}" data-i="${i}">${esc(c.label)}</button>`).join('')}</div></div>`;
+  host.appendChild(wrap);
+  wrap.addEventListener('click', (e) => { if (e.target === wrap) wrap.remove(); });
+  choices.forEach((c, i) => wrap.querySelector(`[data-i="${i}"]`).onclick = () => { wrap.remove(); c.fn(); });
+}
+
+function startQuickDrill() {
+  const weak = weakestSkills(1)[0];
+  navigate('drills', { skill: weak.id });
+}
+
+/* =========================================================================
+   UI — Practice: Drills, Mistake Bank, Extreme arena, Progress/heatmap.
+   ========================================================================= */
+
+/* ---------- Drills ----------
+   startDrill() stashes a pending config and routes to the drills view; the
+   view's mount runs it. This avoids a race where navigate()'s async re-render
+   would clobber a synchronously-rendered session. */
+let PENDING_DRILL = null;
+registerView('drills', {
+  render(params) {
+    if (PENDING_DRILL || params.skill || params.section || params.domain || params.run) {
+      return `<div id="drillRun"></div>`;   // session runs in mount
+    }
+    const bySec = (sec) => domainsInSection(sec).map((d) => `
+      <div style="margin-top:10px"><div class="eyebrow">${esc(d.name)}</div>
+        <div class="row wrap" style="gap:6px;margin-top:6px">
+          ${skillsInDomain(d.id).map((s) => `<button class="btn sm ghost" onclick="navigate('drills',{skill:'${s.id}'})">${esc(s.name)} <span class="mono faint">${Math.round(getMastery(s.id))}</span></button>`).join('')}
+        </div></div>`).join('');
+    return `
+      ${pageHeader('Drills', 'Targeted practice sets. Answers feed your mastery scores and mistake bank.',
+        `<button class="btn primary" onclick="startDrill({mixed:true,limit:10})">🎲 Mixed set</button>
+         <button class="btn" onclick="startDrill({skill:weakestSkills(1)[0].id,limit:10})">🩹 Weakest skill</button>`)}
+      <div class="grid g-2">
+        <div class="card"><h3 style="margin-top:0">Math</h3>
+          <button class="btn block" onclick="startDrill({section:'math',limit:10})">All Math · mixed skills</button>
+          ${bySec('math')}</div>
+        <div class="card"><h3 style="margin-top:0">Reading &amp; Writing</h3>
+          <button class="btn block" onclick="startDrill({section:'rw',limit:10})">All R&amp;W · mixed skills</button>
+          ${bySec('rw')}</div>
+      </div>`;
+  },
+  mount(root, params) {
+    let opts = PENDING_DRILL; PENDING_DRILL = null;
+    if (!opts) {
+      if (params.skill) opts = { skill: params.skill, limit: 10 };
+      else if (params.section) opts = { section: params.section, limit: 10 };
+      else if (params.domain) opts = { domain: params.domain, limit: 10 };
+    }
+    if (opts) runDrill(opts, root);
+  },
+});
+
+// Central drill starter (also used by Sable tool-use). opts: {skill,section,domain,difficulty,limit,mixed,extreme}
+// Stashes config and routes to the drills view, which runs it in mount().
+function startDrill(opts = {}) {
+  PENDING_DRILL = opts;
+  navigate('drills', { run: 1 });
+}
+function runDrill(opts, root) {
+  const limit = opts.limit || 10;
+  const pool = pickQuestions({
+    skill: opts.skill, section: opts.section, domain: opts.domain,
+    difficulty: opts.difficulty ? Number(opts.difficulty) : undefined,
+    extreme: opts.extreme, limit, sortByDifficulty: !opts.mixed,
+  });
+  const host = (root && root.querySelector('#drillRun')) || document.getElementById('drillRun') || document.getElementById('view');
+  if (!pool.length) { host.innerHTML = `<div class="card">No questions match that filter yet. <button class="btn sm" onclick="navigate('drills')">Back</button></div>`; return; }
+  const label = opts.extreme ? 'Extreme' : opts.skill ? SKILL_BY_ID[opts.skill].name : opts.section ? SECTIONS[opts.section].name + ' mixed' : 'Mixed drill';
+  runQuestionSession({
+    container: host, questions: pool, mode: opts.extreme ? 'extreme' : 'drill', title: label,
+    restart: () => startDrill(opts),
+  });
+}
+
+/* ---------- Mistake Bank ---------- */
+registerView('mistakes', {
+  render() {
+    const due = dueMistakes(), all = allMistakes();
+    if (!all.length) return `${pageHeader('Mistake Bank', 'Every wrong answer lands here for spaced review.')}
+      <div class="card tac" style="padding:40px"><div style="font-size:2.4rem">🎉</div><h3>Empty — nothing to review.</h3>
+      <p class="muted">Miss a question in a drill or mock and it will appear here, re-served after 2 days, then 5.</p>
+      <button class="btn primary" onclick="navigate('drills')">Go drill</button></div>`;
+    return `
+      ${pageHeader('Mistake Bank', `${all.length} in the bank · ${due.length} due for review now`,
+        due.length ? `<button class="btn primary" onclick="startMistakeReview(true)">Review ${due.length} due →</button>` : '')}
+      <div class="row wrap" style="gap:10px;margin-bottom:14px">
+        <button class="btn" onclick="startMistakeReview(false)">Review all ${all.length}</button>
+        <span class="muted" style="align-self:center">A question leaves the bank after 2 correct retries in a row.</span>
+      </div>
+      <div class="stack">
+        ${all.map((m) => { const q = getQ(m.qid); const due = m.dueTs <= Date.now();
+          return `<div class="card" style="border-left:3px solid ${due ? 'var(--ace)' : 'var(--line)'}">
+            <div class="row spread"><div class="row" style="gap:8px">${skillPill(q.skill)}${diffDots(q.difficulty)}</div>
+              <span class="tag">${due ? 'due now' : 'due ' + fmtDate(m.dueTs)} · ${m.streak}/2 cleared</span></div>
+            <div style="margin-top:8px">${mathToHtml(q.stem)}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  },
+});
+function startMistakeReview(dueOnly) {
+  const qs = dueOnly ? dueMistakes() : allMistakes().map((m) => getQ(m.qid));
+  if (!qs.length) { toast('Nothing due right now.', 'sky'); return; }
+  const host = document.getElementById('view');
+  host.innerHTML = `<div id="mrun"></div>`;
+  runQuestionSession({
+    container: document.getElementById('mrun'), questions: shuffle(qs), mode: 'mistake',
+    title: 'Mistake review', meta: { fromMistake: true },
+    onDone: (sm) => { host.innerHTML = defaultSummary(sm, { title: 'Mistake review' }); typeset(host);
+      $$('[data-review]', host).forEach((b) => b.onclick = () => reviewSession(sm, {})); }
+  });
+}
+
+/* ---------- Extreme arena (full version in Phase 4; basic here) ---------- */
+registerView('extreme', {
+  render() {
+    const pool = pickQuestions({ extreme: true });
+    return `${pageHeader('Extreme Mode', 'Harder than a real hard Module 2 — for the 1500 → 1600 stretch.',
+      pool.length ? `<button class="btn gold" onclick="startDrill({extreme:true,limit:8})">Enter the arena →</button>` : '')}
+      <div class="card">
+        <div class="row spread"><div><h3 style="margin:0">${pool.length} Extreme questions</h3>
+          <div class="muted">Solved: ${S.counters.extremeSolved} · These pay the most XP.</div></div>
+          <div style="font-size:2.4rem">💀</div></div>
+      </div>`;
+  },
+  mount() { const p = pickQuestions({ extreme: true }); if (!p.length) $('#view').querySelector('.card').insertAdjacentHTML('beforeend', '<p class="muted" style="margin-top:10px">Extreme questions arrive in a later build phase.</p>'); },
+});
+
+/* ---------- Progress / mastery (full analytics in Phase 5) ---------- */
+registerView('progress', {
+  render() {
+    const secRow = ['rw', 'math'].map((sec) => {
+      const m = sectionMastery(sec), proj = projectedScore()[sec];
+      return `<div class="card"><div class="row spread"><h3 style="margin:0">${SECTIONS[sec].name}</h3><span class="pill">${proj} est.</span></div>
+        <div class="bar mint" style="margin:10px 0"><span style="width:${m}%"></span></div>
+        <div class="muted">Average mastery ${Math.round(m)} / 100</div></div>`;
+    }).join('');
+    const badges = BADGES.map((b) => `<div class="badge-chip ${S.badges[b.id] ? 'earned' : ''}" title="${esc(b.desc)}">
+      <span class="em">${b.em}</span><div><div style="font-weight:600;font-size:.85rem">${esc(b.name)}</div><div class="tag">${esc(b.desc)}</div></div></div>`).join('');
+    return `
+      ${pageHeader('Progress', 'Your mastery across all skills, plus achievements.',
+        `<button class="btn sm" onclick="navigate('mocks')">Take a mock</button>`)}
+      <div class="grid g-2">${secRow}</div>
+      <div class="card" style="margin-top:16px">
+        <div class="row spread"><h3 style="margin:0">Skill mastery heatmap</h3><span class="muted">Click any skill to drill or learn it</span></div>
+        <div class="heat" id="progHeat" style="margin-top:12px">${SKILLS.map((s) => masteryCell(s.id)).join('')}</div>
+        <div class="row wrap muted" style="gap:12px;margin-top:14px;font-size:.78rem">
+          ${[['m0', '0–19'], ['m1', '20–39'], ['m2', '40–59'], ['m3', '60–79'], ['m4', '80–89'], ['m5', '90–100 · Challenge Zone']].map(([c, l]) => `<span class="row" style="gap:6px"><span class="${c}" style="width:14px;height:14px;border-radius:4px;display:inline-block"></span>${l}</span>`).join('')}
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3 style="margin-top:0">Achievements</h3>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">${badges}</div></div>`;
+  },
+  mount(root) { $$('#progHeat .cell', root).forEach((c) => c.addEventListener('click', () => onHeatCellClick(c.dataset.skill))); },
+});
+
+/* =========================================================================
+   UI — Learn (courses/lessons) and Skill Path.  Full implementation in Phase 2.
+   ========================================================================= */
+function comingSoon(title, note) {
+  return `${pageHeader(title)}<div class="card tac" style="padding:44px">
+    <div style="font-size:2.2rem">🚧</div><h3>${esc(title)} is being built.</h3>
+    <p class="muted">${esc(note || 'Arriving in an upcoming build phase.')}</p></div>`;
+}
+registerView('learn', { render: () => comingSoon('Learn', 'Khan-style courses with lessons + checkpoints arrive in Phase 2.') });
+registerView('path',  { render: () => comingSoon('Skill Path', 'The winding Duolingo-style path arrives in Phase 2.') });
+
+/* =========================================================================
+   UI — Vocabulary (import, SRS, flashcards/Learn/Match/cloze, quiz).
+   Full implementation in Phase 3.
+   ========================================================================= */
+registerView('vocab', { render: () => comingSoon('Vocabulary', 'Quizlet-style vocab with SRS and games arrives in Phase 3.') });
+
+/* =========================================================================
+   UI — Diagnostic + full adaptive Mock Exams (Bluebook-style runner) + review.
+   Full implementation in Phase 4.
+   ========================================================================= */
+registerView('mocks',      { render: () => comingSoon('Mock Exams', 'Full-length adaptive mocks in a Bluebook-style UI arrive in Phase 4.') });
+registerView('diagnostic', { render: () => comingSoon('Diagnostic', 'The first-run diagnostic arrives in Phase 4.') });
+
+/* =========================================================================
+   UI — Strategy playbook (CookSAT-style). Full implementation in Phase 5.
+   ========================================================================= */
+registerView('strategies', { render: () => comingSoon('Strategies', 'The digital-SAT strategy playbook arrives in Phase 5.') });
+
+/* =========================================================================
+   UI — Analytics. The 'progress' view (mastery + badges) lives in the practice
+   module; deeper analytics (projected-score trend, pacing, plan progress) are
+   layered on in Phase 5. This file is reserved for those additions.
+   ========================================================================= */
+
+/* =========================================================================
+   UI — Settings (API key, test date, gameplay, data) + question Import screen.
+   ========================================================================= */
+
+registerView('settings', {
+  render() {
+    const st = S.settings;
+    const bank = bankStats();
+    return `
+    ${pageHeader('Settings', 'Everything is stored locally in this browser. Nothing is uploaded except your own AI requests.')}
+    <div class="grid g-2" style="align-items:start">
+
+      <div class="card">
+        <h3 style="margin-top:0">✨ AI &amp; ${esc(st.assistantName)}</h3>
+        <p class="muted" style="font-size:.9rem">Paste your Anthropic API key to unlock the AI tutor, freeform chat, and the assistant’s voice. The app works fully without one. The key is stored only in this browser’s localStorage.</p>
+        <label class="fld"><span>Anthropic API key</span>
+          <input type="password" id="setKey" placeholder="sk-ant-..." value="${esc(st.apiKey)}"></label>
+        <label class="fld"><span>Model</span>
+          <select id="setModel">
+            ${['claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5-20251001'].map((m) => `<option value="${m}" ${st.model === m ? 'selected' : ''}>${m}</option>`).join('')}
+          </select></label>
+        <label class="fld"><span>Assistant name</span><input type="text" id="setName" value="${esc(st.assistantName)}" maxlength="18"></label>
+        <div class="row" style="gap:8px"><button class="btn primary" id="saveAI">Save</button><button class="btn" id="testAI">Test connection</button></div>
+        <div id="aiStatus" class="tag" style="margin-top:8px"></div>
+        <p class="tag" style="margin-top:10px">Get a key at console.anthropic.com → API Keys. Usage is billed to your own account.</p>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <h3 style="margin-top:0">🗓️ Test prep</h3>
+          <label class="fld"><span>Test date (optional — switches Ace into countdown mode)</span>
+            <input type="date" id="setDate" value="${st.testDate || ''}"></label>
+          <label class="fld"><span>Weekly XP goal</span><input type="number" id="setGoal" min="100" step="50" value="${S.weekly.goal}"></label>
+          <button class="btn primary" id="savePrep">Save</button>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">🎮 Gameplay</h3>
+          ${toggleRow('setHearts', 'Hearts mode on the skill path', st.heartsMode)}
+          ${toggleRow('setVoice', 'Voice mode for Sable (speech in/out)', st.voice)}
+          ${toggleRow('setSound', 'Sound effects & toasts', st.sound)}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-top:0">🗃️ Data</h3>
+      <div class="muted" style="margin-bottom:12px">Question bank: <b>${bank.total}</b> (${bank.math} Math · ${bank.rw} R&amp;W · ${bank.extreme} Extreme). Vocab sets: <b>${Object.keys(S.vocab.sets).length}</b>.</div>
+      <div class="row wrap" style="gap:10px">
+        <button class="btn" onclick="navigate('import')">➕ Import questions</button>
+        <button class="btn" id="exportState">⬇️ Export progress (JSON)</button>
+        <button class="btn" id="importState">⬆️ Import progress</button>
+        <button class="btn ghost" id="resetState" style="border-color:var(--coral);color:var(--coral)">Reset everything</button>
+      </div>
+      <input type="file" id="fileState" accept="application/json" class="hidden">
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-top:0">About Ace</h3>
+      <p class="muted">A personal, offline-first Digital SAT trainer. One HTML file. Your assistant is ${esc(st.assistantName)}.
+      Data version ${STATE_VERSION}. Built for the long road to 1600.</p>
+    </div>`;
+  },
+  mount(root) {
+    const setStatus = (m, ok) => { const el = $('#aiStatus', root); el.textContent = m; el.style.color = ok ? 'var(--mint)' : 'var(--coral)'; };
+    $('#saveAI', root).onclick = () => {
+      S.settings.apiKey = $('#setKey', root).value.trim();
+      S.settings.model = $('#setModel', root).value;
+      S.settings.assistantName = ($('#setName', root).value.trim() || 'Sable').slice(0, 18);
+      save(true); toast('AI settings saved', 'mint'); router();
+    };
+    $('#testAI', root).onclick = async () => {
+      S.settings.apiKey = $('#setKey', root).value.trim(); S.settings.model = $('#setModel', root).value;
+      if (!aiConfigured()) return setStatus('Enter a key first.', false);
+      setStatus('Testing…', true);
+      try { const t = await aiText('You are a test.', 'Reply with the single word: online', { max_tokens: 12, temperature: 0 }); setStatus('✓ Connected — ' + (t || 'ok'), true); save(true); }
+      catch (e) { setStatus('✗ ' + e.message, false); }
+    };
+    $('#savePrep', root).onclick = () => {
+      const d = $('#setDate', root).value; S.settings.testDate = d || null;
+      S.weekly.goal = clamp(parseInt($('#setGoal', root).value) || 600, 100, 5000);
+      generatePlan(true); save(true); toast('Saved', 'mint'); router();
+    };
+    bindToggle(root, '#setHearts', (v) => { S.settings.heartsMode = v; save(true); });
+    bindToggle(root, '#setVoice', (v) => { S.settings.voice = v; save(true); if (v && typeof Sable !== 'undefined') Sable.initVoice(); });
+    bindToggle(root, '#setSound', (v) => { S.settings.sound = v; save(true); });
+
+    $('#exportState', root).onclick = () => {
+      const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `ace-progress-${dayKey()}.json`; a.click();
+    };
+    $('#importState', root).onclick = () => $('#fileState', root).click();
+    $('#fileState', root).onchange = (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => { try { const data = JSON.parse(r.result); confirmModal('Import progress?', 'This replaces all current progress on this device.', () => { S = migrate(data); save(true); buildBank(); toast('Progress imported', 'mint'); navigate('home'); }, 'Import', 'primary'); } catch (err) { toast('Invalid file', 'coral'); } };
+      r.readAsText(f);
+    };
+    $('#resetState', root).onclick = () => confirmModal('Reset everything?', 'This permanently erases all progress, mastery, mistakes, vocab, and settings on this device. This cannot be undone.', () => { resetAll(); buildBank(); toast('Reset complete', 'coral'); navigate('home'); }, 'Erase all', 'ghost');
+  },
+});
+
+function toggleRow(id, label, on) {
+  return `<label class="toggle" style="margin:8px 0"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="track"></span><span>${esc(label)}</span></label>`;
+}
+function bindToggle(root, sel, fn) { const el = $(sel, root); if (el) el.onchange = () => fn(el.checked); }
+
+/* ---------- Import questions ---------- */
+registerView('import', {
+  render() {
+    const sample = JSON.stringify([{ id: 'MY001', skill: 'alg_linear_eq', difficulty: 2, type: 'mcq', stem: 'If $2x=10$, what is $x$?', choices: ['3', '4', '5', '6'], answer: 'C', explanation: 'Divide by 2: $x=5$.' }], null, 2);
+    return `
+    ${pageHeader('Import questions', 'Paste a JSON array of questions in Ace’s schema. They merge into your bank and persist.',
+      `<button class="btn ghost" onclick="navigate('settings')">← Settings</button>`)}
+    <div class="grid g-2" style="align-items:start">
+      <div class="card">
+        <label class="fld"><span>Questions JSON</span><textarea id="impQ" rows="16" placeholder='Paste [ ... ] here'></textarea></label>
+        <div class="row" style="gap:8px"><button class="btn primary" id="impDo">Import</button><button class="btn" id="impSample">Load example</button></div>
+        <div id="impMsg" class="tag" style="margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Schema</h3>
+        <p class="muted" style="font-size:.88rem">Each object needs: <code>id</code>, <code>skill</code>, <code>difficulty</code> (1–3 or "extreme"), <code>type</code> ("mcq"/"spr"), <code>stem</code>, <code>answer</code>, <code>explanation</code>. MCQs also need <code>choices</code> (4 strings) with <code>answer</code> as a letter A–D. SPR <code>answer</code> is the numeric string. <code>section</code> and <code>domain</code> are derived from <code>skill</code> automatically.</p>
+        <p class="muted" style="font-size:.88rem">Valid skill ids:</p>
+        <div class="row wrap" style="gap:4px">${SKILLS.map((s) => `<span class="tag" title="${esc(s.name)}">${s.id}</span>`).join(' · ')}</div>
+        <p class="muted" style="font-size:.88rem;margin-top:10px">Use <code>$...$</code> for math (KaTeX).</p>
+      </div>
+    </div>`;
+  },
+  mount(root) {
+    $('#impSample', root).onclick = () => { $('#impQ', root).value = $('#impSample', root).dataset.s || JSON.stringify([{ id: 'MY001', skill: 'alg_linear_eq', difficulty: 2, type: 'mcq', stem: 'If $2x=10$, what is the value of $x$?', choices: ['3', '4', '5', '6'], answer: 'C', explanation: 'Divide both sides by 2: $x=5$.' }], null, 2); };
+    $('#impDo', root).onclick = () => {
+      const msg = $('#impMsg', root);
+      let arr; try { arr = JSON.parse($('#impQ', root).value); } catch (e) { msg.textContent = 'Invalid JSON: ' + e.message; msg.style.color = 'var(--coral)'; return; }
+      if (!Array.isArray(arr)) { msg.textContent = 'Expected a JSON array.'; msg.style.color = 'var(--coral)'; return; }
+      const res = importQuestions(arr);
+      msg.style.color = res.added ? 'var(--mint)' : 'var(--coral)';
+      msg.textContent = `${res.added} imported${res.skipped ? `, ${res.skipped} skipped (${res.reasons.join('; ')})` : ''}.`;
+      if (res.added) toast(`${res.added} questions imported`, 'mint');
+    };
+  },
+});
+
+function importQuestions(arr) {
+  let added = 0, skipped = 0; const reasons = new Set();
+  for (const q of arr) {
+    if (!q || !q.id || !q.skill || !q.stem || q.answer == null) { skipped++; reasons.add('missing fields'); continue; }
+    if (!SKILL_BY_ID[q.skill]) { skipped++; reasons.add('bad skill id'); continue; }
+    if (BANK_BY_ID[q.id] || S.ai.questions.some((x) => x.id === q.id)) { skipped++; reasons.add('duplicate id'); continue; }
+    if (q.type === 'mcq' && (!Array.isArray(q.choices) || q.choices.length < 2)) { skipped++; reasons.add('bad choices'); continue; }
+    S.ai.questions.push(Object.assign({}, q, { imported: true }));
+    added++;
+  }
+  if (added) { save(true); buildBank(); }
+  return { added, skipped, reasons: Array.from(reasons) };
+}
+
+/* =========================================================================
+   UI — Sable, the command assistant. Floating orb + Cmd/Ctrl+K command bar,
+   a chat panel, rule-based answers with no API key, and full tool-use chat
+   with a key. Voice mode via the browser's Web Speech APIs.
+   Personality: calm, dry, hyper-competent — an AI butler for your prep.
+   ========================================================================= */
+
+/* Live state handed to Sable on every request so it actually knows your prep. */
+function sableContext() {
+  const proj = projectedScore();
+  const weak = weakestSkills(4).map((s) => ({ skill: s.name, id: s.id, mastery: Math.round(getMastery(s.id)) }));
+  const li = levelInfo();
+  return {
+    projected: proj, target: 1600,
+    daysUntilTest: daysUntilTest(),
+    streak: S.streak.count, level: li.level, title: li.title, xp: S.xp,
+    weeklyXP: S.weekly.xp, weeklyGoal: S.weekly.goal,
+    sectionMastery: { rw: Math.round(sectionMastery('rw')), math: Math.round(sectionMastery('math')) },
+    weakestSkills: weak,
+    mistakesDue: dueMistakes().length, mistakesTotal: allMistakes().length,
+    answeredAllTime: S.stats.answered, accuracyAllTime: S.stats.answered ? Math.round(S.stats.correct / S.stats.answered * 100) : 0,
+    today: { answered: S.today?.answered || 0, correct: S.today?.correct || 0 },
+    questComplete: questComplete(),
+    diagnosticDone: S.diagnostic.done, mocksDone: S.counters.mocksDone,
+    vocabSets: Object.keys(S.vocab.sets).length,
+  };
+}
+function SABLE_SYSTEM() {
+  const name = S.settings.assistantName;
+  return `You are ${name}, the command assistant inside "Ace", a personal Digital SAT trainer used by one student aiming for a perfect 1600.
+Persona: calm, dry, hyper-competent, quietly witty — an AI butler. Concise. Never sycophantic. You address the student directly.
+You have their LIVE state as JSON below. Use real numbers from it; never invent stats. Scores are ESTIMATES — say so when it matters.
+When the student asks you to DO something (start a drill, mock, vocab session, open a lesson, add a plan task), CALL THE MATCHING TOOL rather than only describing it. Prefer action.
+Keep replies to a few sentences unless asked for depth. Use plain text (this renders in a small panel).
+
+LIVE STATE:
+${JSON.stringify(sableContext(), null, 0)}`;
+}
+
+/* Client-side tools Sable can call. */
+const SABLE_TOOLS = [
+  { name: 'startDrill', description: 'Start a practice drill. Optionally target a skill id, a section (math|rw), and/or difficulty (1-3).',
+    input_schema: { type: 'object', properties: { skill: { type: 'string' }, section: { type: 'string', enum: ['math', 'rw'] }, difficulty: { type: 'integer' }, count: { type: 'integer' } } } },
+  { name: 'startVocabSession', description: 'Open the vocabulary study session (daily SRS queue).', input_schema: { type: 'object', properties: {} } },
+  { name: 'startMock', description: 'Start a full-length adaptive mock exam.', input_schema: { type: 'object', properties: {} } },
+  { name: 'openLesson', description: 'Open the Learn lesson for a given skill id.', input_schema: { type: 'object', properties: { skill: { type: 'string' } }, required: ['skill'] } },
+  { name: 'getStats', description: 'Get detailed current stats for a scope: overall|math|rw|mastery|plan.', input_schema: { type: 'object', properties: { scope: { type: 'string' } } } },
+  { name: 'addToPlan', description: 'Add a custom task to the study plan / daily quest.', input_schema: { type: 'object', properties: { task: { type: 'string' } }, required: ['task'] } },
+];
+function runSableTool(name, input) {
+  switch (name) {
+    case 'startDrill': { const opts = { limit: input.count || 10 }; if (input.skill && SKILL_BY_ID[input.skill]) opts.skill = input.skill; if (input.section) opts.section = input.section; if (input.difficulty) opts.difficulty = input.difficulty; Sable.closePanel(); startDrill(opts); return { ok: true, started: opts }; }
+    case 'startVocabSession': { Sable.closePanel(); navigate('vocab'); return { ok: true }; }
+    case 'startMock': { Sable.closePanel(); navigate('mocks'); if (typeof startMock === 'function') setTimeout(startMock, 30); return { ok: true }; }
+    case 'openLesson': { if (!SKILL_BY_ID[input.skill]) return { ok: false, error: 'unknown skill' }; Sable.closePanel(); navigate('learn', { skill: input.skill }); return { ok: true }; }
+    case 'getStats': return { ok: true, stats: sableContext() };
+    case 'addToPlan': { generatePlan(); S.plan.tasks.push({ id: uid('t'), type: 'custom', label: input.task, done: false }); const q = getDailyQuest(); if (q.items.length < 5) q.items.push({ id: uid('t'), type: 'custom', label: input.task, done: false }); save(); return { ok: true }; }
+    default: return { ok: false, error: 'unknown tool' };
+  }
+}
+
+/* ---------- The Sable object (panel, command bar, chat, voice) ---------- */
+const Sable = (() => {
+  let panel = null, history = [], voiceReady = false, recog = null, listening = false, chosenVoice = null;
+
+  function ensurePanel() {
+    if (panel) return panel;
+    panel = document.createElement('div');
+    panel.className = 'sable-panel';
+    panel.innerHTML = `
+      <div class="sable-head">
+        <div class="av"></div>
+        <div style="flex:1"><div style="font-weight:700">${esc(S.settings.assistantName)}</div><div class="tag" id="sableSub">at your service</div></div>
+        ${'speechSynthesis' in window ? `<button class="btn sm ghost" id="sableVoiceBtn" title="Toggle voice">${S.settings.voice ? '🔊' : '🔇'}</button>` : ''}
+        <button class="btn sm ghost" id="sableClose">✕</button>
+      </div>
+      <div class="sable-msgs" id="sableMsgs"></div>
+      <div class="sable-foot">
+        <div class="row wrap" id="sableChips" style="gap:6px;margin-bottom:8px"></div>
+        <div class="row">
+          <input type="text" id="sableIn" placeholder="${aiConfigured() ? 'Ask ' + esc(S.settings.assistantName) + '…' : 'Ask about your stats…'}" autocomplete="off">
+          ${('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) ? `<button class="btn" id="sableMic" title="Speak">🎤</button>` : ''}
+          <button class="btn primary" id="sableSend">➤</button>
+        </div>
+      </div>`;
+    document.body.appendChild(panel);
+    $('#sableClose', panel).onclick = closePanel;
+    $('#sableSend', panel).onclick = () => submit();
+    $('#sableIn', panel).addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+    const vb = $('#sableVoiceBtn', panel); if (vb) vb.onclick = toggleVoiceMode;
+    const mic = $('#sableMic', panel); if (mic) mic.onclick = toggleListen;
+    renderChips();
+    if (!history.length) greet();
+    return panel;
+  }
+
+  function greet() {
+    pushMsg('sable', templateBriefing());
+  }
+  function renderChips() {
+    const chips = [
+      ['What should I work on?', 'work'],
+      ['Am I on pace for 1600?', 'pace'],
+      ['How am I trending in math?', 'math'],
+      ['Review my mistakes', 'mistakes'],
+    ];
+    const host = $('#sableChips', panel);
+    host.innerHTML = chips.map(([t, k]) => `<button class="btn sm ghost" data-chip="${k}">${esc(t)}</button>`).join('');
+    $$('[data-chip]', host).forEach((b) => b.onclick = () => { $('#sableIn', panel).value = b.textContent; submit(); });
+  }
+
+  function pushMsg(who, text) {
+    history.push({ who, text });
+    const box = $('#sableMsgs', panel);
+    const el = document.createElement('div');
+    el.className = 'bub ' + (who === 'me' ? 'me' : who === 'tool' ? 'tool' : 'sable');
+    el.innerHTML = (who === 'sable' ? `<div class="who">${esc(S.settings.assistantName)}</div>` : '') + mathToHtml(text);
+    box.appendChild(el); typeset(el); box.scrollTop = box.scrollHeight;
+    if (who === 'sable' && S.settings.voice) speak(text);
+    return el;
+  }
+  function setSub(t) { const s = $('#sableSub', panel); if (s) s.textContent = t; }
+
+  async function submit() {
+    const inp = $('#sableIn', panel); const text = inp.value.trim(); if (!text) return;
+    inp.value = ''; pushMsg('me', text);
+    // Try a rule-based answer first (works with no key); if AI available, prefer it for freeform.
+    if (!aiConfigured()) { pushMsg('sable', ruleBasedAnswer(text)); return; }
+    setSub('thinking…'); orbBusy(true);
+    try { await chatWithTools(text); } catch (e) { pushMsg('sable', 'I hit a snag: ' + e.message); }
+    setSub('at your service'); orbBusy(false);
+  }
+
+  // Full tool-use loop against the Messages API.
+  async function chatWithTools(userText) {
+    const messages = history.filter((m) => m.who === 'me' || m.who === 'sable')
+      .slice(-8).map((m) => ({ role: m.who === 'me' ? 'user' : 'assistant', content: m.text }));
+    // ensure the latest user turn is present
+    if (!messages.length || messages[messages.length - 1].role !== 'user') messages.push({ role: 'user', content: userText });
+    let guard = 0;
+    while (guard++ < 5) {
+      const data = await aiCall({ system: SABLE_SYSTEM(), messages, tools: SABLE_TOOLS, max_tokens: 900, temperature: 0.6 });
+      const blocks = data.content || [];
+      const text = blocks.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
+      const toolUses = blocks.filter((b) => b.type === 'tool_use');
+      if (text) pushMsg('sable', text);
+      if (!toolUses.length || data.stop_reason !== 'tool_use') return;
+      messages.push({ role: 'assistant', content: blocks });
+      const results = [];
+      for (const tu of toolUses) {
+        const out = runSableTool(tu.name, tu.input || {});
+        pushMsg('tool', `↳ ${tu.name}(${JSON.stringify(tu.input || {})})`);
+        results.push({ type: 'tool_result', tool_use_id: tu.id, content: JSON.stringify(out) });
+      }
+      messages.push({ role: 'user', content: results });
+    }
+  }
+
+  // Rule-based answers (no API key) — canned but data-driven.
+  function ruleBasedAnswer(q) {
+    const t = q.toLowerCase();
+    const ctx = sableContext();
+    if (/pace|1600|on track|track|ready/.test(t)) {
+      const gap = 1600 - ctx.projected.total;
+      const dd = ctx.daysUntilTest;
+      return `Projected total is about ${ctx.projected.total} — roughly ${gap} shy of 1600 (an estimate). ` +
+        (dd != null ? `${dd} days remain. ` : 'No test date set. ') +
+        `Close the gap where it's cheapest: ${ctx.weakestSkills.slice(0, 2).map((w) => w.skill).join(' and ')}.`;
+    }
+    if (/math/.test(t)) return `Math mastery averages ${ctx.sectionMastery.math}/100, projecting about ${ctx.projected.math}. Weakest math skill on file: ${weakestSkills(1, 'math')[0]?.name || '—'}. Shall I run a drill? Type: drill math.`;
+    if (/reading|writing|\brw\b|verbal|english/.test(t)) return `Reading & Writing mastery averages ${ctx.sectionMastery.rw}/100, projecting about ${ctx.projected.rw}. Weakest: ${weakestSkills(1, 'rw')[0]?.name || '—'}.`;
+    if (/work on|study|focus|today|next|should/.test(t)) return `Today I'd focus on ${ctx.weakestSkills.slice(0, 2).map((w) => `${w.skill} (${w.mastery})`).join(' and ')}. ${ctx.mistakesDue ? `You also have ${ctx.mistakesDue} mistakes due. ` : ''}Say "drill" and I'll start one.`;
+    if (/mistake/.test(t)) { closePanel(); navigate('mistakes'); return `Opening your mistake bank — ${ctx.mistakesDue} due now.`; }
+    if (/drill/.test(t)) { const sec = /math/.test(t) ? 'math' : /read|writ|rw/.test(t) ? 'rw' : null; closePanel(); startDrill(sec ? { section: sec, limit: 10 } : { skill: weakestSkills(1)[0].id, limit: 10 }); return 'Starting a drill.'; }
+    if (/streak/.test(t)) return `Your streak is ${ctx.streak} days. ${ctx.questComplete ? 'Today is already secured.' : 'Finish today\'s quest to extend it.'}`;
+    if (/vocab|word/.test(t)) { closePanel(); navigate('vocab'); return 'Opening vocabulary.'; }
+    if (/mock|exam|test/.test(t)) { closePanel(); navigate('mocks'); return 'Heading to mock exams.'; }
+    if (/level|xp/.test(t)) return `You're level ${ctx.level} — ${ctx.title} — with ${ctx.xp} XP. Weekly: ${ctx.weeklyXP}/${ctx.weeklyGoal}.`;
+    if (/hello|hi|hey|help/.test(t)) return `At your service. Ask about your pace, what to work on, or say "drill math". For freeform conversation, add an API key in Settings.`;
+    return `Without an API key I answer from your stats only. Try: "what should I work on", "am I on pace for 1600", "drill math", or "review my mistakes". Add a key in Settings for full conversation.`;
+  }
+
+  /* ---------- voice ---------- */
+  function pickVoice() {
+    if (!('speechSynthesis' in window)) return null;
+    const vs = speechSynthesis.getVoices();
+    const prefer = ['Daniel', 'Google UK English Male', 'Arthur', 'Oliver', 'Microsoft Ryan', 'en-GB'];
+    for (const p of prefer) { const v = vs.find((x) => x.name.includes(p) || x.lang === p); if (v) return v; }
+    return vs.find((x) => /en/i.test(x.lang)) || vs[0] || null;
+  }
+  function speak(text) {
+    if (!('speechSynthesis' in window) || !S.settings.voice) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/[*_#`$]/g, '')); chosenVoice = chosenVoice || pickVoice(); if (chosenVoice) u.voice = chosenVoice; u.rate = 1.0; u.pitch = 0.9; speechSynthesis.speak(u); } catch (e) { }
+  }
+  function initVoice() {
+    if ('speechSynthesis' in window) { chosenVoice = pickVoice(); if (!chosenVoice) speechSynthesis.onvoiceschanged = () => { chosenVoice = pickVoice(); }; }
+  }
+  function toggleVoiceMode() { S.settings.voice = !S.settings.voice; save(true); const b = $('#sableVoiceBtn', panel); if (b) b.textContent = S.settings.voice ? '🔊' : '🔇'; if (S.settings.voice) { initVoice(); speak('Voice enabled.'); } else speechSynthesis.cancel(); }
+  function toggleListen() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return toast('Speech input not available in this browser.', 'coral');
+    if (listening) { recog && recog.stop(); return; }
+    try {
+      recog = new SR(); recog.lang = 'en-US'; recog.interimResults = false; recog.maxAlternatives = 1;
+      listening = true; const mic = $('#sableMic', panel); if (mic) mic.textContent = '⏹️';
+      recog.onresult = (e) => { const txt = e.results[0][0].transcript; $('#sableIn', panel).value = txt; };
+      recog.onend = () => { listening = false; const m = $('#sableMic', panel); if (m) m.textContent = '🎤'; if ($('#sableIn', panel).value.trim()) submit(); };
+      recog.onerror = () => { listening = false; const m = $('#sableMic', panel); if (m) m.textContent = '🎤'; toast('Mic error — if on file://, use typed input.', 'coral'); };
+      recog.start();
+    } catch (e) { toast('Speech input blocked (common on file://). Type instead.', 'coral'); listening = false; }
+  }
+
+  function orbBusy(on) { const o = document.getElementById('sableOrb'); if (o) o.classList.toggle('busy', on); }
+  function openPanel() { ensurePanel(); panel.classList.add('open'); setTimeout(() => $('#sableIn', panel)?.focus(), 60); }
+  function closePanel() { if (panel) panel.classList.remove('open'); }
+  function togglePanel() { ensurePanel(); panel.classList.contains('open') ? closePanel() : openPanel(); }
+  function ask(text) { openPanel(); $('#sableIn', panel).value = text; submit(); }
+
+  return { togglePanel, openPanel, closePanel, ask, initVoice, speak, ensurePanel, _rule: ruleBasedAnswer };
+})();
+
+/* ---------- Command bar (Cmd/Ctrl+K) ---------- */
+const CommandBar = (() => {
+  let overlay = null, actions = [], hi = 0, filtered = [];
+  function baseActions() {
+    const nav = NAV.map((n) => ({ icon: n.icon, t: n.label, d: 'Go to ' + n.label, run: () => navigate(n.route) }));
+    const acts = [
+      { icon: '🎯', t: 'Drill weakest skill', d: 'Targeted practice', run: () => startDrill({ skill: weakestSkills(1)[0].id, limit: 10 }) },
+      { icon: '🎲', t: 'Mixed drill', d: '10 mixed questions', run: () => startDrill({ mixed: true, limit: 10 }) },
+      { icon: '🧮', t: 'Drill Math', d: 'All math skills', run: () => startDrill({ section: 'math', limit: 10 }) },
+      { icon: '✍️', t: 'Drill Reading & Writing', d: 'All RW skills', run: () => startDrill({ section: 'rw', limit: 10 }) },
+      { icon: '💀', t: 'Extreme mode', d: 'Hardest questions', run: () => navigate('extreme') },
+      { icon: '📝', t: 'Start a mock exam', d: 'Full adaptive test', run: () => navigate('mocks') },
+      { icon: '🧭', t: 'Take the diagnostic', d: 'Seed your plan', run: () => navigate('diagnostic') },
+      { icon: '🩹', t: 'Review mistakes', d: 'Spaced retry queue', run: () => navigate('mistakes') },
+      { icon: '💬', t: 'Ask ' + S.settings.assistantName, d: 'Open the assistant', run: () => Sable.openPanel() },
+    ];
+    return acts.concat(nav);
+  }
+  function open() {
+    close();
+    actions = baseActions();
+    overlay = document.createElement('div');
+    overlay.className = 'cmd-overlay';
+    overlay.innerHTML = `<div class="cmd"><div class="cmd-in"><span class="dot"></span><input id="cmdIn" placeholder="Type a command or ask ${esc(S.settings.assistantName)}…" autocomplete="off"></div>
+      <div class="cmd-body" id="cmdBody"></div>
+      <div class="cmd-hint"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> run</span><span><kbd>esc</kbd> close</span>${aiConfigured() ? '<span>type a question, then ↵ to ask</span>' : ''}</div></div>`;
+    document.body.appendChild(overlay);
+    const inp = $('#cmdIn', overlay);
+    inp.addEventListener('input', () => refresh(inp.value));
+    inp.addEventListener('keydown', onKey);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    refresh('');
+    setTimeout(() => inp.focus(), 30);
+  }
+  function refresh(q) {
+    hi = 0;
+    const query = q.trim().toLowerCase();
+    filtered = !query ? actions : actions.filter((a) => (a.t + ' ' + a.d).toLowerCase().includes(query));
+    const body = $('#cmdBody', overlay);
+    let html = filtered.slice(0, 8).map((a, i) => `<div class="cmd-act ${i === hi ? 'hi' : ''}" data-i="${i}"><span class="ico">${a.icon}</span><div><div class="t">${esc(a.t)}</div><div class="d">${esc(a.d)}</div></div></div>`).join('');
+    if (query && aiConfigured()) html = `<div class="cmd-act ask ${filtered.length === 0 ? 'hi' : ''}" data-ask="1"><span class="ico">💬</span><div><div class="t">Ask ${esc(S.settings.assistantName)}: “${esc(q)}”</div><div class="d">Freeform — Sable can act on it</div></div></div>` + html;
+    body.innerHTML = html || `<div class="muted" style="padding:14px">No matches. ${aiConfigured() ? '' : 'Add an API key to ask freeform questions.'}</div>`;
+    $$('.cmd-act', body).forEach((el) => el.onclick = () => { if (el.dataset.ask) { const v = $('#cmdIn', overlay).value; close(); Sable.ask(v); } else run(parseInt(el.dataset.i)); });
+  }
+  function onKey(e) {
+    const items = $$('.cmd-act', overlay);
+    if (e.key === 'Escape') { close(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(items.length - 1, hi + 1); paint(items); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(0, hi - 1); paint(items); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const el = items[hi];
+      if (el && el.dataset.ask) { const v = $('#cmdIn', overlay).value; close(); Sable.ask(v); }
+      else { const askOffset = ($('#cmdIn', overlay).value.trim() && aiConfigured()) ? 1 : 0; run(hi - askOffset); }
+    }
+  }
+  function paint(items) { items.forEach((el, i) => el.classList.toggle('hi', i === hi)); }
+  function run(i) { const a = filtered[i]; close(); if (a) a.run(); }
+  function close() { if (overlay) { overlay.remove(); overlay = null; } }
+  function toggle() { overlay ? close() : open(); }
+  return { open, close, toggle };
+})();
+
+/* AI facade used by the question player's tutor buttons (Phase 5 expands). */
+const AI = {
+  enabled: () => aiConfigured(),
+  async tutorAction(kind, q) {
+    const out = document.getElementById('tutorOut'); if (!out) return;
+    out.innerHTML = `<div class="tag" style="margin-top:8px">${esc(S.settings.assistantName)} is thinking…</div>`;
+    try {
+      if (kind === 'explain') {
+        const t = await aiText(SABLE_SYSTEM(), `Explain this SAT question in a different, simpler way than the official explanation. Be concrete and brief.\n\nQuestion: ${q.stem}\n${q.choices ? 'Choices: ' + q.choices.map((c, i) => LETTERS[i] + ') ' + c).join('  ') : ''}\nCorrect answer: ${[].concat(q.answer)[0]}\nOfficial explanation: ${q.explanation}`, { max_tokens: 500 });
+        out.innerHTML = `<div class="explain" style="margin-top:10px"><div class="who" style="color:var(--ace);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em">${esc(S.settings.assistantName)} · another angle</div>${mathToHtml(t)}</div>`; typeset(out);
+      } else if (kind === 'similar') {
+        out.innerHTML = `<div class="tag" style="margin-top:8px">Generating 3 similar questions…</div>`;
+        const n = await AI.generateSimilar(q, 3);
+        out.innerHTML = `<div class="explain" style="margin-top:10px">Added <b>${n}</b> AI-generated question${n === 1 ? '' : 's'} on ${esc(SKILL_BY_ID[q.skill].name)} to your drills. <button class="btn sm" onclick="navigate('drills',{skill:'${q.skill}'})">Drill them →</button></div>`;
+      } else if (kind === 'chat') {
+        Sable.ask(`Coach me through this question without giving the answer away immediately: "${q.stem}". I answered ${q.type === 'spr' ? 'wrong' : ''}. The correct answer is ${[].concat(q.answer)[0]}.`);
+      }
+    } catch (e) { out.innerHTML = `<div class="tag" style="color:var(--coral);margin-top:8px">${esc(e.message)}</div>`; }
+  },
+  async generateSimilar(q, count = 3) {
+    const schema = `Return ONLY a JSON array of ${count} objects, no prose. Each: {"skill":"${q.skill}","difficulty":${q.difficulty === 'extreme' ? '"extreme"' : q.difficulty},"type":"${q.type}","stem":"...","choices":["a","b","c","d"](omit for spr),"answer":"${q.type === 'mcq' ? 'A-D letter' : 'numeric string'}","explanation":"full worked solution + why wrong choices are wrong"}. Use $...$ for math.`;
+    const t = await aiText('You are an expert Digital SAT item writer. Output valid JSON only.', `Write ${count} NEW questions similar to this one (same skill and difficulty), original stems:\n\n${q.stem}\n\n${schema}`, { max_tokens: 1600, temperature: 0.9 });
+    let arr; try { arr = JSON.parse(t.replace(/^```json?/i, '').replace(/```$/, '').trim()); } catch (e) { throw new Error('Could not parse generated questions.'); }
+    let added = 0;
+    for (const item of arr) {
+      const id = 'AI_' + uid('q');
+      if (!item.stem || item.answer == null) continue;
+      S.ai.questions.push(Object.assign({ id, skill: q.skill, difficulty: q.difficulty, type: q.type }, item, { id, aiGenerated: true }));
+      added++;
+    }
+    if (added) { save(true); buildBank(); }
+    return added;
+  },
+};
+
+/* =========================================================================
+   BOOT — wire everything together and start the app.
+   ========================================================================= */
+
+// Expose const-defined singletons so inline onclick="Sable.x()" handlers (which
+// run in global scope) can reach them. Top-level function declarations are
+// already global; const objects are not, so publish them explicitly.
+window.Sable = Sable;
+window.CommandBar = CommandBar;
+window.AI = AI;
+
+function boot() {
+  loadState();
+  ensureToday();
+  buildBank();
+  rolloverWeekIfNeeded();
+  generatePlan();          // ensure a plan/quest exists
+  save();
+
+  if (S.settings.voice) Sable.initVoice();
+
+  // Global keyboard shortcuts.
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); CommandBar.toggle(); }
+    else if (e.key === 'Escape') { CommandBar.close(); }
+  });
+
+  window.addEventListener('hashchange', router);
+  if (!location.hash) location.hash = '#/home';
+  router();
+
+  // Re-typeset math once the deferred KaTeX script is ready.
+  if (!katexReady()) {
+    let tries = 0;
+    const iv = setInterval(() => { if (katexReady() || tries++ > 40) { clearInterval(iv); typeset(document); } }, 150);
+  }
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+</script>
+</body>
+</html>
