@@ -1,3 +1,28 @@
-.app.bundle.js
+# dependencies
 node_modules/
-*.png
+
+# build output
+dist/
+dist-ssr/
+
+# local env
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

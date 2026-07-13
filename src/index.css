@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    /* keep it phone-shaped and centered on larger screens */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+
+  /* Comfortable tap targets on mobile */
+  button,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+
+  /* Hide scrollbars on horizontal chip rows but keep scrollability */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* The phone frame the whole app lives inside */
+  .app-frame {
+    @apply mx-auto w-full max-w-[440px] min-h-full bg-paper relative flex flex-col;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl font-bold
+      transition-all duration-150 select-none disabled:opacity-50
+      disabled:cursor-not-allowed active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-coral text-white shadow-soft hover:brightness-[1.02]
+      active:bg-coral-pressed;
+  }
+  .btn-ghost {
+    @apply btn bg-surface text-ink border border-hairline hover:bg-paper;
+  }
+  .btn-soft {
+    @apply btn bg-plum/10 text-plum hover:bg-plum/15;
+  }
+
+  .card {
+    @apply bg-surface rounded-3xl border border-hairline shadow-card;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-hairline
+      bg-surface px-3.5 py-2 text-sm font-semibold text-ink transition-colors
+      whitespace-nowrap;
+  }
+  .chip-active {
+    @apply border-coral bg-coral text-white;
+  }
+
+  .input {
+    @apply w-full rounded-2xl border border-hairline bg-surface px-4 py-3.5
+      text-ink placeholder:text-muted outline-none transition-shadow
+      focus:border-coral focus:ring-4 focus:ring-coral/15;
+  }
+
+  .label {
+    @apply block text-sm font-bold text-plum mb-2;
+  }
+}
+
+/* Respect reduced motion everywhere */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
