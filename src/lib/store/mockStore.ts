@@ -417,6 +417,17 @@ export class MockStore implements Store {
     return nudge
   }
 
+  async cheerMessage(messageId: ID): Promise<void> {
+    const uid = this.requireUser()
+    if (this.db.cheers.some((c) => c.message_id === messageId && c.user_id === uid)) return
+    this.patch({
+      cheers: [
+        ...this.db.cheers,
+        { id: newId('ch'), user_id: uid, message_id: messageId, created_at: nowISO() },
+      ],
+    })
+  }
+
   // --- maintenance ---------------------------------------------------------
 
   async runMissHandling(): Promise<number> {

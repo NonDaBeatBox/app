@@ -26,6 +26,7 @@ const EMPTY: DB = {
   checkins: [],
   messages: [],
   nudges: [],
+  cheers: [],
   currentUserId: null,
 }
 
@@ -105,6 +106,9 @@ export class SupabaseStore implements Store {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'nudges' }, () =>
         this.scheduleReload(),
       )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cheers' }, () =>
+        this.scheduleReload(),
+      )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'memberships' }, () =>
         this.scheduleReload(),
       )
@@ -134,6 +138,7 @@ export class SupabaseStore implements Store {
       'checkins',
       'messages',
       'nudges',
+      'cheers',
     ] as const
     const results = await Promise.all(
       tables.map((t) => this.sb.from(t).select('*')),
@@ -152,6 +157,7 @@ export class SupabaseStore implements Store {
       checkins: byName.checkins as DB['checkins'],
       messages: byName.messages as DB['messages'],
       nudges: byName.nudges as DB['nudges'],
+      cheers: byName.cheers as DB['cheers'],
       currentUserId: uid,
     })
   }
@@ -379,6 +385,15 @@ export class SupabaseStore implements Store {
       ref_goal_id: input.goalId,
     })
     return data as Nudge
+  }
+
+  async cheerMessage(messageId: ID): Promise<void> {
+    const uid = this.requireUser()
+    if (this.db.cheers.some((c) => c.message_id === messageId && c.user_id === uid)) return
+    await this.sb
+      .from('cheers')
+      .upsert({ user_id: uid, message_id: messageId }, { onConflict: 'user_id,message_id' })
+    await this.reload()
   }
 
   // --- maintenance ---

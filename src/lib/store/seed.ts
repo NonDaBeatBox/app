@@ -4,7 +4,7 @@
 // are generated relative to the real `today` so the last-7-days windows,
 // streaks and pulse always look live.
 // ---------------------------------------------------------------------------
-import type { DB, User, Membership, Goal, Contract, Checkin, Message } from '../../types'
+import type { DB, User, Membership, Goal, Contract, Checkin, Message, Cheer } from '../../types'
 import { lastNDays, isScheduledDay, addDays, isWeekday } from '../dates'
 import { newId } from './ids'
 
@@ -30,8 +30,10 @@ interface SeedMember {
   }
   /** did they already check in today? */
   todayDone: boolean
-  /** statuses for past scheduled days, most-recent-first: 'done' | 'missed' | 'gap' */
-  past: Array<'done' | 'missed' | 'gap'>
+  /** positions (1 = most recent past scheduled day) that are misses */
+  misses: number[]
+  /** positions left unresolved so the miss-handling job has work to do */
+  gaps: number[]
 }
 
 // Backing forms a ring: maya → theo → jordan → sam → priya → maya
@@ -53,7 +55,8 @@ const MEMBERS: SeedMember[] = [
       consequence: 'streak_break',
     },
     todayDone: false,
-    past: ['done', 'done', 'done', 'done', 'missed', 'done'],
+    misses: [5],
+    gaps: [],
   },
   {
     id: 'u_theo',
@@ -72,7 +75,8 @@ const MEMBERS: SeedMember[] = [
       consequence: 'meter_hit',
     },
     todayDone: false,
-    past: ['missed', 'done', 'done', 'done', 'done'],
+    misses: [1],
+    gaps: [],
   },
   {
     id: 'u_jordan',
@@ -92,7 +96,8 @@ const MEMBERS: SeedMember[] = [
       forfeit_text: 'cook dinner for the house 🍝',
     },
     todayDone: true,
-    past: ['done', 'missed', 'done', 'missed', 'done'],
+    misses: [2, 4],
+    gaps: [],
   },
   {
     id: 'u_sam',
@@ -111,7 +116,8 @@ const MEMBERS: SeedMember[] = [
       consequence: 'streak_break',
     },
     todayDone: true,
-    past: ['done', 'done', 'done', 'done', 'done', 'missed'],
+    misses: [6],
+    gaps: [],
   },
   {
     id: 'u_priya',
@@ -130,9 +136,10 @@ const MEMBERS: SeedMember[] = [
       consequence: 'streak_break',
     },
     todayDone: true,
-    // 'gap' two days back is left unresolved so the startup miss-handling
+    misses: [],
+    // position 2 (two days back) left unresolved so the startup miss-handling
     // job has real work to do (marks it missed + posts a system card).
-    past: ['done', 'gap', 'done', 'done', 'done', 'done'],
+    gaps: [2],
   },
 ]
 
@@ -145,7 +152,7 @@ export function seedDB(today: string): DB {
   const contracts: Contract[] = []
   const checkins: Checkin[] = []
 
-  const window = lastNDays(today, 7) // oldest-first
+  const window = lastNDays(today, 14) // oldest-first, two weeks of history
 
   for (const m of MEMBERS) {
     users.push({
@@ -186,19 +193,29 @@ export function seedDB(today: string): DB {
       checkins.push(mkCheckin(m.goal.id, m.id, today, 'done', m.goal.proof_method))
     }
 
-    // past scheduled days, most-recent-first
+    // past scheduled days, most-recent-first (position 1 = most recent).
+    // Everything is 'done' except designated misses; gaps are skipped so the
+    // startup miss-handling job resolves them live.
     const pastScheduled = window
       .filter((d) => d !== today && isScheduledDay(d, m.goal.frequency))
       .reverse()
-    m.past.forEach((status, i) => {
-      const date = pastScheduled[i]
-      if (!date) return
-      if (status === 'gap') return // left unresolved on purpose
+    pastScheduled.forEach((date, i) => {
+      const pos = i + 1
+      if (m.gaps.includes(pos)) return
+      const status = m.misses.includes(pos) ? 'missed' : 'done'
       checkins.push(mkCheckin(m.goal.id, m.id, date, status, m.goal.proof_method))
     })
   }
 
   const messages = seedMessages(today)
+  // pre-load a couple of 👏 on Sam's check-in card so counts aren't empty
+  const samEvent = messages.find((m) => m.kind === 'checkin_event' && m.user_id === 'u_sam')
+  const cheers: Cheer[] = samEvent
+    ? [
+        { id: newId('ch'), user_id: 'u_maya', message_id: samEvent.id, created_at: samEvent.created_at },
+        { id: newId('ch'), user_id: 'u_jordan', message_id: samEvent.id, created_at: samEvent.created_at },
+      ]
+    : []
 
   return {
     users,
@@ -217,6 +234,7 @@ export function seedDB(today: string): DB {
     checkins,
     messages,
     nudges: [],
+    cheers,
     currentUserId: null, // signed out; the login screen sets this
   }
 }

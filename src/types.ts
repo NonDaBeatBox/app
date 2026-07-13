@@ -119,6 +119,17 @@ export interface Nudge {
   created_at: string
 }
 
+/**
+ * A 👏 on a check-in event. Not in the core spec tables but needed to render
+ * the "👏 count" the chat check-in cards call for. Keyed by the message.
+ */
+export interface Cheer {
+  id: ID
+  user_id: ID
+  message_id: ID
+  created_at: string
+}
+
 // ---------------------------------------------------------------------------
 // The full in-memory database shape (also the Realtime snapshot shape).
 // ---------------------------------------------------------------------------
@@ -132,6 +143,7 @@ export interface DB {
   checkins: Checkin[]
   messages: Message[]
   nudges: Nudge[]
+  cheers: Cheer[]
   /** id of the signed-in user, or null when logged out */
   currentUserId: ID | null
 }

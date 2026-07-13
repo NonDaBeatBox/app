@@ -77,6 +77,8 @@ export interface Store {
 
   // --- nudges ---
   sendNudge(input: SendNudgeInput): Promise<Nudge>
+  /** Add a 👏 to a check-in event message (idempotent per user). */
+  cheerMessage(messageId: ID): Promise<void>
 
   // --- maintenance ---
   /** Mark past scheduled days with no check-in as missed + apply consequences. */

@@ -104,6 +104,21 @@ export function nudgesForUser(db: DB, toUserId: ID): Nudge[] {
   return db.nudges.filter((n) => n.to_user_id === toUserId)
 }
 
+export function cheersForMessage(db: DB, messageId: ID) {
+  return db.cheers.filter((c) => c.message_id === messageId)
+}
+
+export function hasCheered(db: DB, messageId: ID, userId: ID): boolean {
+  return db.cheers.some((c) => c.message_id === messageId && c.user_id === userId)
+}
+
+/** The most recent check-in event a user posted in a circle. */
+export function latestCheckinEvent(db: DB, userId: ID, circleId: ID) {
+  return messagesForCircle(db, circleId)
+    .filter((m) => m.kind === 'checkin_event' && m.user_id === userId)
+    .at(-1)
+}
+
 /**
  * The goal a member has agreed to back: their membership's backs_user_id
  * resolves to that person's (first) active goal in the same circle.

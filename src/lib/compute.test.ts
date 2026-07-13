@@ -40,6 +40,7 @@ function emptyDB(): DB {
     checkins: [],
     messages: [],
     nudges: [],
+    cheers: [],
     currentUserId: null,
   }
 }
