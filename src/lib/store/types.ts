@@ -83,4 +83,7 @@ export interface Store {
   // --- maintenance ---
   /** Mark past scheduled days with no check-in as missed + apply consequences. */
   runMissHandling(): Promise<number>
+
+  /** Demo-only: schedule an ambient reply from another member. No-op on real. */
+  demoReply?(circleId: ID): void
 }

@@ -152,7 +152,9 @@ export function seedDB(today: string): DB {
   const contracts: Contract[] = []
   const checkins: Checkin[] = []
 
-  const window = lastNDays(today, 14) // oldest-first, two weeks of history
+  // Cover 15 days so every day the miss-handling job scans (the last 14) is
+  // already resolved — only the intentional gap should surface as a miss.
+  const window = lastNDays(today, 15) // oldest-first
 
   for (const m of MEMBERS) {
     users.push({
@@ -207,6 +209,33 @@ export function seedDB(today: string): DB {
     })
   }
 
+  // A goal from Sam that's still awaiting approval, pre-approved by Theo &
+  // Jordan (2 of 3 needed) so the demo user sees an actionable Approve card in
+  // chat — their tap tips it live.
+  const pendingGoalId = 'g_sam_pending'
+  goals.push({
+    id: pendingGoalId,
+    user_id: 'u_sam',
+    circle_id: CIRCLE_ID,
+    title: 'Write one gratitude line each morning',
+    category: 'character',
+    kind: 'fuzzy',
+    status: 'pending_approval',
+  })
+  contracts.push({
+    id: newId('k'),
+    goal_id: pendingGoalId,
+    proof_method: 'honest_checkin',
+    frequency: 'daily',
+    consequence: 'streak_break',
+    forfeit_text: null,
+    approved_by_circle: false,
+  })
+  const approvals = [
+    { id: newId('a'), goal_id: pendingGoalId, user_id: 'u_theo', approved: true },
+    { id: newId('a'), goal_id: pendingGoalId, user_id: 'u_jordan', approved: true },
+  ]
+
   const messages = seedMessages(today)
   // pre-load a couple of 👏 on Sam's check-in card so counts aren't empty
   const samEvent = messages.find((m) => m.kind === 'checkin_event' && m.user_id === 'u_sam')
@@ -230,7 +259,7 @@ export function seedDB(today: string): DB {
     memberships,
     goals,
     contracts,
-    approvals: [],
+    approvals,
     checkins,
     messages,
     nudges: [],
@@ -328,6 +357,13 @@ function seedMessages(today: string): Message[] {
       kind: 'text',
       ref_goal_id: null,
       created_at: at(-1, 20, 22),
+    }),
+    msg({
+      user_id: 'u_sam',
+      body: 'wants the circle to approve a new goal: “Write one gratitude line each morning”',
+      kind: 'system',
+      ref_goal_id: 'g_sam_pending',
+      created_at: at(0, 7, 55),
     }),
   ]
 }

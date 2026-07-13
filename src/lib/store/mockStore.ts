@@ -417,6 +417,39 @@ export class MockStore implements Store {
     return nudge
   }
 
+  private demoReplies = [
+    'let\'s gooo 🙌',
+    'proud of you fr',
+    'ok this is motivating me',
+    'backing you 100%',
+    '🔥🔥 keep going',
+    'same, locking in too',
+    'noted. holding you to it 👀',
+  ]
+
+  demoReply(circleId: ID): void {
+    const uid = this.db.currentUserId
+    const others = membersOf(this.db, circleId).filter((m) => m.user_id !== uid)
+    if (others.length === 0) return
+    const idx = this.db.messages.length % others.length
+    const from = others[idx].user_id
+    const body = this.demoReplies[this.db.messages.length % this.demoReplies.length]
+    window.setTimeout(() => {
+      this.patch({
+        messages: [
+          ...this.db.messages,
+          this.mkMsg({
+            circle_id: circleId,
+            user_id: from,
+            body,
+            kind: 'text',
+            ref_goal_id: null,
+          }),
+        ],
+      })
+    }, 1600)
+  }
+
   async cheerMessage(messageId: ID): Promise<void> {
     const uid = this.requireUser()
     if (this.db.cheers.some((c) => c.message_id === messageId && c.user_id === uid)) return
