@@ -38,6 +38,7 @@ export class SupabaseStore implements Store {
   private sb: SupabaseClient
   private readyPromise: Promise<void>
   private reloadTimer: ReturnType<typeof setTimeout> | null = null
+  private missHandled = false
 
   constructor(sb: SupabaseClient) {
     this.sb = sb
@@ -382,6 +383,8 @@ export class SupabaseStore implements Store {
 
   // --- maintenance ---
   async runMissHandling(): Promise<number> {
+    if (this.missHandled) return 0
+    this.missHandled = true
     const misses = detectMisses(this.db, todayISO())
     for (const miss of misses) {
       await this.sb.from('checkins').upsert(

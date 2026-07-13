@@ -32,6 +32,7 @@ export class MockStore implements Store {
   readonly isDemo = true
   private db: DB
   private listeners = new Set<() => void>()
+  private missHandled = false
 
   constructor() {
     this.db = seedDB(todayISO())
@@ -419,6 +420,8 @@ export class MockStore implements Store {
   // --- maintenance ---------------------------------------------------------
 
   async runMissHandling(): Promise<number> {
+    if (this.missHandled) return 0
+    this.missHandled = true
     const today = todayISO()
     const misses = detectMisses(this.db, today)
     if (misses.length === 0) return 0
