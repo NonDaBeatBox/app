@@ -108,6 +108,12 @@ export default function CircleHome() {
                   <StreakBadge streak={myStreak} />
                 </div>
               </div>
+              <Link
+                to={`/c/${id}/goal/new`}
+                className="shrink-0 rounded-full bg-plum/10 px-3 py-1.5 text-xs font-bold text-plum transition-colors hover:bg-plum/15"
+              >
+                + goal
+              </Link>
             </div>
             <div className="mt-4">
               {myDone ? (
