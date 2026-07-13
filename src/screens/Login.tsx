@@ -4,7 +4,7 @@ import { useStore, useCurrentUser } from '../lib/store'
 import { useToast } from '../components/Toast'
 import { Button } from '../components/Button'
 import { AppShell } from '../components/AppShell'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 
 export default function Login() {
   const store = useStore()
@@ -105,6 +105,11 @@ export default function Login() {
             )}
             <p className="mt-4 text-center text-xs text-muted">
               No passwords. No feeds. No strangers. Ever.
+            </p>
+            <p className="mt-1 text-center text-xs text-muted">
+              <Link to="/pricing" className="font-semibold text-plum underline-offset-2 hover:underline">
+                See how pricing works
+              </Link>
             </p>
           </form>
         )}
