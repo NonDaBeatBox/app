@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import {
   Workflow, Flame, FlaskConical, Droplets, Truck, Coins, GraduationCap,
-  Factory, Ship, ArrowRight, RotateCcw, Check, X,
+  Ship, RotateCcw, Check, X,
 } from "lucide-react";
 
 /* ============================================================
@@ -13,14 +13,21 @@ import {
 
 /* ---- design system ---- */
 const C = {
-  ink: "#26313f",     // pencil/ink for line-art + body text
-  paper: "#f6f2e8",   // warm engineering-pad paper
-  grid: "#e4ddca",    // faint pad grid
-  line: "#2f6fe0",    // "line blue" accent
-  petrol: "#0f8a80",  // petrol / teal accent
-  amber: "#c6871f",   // amber accent
-  soft: "#e7e0cf",    // card hairline
-  muted: "#7b8797",   // secondary text
+  ink: "#e7eef8",     // primary text / line-art (light on the dark board)
+  paper: "#0a1018",   // engineering-board background
+  grid: "#14243a",    // faint blueprint grid
+  line: "#2f6fe0",    // hydrocarbon-blue accent
+  petrol: "#17b0a4",  // product / teal accent
+  amber: "#f2a53a",   // recycle / amber accent
+  soft: "#22344f",    // card hairline
+  muted: "#9db0c8",   // secondary text
+  faint: "#6b7f9c",   // tertiary / tag text
+  card: "#13233a",    // card surface
+  card2: "#101d30",   // card surface (gradient end / header / table head)
+  track: "#152741",   // slider & bar track
+  tint: "#0c1a2e",    // subtle pill / fill
+  sky: "#38bdf8",     // primary interactive accent (active / selected / CTA)
+  sky2: "#5cc8f5",    // sky gradient top stop
 };
 
 /* ---- Incoterms 2020 data (risk = station index where risk transfers,
@@ -97,7 +104,7 @@ function Tag({ children, color }) {
 function Card({ children, accent, className = "", pad = true }) {
   return (
     <div className={"rounded-xl " + className}
-      style={{ background: "#fff", border: `1px solid ${C.soft}`, borderLeft: accent ? `4px solid ${accent}` : `1px solid ${C.soft}`, padding: pad ? 16 : 0, boxShadow: "0 1px 0 rgba(38,49,63,.03)" }}>
+      style={{ background: `linear-gradient(180deg, ${C.card}, ${C.card2})`, border: `1px solid ${C.soft}`, borderLeft: accent ? `4px solid ${accent}` : `1px solid ${C.soft}`, padding: pad ? 16 : 0, boxShadow: "0 12px 30px -20px rgba(0,0,0,.7)" }}>
       {children}
     </div>
   );
@@ -107,7 +114,7 @@ function SectionHead({ n, title, sub }) {
   return (
     <div className="mb-3">
       <div className="flex items-center gap-2">
-        {n != null && <span className="mono" style={{ fontSize: 11, color: C.petrol, letterSpacing: "0.1em" }}>0{n}</span>}
+        {n != null && <span className="mono" style={{ fontSize: 11, color: C.sky, letterSpacing: "0.1em" }}>0{n}</span>}
         <h3 style={{ fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>{title}</h3>
       </div>
       {sub && <p style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{sub}</p>}
@@ -135,7 +142,7 @@ function LabCard({ title, tag, children }) {
     <Card>
       <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
         <div className="flex items-center gap-2">
-          <FlaskConical size={15} color={C.petrol} />
+          <FlaskConical size={15} color={C.sky} />
           <span style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{title}</span>
         </div>
         {tag && <Tag color={C.petrol}>{tag}</Tag>}
@@ -153,13 +160,13 @@ function DataTable({ cols, rows, headAccent = C.ink }) {
         <thead>
           <tr>
             {cols.map((c, i) => (
-              <th key={i} className="mono" style={{ textAlign: i === 0 ? "left" : "left", padding: "8px 10px", background: "#faf7ef", color: headAccent, borderBottom: `1px solid ${C.soft}`, fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{c}</th>
+              <th key={i} className="mono" style={{ textAlign: "left", padding: "8px 10px", background: C.card2, color: C.muted, borderBottom: `1px solid ${C.soft}`, fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{c}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((r, ri) => (
-            <tr key={ri} style={{ background: ri % 2 ? "#fbf9f3" : "#fff" }}>
+            <tr key={ri} style={{ background: ri % 2 ? C.card2 : C.card }}>
               {r.map((cell, ci) => (
                 <td key={ci} style={{ padding: "8px 10px", color: ci === 0 ? C.ink : C.muted, fontWeight: ci === 0 ? 600 : 400, borderBottom: ri === rows.length - 1 ? "none" : `1px solid ${C.soft}`, borderRight: ci === r.length - 1 ? "none" : `1px solid ${C.soft}`, whiteSpace: "nowrap" }}>{cell}</td>
               ))}
@@ -280,7 +287,7 @@ function Reactor() {
             <Tag>EO selectivity</Tag>
             <span className="mono" style={{ fontSize: 13, color: C.petrol }}>≈ {selectivity}%</span>
           </div>
-          <div style={{ height: 10, background: "#eee7d6", borderRadius: 6, overflow: "hidden" }}>
+          <div style={{ height: 10, background: C.track, borderRadius: 6, overflow: "hidden" }}>
             <div style={{ width: selectivity + "%", height: "100%", background: C.petrol, transition: "width .12s" }} />
           </div>
           <p style={{ fontSize: 11.5, color: C.muted, marginTop: 8, lineHeight: 1.5 }}>Push temperature or oxygen too high and combustion wins; too low and the catalyst underperforms. Real plants tune this with a trace ethyl-chloride moderator.</p>
@@ -379,7 +386,7 @@ function SpotVsContract() {
       <Card>
         <Tag color={C.petrol}>Benchmark</Tag>
         <p style={{ fontSize: 13, color: C.ink, marginTop: 6, lineHeight: 1.55 }}>Asian MEG spot trades against the <b>“MEG CFR China”</b> assessments published by price agencies (ICIS, Platts), and MEG futures trade on China's <b>Dalian Commodity Exchange</b> — so a Thai producer judges every cargo against what China is paying.</p>
-        <p className="mono" style={{ fontSize: 10.5, color: C.petrol, marginTop: 8, letterSpacing: "0.08em" }}>CFR IS AN INCOTERM — DECODED IN THE NEXT SECTION ↓</p>
+        <p className="mono" style={{ fontSize: 10.5, color: C.sky, marginTop: 8, letterSpacing: "0.08em" }}>CFR IS AN INCOTERM — DECODED IN THE NEXT SECTION ↓</p>
       </Card>
     </div>
   );
@@ -428,7 +435,7 @@ function BarRow({ label, value, color, pct }) {
         <span style={{ fontSize: 12, color: C.ink }}>{label}</span>
         <span className="mono" style={{ fontSize: 12, color }}>${value}/t</span>
       </div>
-      <div style={{ height: 12, background: "#eee7d6", borderRadius: 6, overflow: "hidden" }}>
+      <div style={{ height: 12, background: C.track, borderRadius: 6, overflow: "hidden" }}>
         <div style={{ width: pct + "%", height: "100%", background: color, transition: "width .12s" }} />
       </div>
     </div>
@@ -507,7 +514,7 @@ function Incoterms() {
             return (
               <button key={i.code} onClick={() => setSel(i.code)} className="mono"
                 style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", padding: "6px 12px", borderRadius: 9, cursor: "pointer",
-                  border: `1px solid ${on ? C.petrol : C.soft}`, background: on ? C.petrol : "#fff", color: on ? "#fff" : C.ink }}>
+                  border: `1px solid ${on ? C.sky : C.soft}`, background: on ? `linear-gradient(180deg, ${C.sky2}, ${C.sky})` : C.card, color: on ? "#05121f" : C.ink }}>
                 {i.code}
               </button>
             );
@@ -583,10 +590,10 @@ function Quiz() {
               const chosen = answers[i] === oi;
               const reveal = submitted;
               const correct = q.a === oi;
-              let border = C.soft, bg = "#fff", col = C.ink;
-              if (chosen && !reveal) { border = C.petrol; bg = "#f0faf8"; }
-              if (reveal && correct) { border = C.petrol; bg = "#eef8f5"; }
-              if (reveal && chosen && !correct) { border = C.amber; bg = "#fbf3e6"; }
+              let border = C.soft, bg = C.card, col = C.ink;
+              if (chosen && !reveal) { border = C.petrol; bg = "#0e2b2a"; }
+              if (reveal && correct) { border = C.petrol; bg = "#0e2b2a"; }
+              if (reveal && chosen && !correct) { border = C.amber; bg = "#2a2011"; }
               return (
                 <button key={oi} disabled={submitted} onClick={() => setAnswers((a) => ({ ...a, [i]: oi }))}
                   style={{ textAlign: "left", fontSize: 13, color: col, padding: "8px 10px", borderRadius: 8, border: `1px solid ${border}`, background: bg, cursor: submitted ? "default" : "pointer", display: "flex", alignItems: "center", gap: 8 }}>
@@ -603,7 +610,7 @@ function Quiz() {
 
       {!submitted ? (
         <button onClick={() => setSubmitted(true)} disabled={Object.keys(answers).length < QUIZ.length}
-          style={{ width: "100%", padding: "12px", borderRadius: 10, background: Object.keys(answers).length < QUIZ.length ? "#cfc8b6" : C.petrol, color: "#fff", fontWeight: 700, fontSize: 14, cursor: Object.keys(answers).length < QUIZ.length ? "default" : "pointer", border: "none" }}>
+          style={{ width: "100%", padding: "12px", borderRadius: 10, background: Object.keys(answers).length < QUIZ.length ? "#25334a" : `linear-gradient(180deg, ${C.sky2}, ${C.sky})`, color: Object.keys(answers).length < QUIZ.length ? C.muted : "#05121f", fontWeight: 700, fontSize: 14, cursor: Object.keys(answers).length < QUIZ.length ? "default" : "pointer", border: "none", boxShadow: Object.keys(answers).length < QUIZ.length ? "none" : "0 3px 14px -5px rgba(56,189,248,.6)" }}>
           {Object.keys(answers).length < QUIZ.length ? `Answer all ${QUIZ.length} to submit (${Object.keys(answers).length}/${QUIZ.length})` : "Submit"}
         </button>
       ) : (
@@ -614,7 +621,7 @@ function Quiz() {
               <p style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginTop: 4 }}>{score} / {QUIZ.length}</p>
               <p style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Pass mark {passMark}. {passed ? "Nice — you can trace the chain and the trade." : "Review the tabs and try again."}</p>
             </div>
-            <button onClick={() => { setAnswers({}); setSubmitted(false); }} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.ink, border: `1px solid ${C.soft}`, borderRadius: 9, padding: "8px 12px", background: "#fff", cursor: "pointer" }}>
+            <button onClick={() => { setAnswers({}); setSubmitted(false); }} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.ink, border: `1px solid ${C.soft}`, borderRadius: 9, padding: "8px 12px", background: C.tint, cursor: "pointer" }}>
               <RotateCcw size={14} /> Retry
             </button>
           </div>
@@ -643,31 +650,43 @@ export default function App() {
   return (
     <div className="eo-root" style={{ minHeight: "100vh", color: C.ink }}>
       <style>{`
-        .eo-root{ background-color:${C.paper};
-          background-image: linear-gradient(${C.grid} 1px, transparent 1px), linear-gradient(90deg, ${C.grid} 1px, transparent 1px);
-          background-size: 26px 26px; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-        .eo-root .mono{ font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+        .eo-root{ color-scheme: dark; background-color:${C.paper};
+          background-image:
+            radial-gradient(1100px 620px at 26% -8%, #12233a66, transparent),
+            linear-gradient(${C.grid} 1px, transparent 1px),
+            linear-gradient(90deg, ${C.grid} 1px, transparent 1px);
+          background-size: 100% 100%, 26px 26px, 26px 26px;
+          font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif; }
+        .eo-root .mono{ font-family: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace; }
         .eo-root ::-webkit-scrollbar{ height:8px; width:8px; } .eo-root ::-webkit-scrollbar-thumb{ background:${C.soft}; border-radius:8px; }
+        .eo-root input[type=range]{ accent-color:${C.petrol}; }
         .eo-tabbtn{ transition: background .12s, color .12s; }
       `}</style>
 
       {/* header */}
-      <header style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(246,242,232,.92)", backdropFilter: "blur(6px)", borderBottom: `1px solid ${C.soft}` }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(11,18,28,.88)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.soft}` }}>
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "12px 16px 0" }}>
           <div className="flex items-center gap-2">
-            <Factory size={18} color={C.petrol} />
+            <svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
+              <rect x="1" y="1" width="38" height="38" rx="9" fill="#0f1b2e" stroke="#1f3a5f" />
+              <path d="M8 20h20" stroke="#1e6feb" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+              <path d="M8 20l5-5M8 20l5 5" stroke="#1e6feb" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+              <circle cx="30" cy="13" r="4" fill="none" stroke="#17b0a4" strokeWidth="2.4" />
+              <circle cx="30" cy="27" r="4" fill="none" stroke="#17b0a4" strokeWidth="2.4" />
+            </svg>
             <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.01em", color: C.ink }}>EO Academy</span>
-            <span className="mono" style={{ fontSize: 10, color: C.muted, letterSpacing: "0.12em", textTransform: "uppercase", marginLeft: 4 }}>Value-chain field guide</span>
+            <span className="mono" style={{ fontSize: 10, color: C.faint, letterSpacing: "0.12em", textTransform: "uppercase", marginLeft: 4 }}>Value-chain field guide</span>
           </div>
-          <nav className="flex gap-1" style={{ marginTop: 10, overflowX: "auto", paddingBottom: 2 }}>
+          <nav style={{ marginTop: 10, marginBottom: 10, display: "flex", gap: 3, overflowX: "auto", background: "#0a1420", border: `1px solid ${C.soft}`, borderRadius: 11, padding: 3, width: "fit-content", maxWidth: "100%" }}>
             {TABS.map((t) => {
               const on = t.id === tab;
               const Icon = t.icon;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)} className="eo-tabbtn mono"
-                  style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", padding: "8px 12px", borderRadius: "9px 9px 0 0", border: "none", cursor: "pointer",
-                    color: on ? C.ink : C.muted, background: on ? "#fff" : "transparent", borderBottom: on ? `2px solid ${C.petrol}` : "2px solid transparent" }}>
-                  <Icon size={14} color={on ? C.petrol : C.muted} /> {t.label}
+                  style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", padding: "7px 13px", borderRadius: 8, border: "none", cursor: "pointer",
+                    color: on ? "#05121f" : C.muted, background: on ? `linear-gradient(180deg, ${C.sky2}, ${C.sky})` : "transparent",
+                    boxShadow: on ? "0 2px 10px -3px rgba(56,189,248,.6)" : "none" }}>
+                  <Icon size={14} color={on ? "#05121f" : C.muted} /> {t.label}
                 </button>
               );
             })}
@@ -681,7 +700,7 @@ export default function App() {
       </main>
 
       {/* footer */}
-      <footer style={{ borderTop: `1px solid ${C.soft}`, background: "rgba(246,242,232,.7)" }}>
+      <footer style={{ borderTop: `1px solid ${C.soft}`, background: "rgba(11,18,28,.7)" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <span style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.4 }}>Public, textbook information for training. No real prices, margins, customers or contracts. All figures illustrative.</span>
           <span className="mono" style={{ fontSize: 11, color: C.muted, letterSpacing: "0.1em" }}>EO ACADEMY · V0.9</span>
