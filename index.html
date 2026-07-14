@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>Ethylene Oxide Value Chain — Interactive Process Map</title>
+  <meta name="description" content="Interactive, technically detailed training map of the ethylene oxide value chain: feedstocks, steam cracking, ethylene purification, EO reaction, recovery, and downstream glycol and HPEO derivatives." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b1220'/%3E%3Cpath d='M8 16h16M8 16l4-4M8 16l4 4' stroke='%2338bdf8' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='11' r='3' fill='none' stroke='%232dd4bf' stroke-width='2'/%3E%3Ccircle cx='23' cy='21' r='3' fill='none' stroke='%232dd4bf' stroke-width='2'/%3E%3C/svg%3E" />
+</head>
+<body class="mode-overview">
+  <!-- ============================ APP SHELL ============================ -->
+  <div id="app" aria-hidden="true">
+
+    <!-- Top command bar -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="28" height="28">
+            <rect x="1" y="1" width="38" height="38" rx="9" fill="#0f1b2e" stroke="#1f3a5f"/>
+            <path d="M8 20h20" stroke="#1e6feb" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <path d="M8 20l5-5M8 20l5 5" stroke="#1e6feb" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+            <circle cx="30" cy="13" r="4" fill="none" stroke="#17b0a4" stroke-width="2.4"/>
+            <circle cx="30" cy="27" r="4" fill="none" stroke="#17b0a4" stroke-width="2.4"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <strong>Ethylene Oxide Value Chain</strong>
+          <span>Interactive process-map training board</span>
+        </div>
+      </div>
+
+      <div class="mode-switch" role="tablist" aria-label="Detail level">
+        <button class="mode-btn is-active" data-mode="overview" role="tab" aria-selected="true">Process overview</button>
+        <button class="mode-btn" data-mode="equipment" role="tab" aria-selected="false">Equipment detail</button>
+        <button class="mode-btn" data-mode="chemistry" role="tab" aria-selected="false">Chemistry detail</button>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="ghost-btn" id="btn-tour" title="Guided walk-through of the value chain">▶ Guided tour</button>
+        <button class="ghost-btn" id="btn-help" title="How to use this map">? Help</button>
+      </div>
+    </header>
+
+    <!-- Main work area -->
+    <div class="workarea">
+
+      <!-- Left: layer / stream controls -->
+      <aside class="rail rail-left" id="rail-left" aria-label="Map layers and legend">
+        <div class="rail-scroll">
+          <section class="rail-group">
+            <h2 class="rail-title">Display layers</h2>
+            <p class="rail-hint">Turn technical layers on without leaving the process map.</p>
+            <div class="toggle-list" id="layer-toggles"><!-- injected --></div>
+          </section>
+
+          <section class="rail-group">
+            <h2 class="rail-title">Stream legend</h2>
+            <ul class="legend" id="legend"><!-- injected --></ul>
+          </section>
+
+          <section class="rail-group">
+            <h2 class="rail-title">Jump to stage</h2>
+            <nav class="stage-nav" id="stage-nav" aria-label="Process stages"><!-- injected --></nav>
+          </section>
+        </div>
+      </aside>
+
+      <!-- Center: the process canvas -->
+      <main class="canvas-wrap" id="canvas-wrap">
+        <!-- Sticky mini process legend chip (mobile position marker doubles here) -->
+        <div class="canvas-legend" id="canvas-legend" aria-hidden="true"></div>
+
+        <!-- Zoom / pan controls -->
+        <div class="zoom-controls" aria-label="Zoom and pan controls">
+          <button class="zc-btn" id="zoom-in" title="Zoom in">＋</button>
+          <button class="zc-btn" id="zoom-out" title="Zoom out">－</button>
+          <button class="zc-btn" id="zoom-fit" title="Fit whole map">⤢</button>
+          <button class="zc-btn" id="zoom-reset" title="Reset to start">⟲</button>
+          <span class="zc-level" id="zoom-level">100%</span>
+        </div>
+
+        <!-- The scalable/pannable stage -->
+        <div class="stage-viewport" id="stage-viewport">
+          <svg id="process-svg" xmlns="http://www.w3.org/2000/svg" aria-label="Ethylene oxide process map">
+            <defs id="svg-defs"></defs>
+            <g id="world">
+              <g id="layer-grid"></g>
+              <g id="layer-streams"></g>
+              <g id="layer-stream-labels"></g>
+              <g id="layer-nodes"></g>
+              <g id="layer-annotations"></g>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Mini-map -->
+        <div class="minimap" id="minimap" aria-label="Mini-map showing your position">
+          <svg id="minimap-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="minimap-view" id="minimap-view"></div>
+        </div>
+
+        <!-- Hint / breadcrumb of the currently focused path -->
+        <div class="focus-strip" id="focus-strip" hidden></div>
+      </main>
+
+      <!-- Right: detail panel -->
+      <aside class="panel" id="panel" aria-label="Process area detail" aria-live="polite">
+        <div class="panel-empty" id="panel-empty">
+          <div class="panel-empty-inner">
+            <div class="pe-icon" aria-hidden="true">◱</div>
+            <h2>Select a process area</h2>
+            <p>Click any stage on the map to trace its streams and open a detailed engineering brief — equipment, reactions, operating windows, molecules, products and delivery.</p>
+            <ul class="pe-tips">
+              <li><b>Click</b> a stage to focus its up- and down-stream path.</li>
+              <li><b>Scroll / pinch</b> to zoom, <b>drag</b> to pan.</li>
+              <li>Switch <b>detail level</b> (top) to reveal equipment and chemistry.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel-body" id="panel-body" hidden></div>
+      </aside>
+    </div>
+
+    <!-- Bottom disclaimer ribbon -->
+    <footer class="disclaimer-bar" id="disclaimer-bar">
+      <span class="disc-dot" aria-hidden="true">⚠</span>
+      <p>Detailed training map built from <b>public process chemistry and public technology descriptions</b>. It is <b>not</b> a plant process-flow diagram. Equipment sequence and configuration are representative — actual designs vary by technology provider, feedstock, capacity and site. All temperatures, pressures, ratios and yields are <b>public illustrative values, not plant operating data</b>.</p>
+      <button class="disc-more" id="disc-more">Full disclaimers</button>
+    </footer>
+  </div>
+
+  <!-- Image / illustration lightbox -->
+  <div class="lightbox" id="lightbox" hidden>
+    <div class="lightbox-backdrop" data-close></div>
+    <figure class="lightbox-figure">
+      <button class="lightbox-close" data-close title="Close">✕</button>
+      <div class="lightbox-media" id="lightbox-media"></div>
+      <figcaption class="lightbox-cap" id="lightbox-cap"></figcaption>
+    </figure>
+  </div>
+
+  <!-- Generic modal (help / disclaimers / tour) -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" data-close title="Close">✕</button>
+      <h2 id="modal-title"></h2>
+      <div class="modal-content" id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Loading splash -->
+  <div class="splash" id="splash">
+    <div class="splash-inner">
+      <div class="splash-pipe">
+        <svg viewBox="0 0 120 40" width="140">
+          <path class="sp-line" d="M6 20h108" fill="none" stroke="#1e6feb" stroke-width="4" stroke-linecap="round"/>
+          <circle class="sp-bead" cx="6" cy="20" r="5" fill="#2dd4bf"/>
+        </svg>
+      </div>
+      <p>Assembling process map…</p>
+    </div>
+  </div>
+
+  <!-- ============================ SCRIPTS ============================ -->
+  <script src="assets/js/molecules.js"></script>
+  <script src="assets/js/illustrations.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/canvas.js"></script>
+  <script src="assets/js/panel.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
