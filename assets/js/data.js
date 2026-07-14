@@ -492,6 +492,64 @@
         sources: SRC_COMMON,
         disclaimers: ["EO is never shown connected to transport modes other than dedicated pipeline.", "Product-to-delivery guidance is general and public, not site-specific."]
       }
+    },
+
+    /* ===== MARKET & TRADE ===== */
+    {
+      id: "trade", stage: "$", cat: "commercial", glyph: "trade", art: "trade",
+      title: "Market & trade desk", sub: "Spot vs contract · netback · Incoterms 2020",
+      x: 4020, y: 540, w: 300, h: 230,
+      brief: {
+        purpose: "Sell the finished products — the commercial end of the value chain, where volumes are priced against global benchmarks and shipped under standard trade terms.",
+        para: "Once product leaves storage it enters the market. Commodity chemicals are sold two ways — steady term contracts and one-off spot cargoes — and the trade desk judges every cargo against published benchmarks like “MEG CFR China”. The tools below are interactive: work the netback calculator, and tap the Incoterms journey to see exactly where risk and freight change hands.",
+        inputs: [
+          { label: "MEG / DEG / TEG for sale", type: "product" },
+          { label: "Amines & other derivatives", type: "product" }
+        ],
+        outputs: [
+          { label: "Contract (term) sales", type: "product" },
+          { label: "Spot cargoes", type: "product" }
+        ],
+        equipment: ["Benchmark assessments (ICIS, Platts)", "Futures (Dalian Commodity Exchange)", "Netback analysis", "Incoterms 2020 trade terms", "Ocean-freight booking", "Letters of credit"],
+        conditions: [
+          { k: "Contract", v: "Formula vs benchmark" },
+          { k: "Spot", v: "Today's market level" },
+          { k: "Asian MEG benchmark", v: "MEG CFR China" }
+        ],
+        condNote: "Public illustrative market mechanics — not real prices or terms",
+        sources: SRC_COMMON.concat(["Publicly published price-benchmark methodology", "Incoterms® 2020 (ICC) public summaries"]),
+        disclaimers: [
+          "All figures in the calculator are illustrative placeholders — not real prices, margins, customers or contract terms.",
+          "Incoterms® 2020 summaries are for learning only, not legal advice."
+        ],
+        // --- interactive trade module ---
+        trade: {
+          intro: "Commodity chemicals are sold two ways, and the market desk lives in the gap between them.",
+          contract: "Steady volumes agreed for months or a year; price is usually a formula linked to published benchmarks. Buys certainty for both sides.",
+          spot: "One cargo, priced at today's market level. Flexibility, arbitrage and inventory moves live here.",
+          benchmark: "Asian MEG spot trades against the “MEG CFR China” assessments published by price agencies (ICIS, Platts), and MEG futures trade on China's Dalian Commodity Exchange — so a Thai producer judges every cargo against what China is paying.",
+          foreshadow: "CFR is an Incoterm — decoded in the journey below.",
+          netback: {
+            cfr: { label: "CFR China spot price", min: 400, max: 800, def: 520, unit: "$/t" },
+            freight: { label: "Ocean freight (Thailand → China)", min: 10, max: 60, def: 30, unit: "$/t" },
+            other: { label: "Other costs (port, surveyor, finance)", min: 0, max: 30, def: 10, unit: "$/t" },
+            contract: { label: "Contract alternative price", min: 400, max: 800, def: 500, unit: "$/t" }
+          },
+          stations: [["Seller's", "plant"], ["Load", "port"], ["On", "board"], ["Discharge", "port"], ["Buyer's", "door"]],
+          incoterms: [
+            { code: "EXW", name: "Ex Works", risk: 0, sellerFreightTo: 0, insurance: "Buyer's choice", note: "Buyer collects at the plant gate. Seller's easiest term, buyer's heaviest." },
+            { code: "FCA", name: "Free Carrier", risk: 1, sellerFreightTo: 1, insurance: "Buyer's choice", note: "Seller hands the cargo to the buyer's carrier at a named point." },
+            { code: "FOB", name: "Free On Board", risk: 2, sellerFreightTo: 2, insurance: "Buyer's choice", note: "Risk passes when the cargo is on board at the load port. Buyer books the ship. Sea only." },
+            { code: "CFR", name: "Cost & Freight", risk: 2, sellerFreightTo: 3, insurance: "Buyer's choice", note: "Seller pays the ship to the discharge port — but risk STILL passes on board at loading. Sea only." },
+            { code: "CIF", name: "Cost, Insurance & Freight", risk: 2, sellerFreightTo: 3, insurance: "Seller (mandatory)", note: "CFR plus seller-bought insurance for the voyage. Sea only." },
+            { code: "DAP", name: "Delivered At Place", risk: 4, sellerFreightTo: 4, insurance: "Seller (usually)", note: "Seller delivers to the named destination, ready for unloading." },
+            { code: "DDP", name: "Delivered Duty Paid", risk: 4, sellerFreightTo: 4, insurance: "Seller (usually)", note: "Maximum seller obligation — even import duty is the seller's problem." }
+          ],
+          defaultTerm: "CFR",
+          callout: "The classic bulk-chemical trio is FOB / CFR / CIF. The split-point insight: in CFR and CIF the seller pays the freight, but the buyer already carries the risk from the moment the cargo crosses the ship's rail.",
+          closeLoop: "So “MEG CFR China” reads as: price includes product + freight to a Chinese port, with risk transferring on board in Thailand."
+        }
+      }
     }
   ];
 
@@ -530,7 +588,9 @@
     { from: "glycolethers", to: "storage", fs: "r", ts: "l", toff: 0.80, type: "product", label: "Glycol ethers" },
     { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.95, type: "product", label: "Polyols" },
     // ---- EO dedicated pipeline (manifold → storage, pipeline only) ----
-    { from: "manifold", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 }
+    { from: "manifold", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
+    // ---- storage → market/trade ----
+    { from: "storage", to: "trade", fs: "r", ts: "l", type: "product", label: "Product to market" }
   ];
 
   /* ---------------------------------------------------------------
@@ -615,7 +675,7 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "glycol", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "glycol", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      expose

@@ -98,7 +98,10 @@
       var n = D.byId[id]; n.mx = CX + INDENT; n.my = y; n.mw = 280; n.mh = 140; C.vorder[id] = order++; y += 180;
     });
     var st = D.byId.storage; st.mx = CX; st.my = y + 20; st.mw = 420; st.mh = 190; C.vorder.storage = order++;
-    C.vbounds = { minX: -30, minY: -60, maxX: CX + INDENT + 300 + 260, maxY: st.my + st.mh + 80 };
+    var tr = D.byId.trade;
+    if (tr) { tr.mx = CX; tr.my = st.my + st.mh + 40; tr.mw = 420; tr.mh = 220; C.vorder.trade = order++; }
+    var lastB = (tr ? tr.my + tr.mh : st.my + st.mh) + 80;
+    C.vbounds = { minX: -30, minY: -60, maxX: CX + INDENT + 300 + 260, maxY: lastB };
   }
 
   /* ---------- world bounds ---------- */
@@ -233,7 +236,7 @@
     return g;
   }
   function catTag(cat) {
-    return { feed: "FEED PREP", thermal: "CRACKING", separation: "SEPARATION", reaction: "REACTION", recovery: "RECOVERY", distribution: "DISTRIBUTION", derivative: "DERIVATIVE", logistics: "LOGISTICS" }[cat] || cat.toUpperCase();
+    return { feed: "FEED PREP", thermal: "CRACKING", separation: "SEPARATION", reaction: "REACTION", recovery: "RECOVERY", distribution: "DISTRIBUTION", derivative: "DERIVATIVE", logistics: "LOGISTICS", commercial: "TRADE" }[cat] || cat.toUpperCase();
   }
   function topMetric(n) {
     var c = n.brief.conditions;
@@ -404,7 +407,7 @@
     mm.innerHTML = g;
   }
   function strokeFor(t) { return { hydrocarbon: "#2f6fe0", product: "#17b0a4", recycle: "#f2a53a", water: "#58c1f0", utility: "#8595ad", hazard: "#f0544c", info: "#b58be0" }[t] || "#8595ad"; }
-  function fillFor(c) { return { feed: "#1a3560", thermal: "#4a3320", separation: "#1c3a52", reaction: "#124f48", recovery: "#12463d", distribution: "#3a2b52", derivative: "#124f48", logistics: "#2a3446" }[c] || "#22344d"; }
+  function fillFor(c) { return { feed: "#1a3560", thermal: "#4a3320", separation: "#1c3a52", reaction: "#124f48", recovery: "#12463d", distribution: "#3a2b52", derivative: "#124f48", logistics: "#2a3446", commercial: "#4a3f1c" }[c] || "#22344d"; }
   function updateMinimapView() {
     var b = C.bounds, v = vpSize(), mm = el("minimap"), view = el("minimap-view");
     if (!mm || !view) return;

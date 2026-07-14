@@ -124,6 +124,139 @@
       '<div class="spec-note">⚠ ' + esc(d.note) + '</div>';
   }
 
+  /* =========================================================
+     INTERACTIVE MARKET & TRADE MODULE
+     ========================================================= */
+  function tradeHtml(t) {
+    var h = "";
+    // Section 1 — spot vs contract
+    h += '<section class="panel-sec"><div class="sec-h"><span class="sec-ico">⇄</span>Spot vs contract</div>';
+    h += '<p class="p-para" style="margin-top:0">' + esc(t.intro) + '</p>';
+    h += '<div class="trade-two">' +
+      '<div class="trade-card" style="border-left-color:var(--s-hydrocarbon)"><div class="tc-tag" style="color:var(--s-hydrocarbon)">Contract (term)</div><p>' + esc(t.contract) + '</p></div>' +
+      '<div class="trade-card" style="border-left-color:var(--s-recycle)"><div class="tc-tag" style="color:var(--s-recycle)">Spot</div><p>' + esc(t.spot) + '</p></div></div>';
+    h += '<div class="callout src" style="margin-top:10px"><span class="co-ico">◎</span><div>' + esc(t.benchmark) +
+      '<div class="mono-hint">' + esc(t.foreshadow) + '</div></div></div>';
+    h += '</section>';
+
+    // Section 2 — netback calculator
+    var n = t.netback;
+    h += '<section class="panel-sec"><div class="sec-h"><span class="sec-ico">$</span>Netback mini-calculator</div>';
+    h += '<p class="p-para" style="margin-top:0">What a spot cargo to China is worth back at the plant gate — versus the contract alternative.</p>';
+    h += nbSlider("cfr", n.cfr, "var(--s-product)", "#17b0a4");
+    h += nbSlider("freight", n.freight, "var(--s-product)", "#17b0a4");
+    h += nbSlider("other", n.other, "var(--s-product)", "#17b0a4");
+    h += nbSlider("contract", n.contract, "var(--s-hydrocarbon)", "#2f6fe0");
+    h += '<div class="nb-bars">' +
+      '<div class="nb-row"><div class="nb-lab"><span>Spot netback</span><span class="mono" id="nb-spot-v" style="color:var(--s-product)"></span></div><div class="nb-track"><div class="nb-fill" id="nb-bar-spot" style="background:var(--s-product)"></div></div></div>' +
+      '<div class="nb-row"><div class="nb-lab"><span>Contract</span><span class="mono" id="nb-con-v" style="color:var(--s-hydrocarbon)"></span></div><div class="nb-track"><div class="nb-fill" id="nb-bar-con" style="background:var(--s-hydrocarbon)"></div></div></div></div>';
+    h += '<p class="nb-verdict" id="nb-verdict"></p>';
+    h += '<p class="p-para" style="font-size:11.5px">Freight is the hidden lever: when ships get expensive, spot netbacks sink even if the headline price holds.</p>';
+    h += '<div class="spec-note">⚠ ILLUSTRATIVE NUMBERS — NOT REAL PRICES.</div></section>';
+
+    // Section 3 — Incoterms
+    h += '<section class="panel-sec"><div class="sec-h"><span class="sec-ico">⚓</span>Incoterms 2020, drawn</div>';
+    h += '<p class="p-para" style="margin-top:0">Where does risk pass, and how far does the seller pay the freight? Tap a term.</p>';
+    h += '<div id="ic-block">' + incotermHtml(t, t.defaultTerm) + '</div>';
+    h += '<div class="callout warn-callout" style="margin-top:10px"><span class="co-ico">◆</span><div>' + esc(t.callout) + '</div></div>';
+    h += '<div class="callout src" style="margin-top:8px"><span class="co-ico">↺</span><div>' + esc(t.closeLoop) + '</div></div>';
+    h += '<p style="font-size:10.5px;color:var(--ink-faint);margin-top:8px">Incoterms® 2020 summaries for learning only — not legal advice.</p>';
+    h += '</section>';
+    return h;
+  }
+
+  function nbSlider(key, cfg, accentVar, accentHex) {
+    return '<div class="nb-slider"><div class="nb-lab"><span>' + esc(cfg.label) + '</span>' +
+      '<span class="mono nb-val" id="nb-' + key + '-v" style="color:' + accentVar + '"></span></div>' +
+      '<input type="range" class="nb-range" id="nb-' + key + '" min="' + cfg.min + '" max="' + cfg.max + '" value="' + cfg.def + '" data-unit="' + esc(cfg.unit) + '" style="accent-color:' + accentHex + '"></div>';
+  }
+
+  // pad-style Incoterms journey + chips + detail + table for a selected code
+  var IC_SX = [34, 102, 170, 238, 306], IC_BASE = 104;
+  function icGlyph(kind, x) {
+    var s = 'fill="none" stroke="#c6d4e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
+    var o = 'transform="translate(' + x + ',' + IC_BASE + ')"';
+    if (kind === "plant") return '<g ' + o + '><path d="M-14 0 v-20 h28 v20" ' + s + '/><path d="M-14 -8 h28" ' + s + '/><path d="M-4 -20 v-6 h6 v6" ' + s + '/></g>';
+    if (kind === "crane") return '<g ' + o + '><path d="M-9 0 v-24" ' + s + '/><path d="M-9 -24 h20" ' + s + '/><path d="M9 -24 v10" ' + s + '/><path d="M-13 0 h8" ' + s + '/></g>';
+    if (kind === "ship") return '<g ' + o + '><path d="M-15 -4 h30 l-4 8 h-22 z" ' + s + '/><path d="M-8 -4 v-9 h13 v9" ' + s + '/><path d="M-2 -13 v-4 h6" ' + s + '/></g>';
+    if (kind === "door") return '<g ' + o + '><path d="M-10 0 v-22 h20 v22" ' + s + '/><path d="M-10 0 h20" ' + s + '/><circle cx="5" cy="-11" r="1.6" fill="#c6d4e6"/></g>';
+    return "";
+  }
+  function incotermHtml(t, code) {
+    var it = t.incoterms.filter(function (i) { return i.code === code; })[0] || t.incoterms[0];
+    var glyphs = ["plant", "crane", "ship", "crane", "door"];
+    var riskX = IC_SX[it.risk];
+    var anchor = it.risk === 0 ? "start" : it.risk === 4 ? "end" : "middle";
+    var brData = it.sellerFreightTo > 0;
+    var brX1 = IC_SX[0] - 12, brX2 = IC_SX[it.sellerFreightTo] + 12;
+    var shipBy = it.sellerFreightTo >= 3 ? "Seller" : "Buyer";
+    var freightWho = ["Buyer — entire journey", "Buyer — main carriage", "Buyer — ocean freight", "Seller — to discharge port", "Seller — to destination"][it.sellerFreightTo];
+    var riskName = ["Seller's plant", "Load port", "On board (load)", "Discharge port", "Buyer's door"][it.risk];
+
+    var svg = '<svg viewBox="0 0 340 150" width="100%" class="ic-svg" role="img" aria-label="Incoterms journey for ' + esc(it.code) + '">';
+    if (brData) svg += '<path d="M' + brX1 + ' 40 v-6 h' + (brX2 - brX1) + ' v6" fill="none" stroke="#17b0a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<text x="' + ((brX1 + brX2) / 2) + '" y="26" text-anchor="middle" class="ic-mono" fill="#17b0a4">SELLER PAYS FREIGHT</text>';
+    svg += '<line x1="20" y1="' + IC_BASE + '" x2="320" y2="' + IC_BASE + '" stroke="#c6d4e6" stroke-width="1.3" stroke-dasharray="1 5" stroke-linecap="round"/>';
+    IC_SX.forEach(function (x, i) {
+      svg += '<circle cx="' + x + '" cy="' + IC_BASE + '" r="2.4" fill="#c6d4e6"/>' + icGlyph(glyphs[i], x) +
+        '<text x="' + x + '" y="' + (IC_BASE + 16) + '" text-anchor="middle" class="ic-mono">' + esc(t.stations[i][0]) + '</text>' +
+        '<text x="' + x + '" y="' + (IC_BASE + 26) + '" text-anchor="middle" class="ic-mono">' + esc(t.stations[i][1]) + '</text>';
+    });
+    svg += '<path d="M' + riskX + ' ' + (IC_BASE - 30) + ' v-22" stroke="#f2a53a" stroke-width="1.6" stroke-linecap="round"/>' +
+      '<path d="M' + riskX + ' ' + (IC_BASE - 52) + ' l16 5 l-16 5 z" fill="#f2a53a"/>' +
+      '<text x="' + riskX + '" y="' + (IC_BASE - 58) + '" text-anchor="' + anchor + '" class="ic-mono" fill="#f2a53a" font-weight="700">RISK PASSES HERE</text></svg>';
+
+    var chips = '<div class="ic-chips">' + t.incoterms.map(function (i) {
+      return '<button class="ic-chip' + (i.code === code ? " on" : "") + '" data-code="' + i.code + '">' + i.code + '</button>';
+    }).join("") + '</div>';
+
+    var detail = '<div class="ic-detail"><div class="ic-name"><span class="mono ic-code">' + esc(it.code) + '</span>' + esc(it.name) + '</div>' +
+      '<p class="p-para" style="margin-top:4px">' + esc(it.note) + '</p>' +
+      whoRow("Ship booked by", shipBy) + whoRow("Freight", freightWho) + whoRow("Insurance", it.insurance) + whoRow("Risk passes to buyer", riskName, "var(--s-recycle)") + '</div>';
+
+    var head = '<tr><th>Term</th><th>Ship by</th><th>Freight</th><th>Risk passes</th></tr>';
+    var rows = t.incoterms.map(function (i) {
+      var f = ["Buyer (all)", "Buyer (main)", "Buyer (ocean)", "Seller → discharge", "Seller → door"][i.sellerFreightTo];
+      var r = ["Plant", "Load port", "On board", "Discharge", "Buyer door"][i.risk];
+      return '<tr' + (i.code === code ? ' class="on"' : '') + '><td>' + i.code + '</td><td>' + (i.sellerFreightTo >= 3 ? "Seller" : "Buyer") + '</td><td>' + f + '</td><td>' + r + '</td></tr>';
+    }).join("");
+    var table = '<div class="matrix-wrap" style="margin-top:10px"><table class="matrix ic-table"><thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>';
+
+    return '<div class="ic-card">' + svg + chips + '</div>' + detail + table;
+  }
+  function whoRow(k, v, color) {
+    return '<div class="ic-who"><span class="mono">' + esc(k) + '</span><span style="color:' + (color || "var(--ink)") + '">' + esc(v) + '</span></div>';
+  }
+
+  function wireTrade(pb, t) {
+    var ids = ["cfr", "freight", "other", "contract"];
+    function upd() {
+      var v = {};
+      ids.forEach(function (k) {
+        var inp = pb.querySelector("#nb-" + k);
+        v[k] = +inp.value;
+        pb.querySelector("#nb-" + k + "-v").textContent = inp.value + " " + inp.getAttribute("data-unit");
+      });
+      var netback = v.cfr - v.freight - v.other, diff = netback - v.contract;
+      var pct = function (x) { return Math.max(0, Math.min(100, ((x - 400) / 400) * 100)); };
+      pb.querySelector("#nb-bar-spot").style.width = pct(netback) + "%";
+      pb.querySelector("#nb-bar-con").style.width = pct(v.contract) + "%";
+      pb.querySelector("#nb-spot-v").textContent = "$" + netback + "/t";
+      pb.querySelector("#nb-con-v").textContent = "$" + v.contract + "/t";
+      pb.querySelector("#nb-verdict").innerHTML = 'Spot nets <b style="color:var(--s-product)">$' + netback + '/t</b> — ' +
+        (diff >= 0 ? 'beats contract by <b style="color:var(--s-product)">$' + Math.abs(diff) + '/t</b>.'
+          : 'loses to contract by <b style="color:var(--warn)">$' + Math.abs(diff) + '/t</b>.');
+    }
+    ids.forEach(function (k) { var inp = pb.querySelector("#nb-" + k); if (inp) inp.addEventListener("input", upd); });
+    upd();
+    function wireIC() {
+      pb.querySelectorAll(".ic-chip").forEach(function (c) {
+        c.onclick = function () { pb.querySelector("#ic-block").innerHTML = incotermHtml(t, c.getAttribute("data-code")); wireIC(); };
+      });
+    }
+    wireIC();
+  }
+
   /* ---------- main render ---------- */
   function render(id) {
     var n = D.byId[id]; if (!n) return;
@@ -142,6 +275,9 @@
     body1 += '<p class="p-lead">' + esc(b.purpose) + '</p>';
     if (b.para) body1 += '<p class="p-para">' + esc(b.para) + '</p>';
     html += sec("Overview", "◲", body1);
+
+    // interactive market & trade module
+    if (b.trade) html += tradeHtml(b.trade);
 
     // IO
     if (b.inputs || b.outputs) html += sec("Streams in / out", "⇄", ioBlock(b));
@@ -203,10 +339,11 @@
     pb.querySelectorAll(".app-card, .chip.app").forEach(function (c) {
       c.onclick = function () { EO.app.openImage(c.getAttribute("data-app")); };
     });
+    if (n.brief.trade) wireTrade(pb, n.brief.trade);
   }
 
   function catName(c) {
-    return { feed: "Feed preparation", thermal: "Thermal cracking", separation: "Separation", reaction: "Reaction", recovery: "Recovery & purification", distribution: "Distribution", derivative: "Derivative unit", logistics: "Storage & logistics" }[c] || c;
+    return { feed: "Feed preparation", thermal: "Thermal cracking", separation: "Separation", reaction: "Reaction", recovery: "Recovery & purification", distribution: "Distribution", derivative: "Derivative unit", logistics: "Storage & logistics", commercial: "Market & trade" }[c] || c;
   }
 
   EO.panel = { render: render, shortApp: shortApp };

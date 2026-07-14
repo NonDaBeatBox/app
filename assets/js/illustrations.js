@@ -309,6 +309,19 @@
       g += '<path d="M130 70 L166 70" stroke="#8595ad" stroke-width="2"/>';
       g += pipe("M14 86 L168 86", "#8595ad", 3);
       return wrapG(g, 182, 100);
+    },
+    trade: function () {
+      var g = '<rect x="18" y="12" width="140" height="74" rx="6" fill="url(#mtl)" stroke="#26374f"/>';
+      g += '<rect x="24" y="18" width="128" height="62" rx="3" fill="#0a1420"/>';
+      var cx = [40, 60, 80, 100, 120], hi = [56, 48, 50, 38, 30], lo = [70, 66, 58, 56, 44], up = [1, 0, 1, 1, 1];
+      for (var i = 0; i < 5; i++) {
+        var col = up[i] ? "#17b0a4" : "#f0544c";
+        g += '<line x1="' + cx[i] + '" y1="' + (hi[i] - 5) + '" x2="' + cx[i] + '" y2="' + (lo[i] + 5) + '" stroke="' + col + '" stroke-width="1.3"/>';
+        g += '<rect x="' + (cx[i] - 4) + '" y="' + hi[i] + '" width="8" height="' + (lo[i] - hi[i]) + '" rx="1" fill="' + col + '"/>';
+      }
+      g += '<path d="M40 62 L60 56 L80 52 L100 42 L120 34" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round"/>';
+      g += '<ellipse cx="150" cy="92" rx="13" ry="5" fill="#b8901f"/><ellipse cx="150" cy="88" rx="13" ry="5" fill="#f0c860" stroke="#b8901f"/><text x="150" y="91" text-anchor="middle" font-size="8" font-weight="800" fill="#7a5a12">$</text>';
+      return wrapG(g, 180, 104);
     }
   };
 
@@ -738,6 +751,41 @@
     return wrapA(g, w, h, "Storage and delivery / tank farm and loading");
   };
 
+  // ---- scene: market / benchmark price screen ----
+  ART.trade = function () {
+    var w = 640, h = 300, g = bp(w, h);
+    // trading screen
+    g += '<rect x="36" y="26" width="392" height="214" rx="10" fill="url(#mtl)" stroke="#26374f"/>';
+    g += '<rect x="48" y="38" width="368" height="168" rx="4" fill="#0a1420"/>';
+    var i;
+    for (i = 1; i < 6; i++) g += '<line x1="48" y1="' + (38 + i * 28) + '" x2="416" y2="' + (38 + i * 28) + '" stroke="#12233a"/>';
+    // candlesticks
+    var xs = [78, 118, 158, 198, 238, 278, 318, 358], base = 150;
+    var hs = [40, 60, 52, 78, 70, 96, 88, 112], bod = [16, 22, 14, 24, 12, 20, 16, 22], upd = [1, 0, 1, 1, 0, 1, 1, 1];
+    for (i = 0; i < xs.length; i++) {
+      var col = upd[i] ? "#17b0a4" : "#f0544c";
+      var top = base - hs[i];
+      g += '<line x1="' + xs[i] + '" y1="' + (top - 8) + '" x2="' + xs[i] + '" y2="' + (base - hs[i] + bod[i] + 8) + '" stroke="' + col + '" stroke-width="1.6"/>';
+      g += '<rect x="' + (xs[i] - 6) + '" y="' + top + '" width="12" height="' + bod[i] + '" rx="1.5" fill="' + col + '"/>';
+    }
+    // trend line
+    g += '<path d="M78 116 L118 96 L158 104 L198 78 L238 86 L278 58 L318 66 L358 42" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>';
+    g += T(60, 56, "MEG CFR CHINA", { size: 11, anchor: "start", fill: "#8fb4f0" });
+    g += T(404, 56, "▲ illustrative", { size: 9.5, anchor: "end", fill: "#17b0a4" });
+    g += label(232, 226, "Benchmark price screen");
+    // ship delivering product → market, with coins
+    g += '<path d="M470 150 h120 l-12 24 h-96 z" fill="url(#mtlH)" stroke="#26374f"/>';
+    g += '<rect x="486" y="132" width="40" height="18" fill="#33455f" stroke="#26374f"/><rect x="536" y="126" width="30" height="24" fill="#3a4a60" stroke="#26374f"/>';
+    g += '<line x1="470" y1="150" x2="590" y2="150" stroke="#58c1f0" stroke-width="1.4" stroke-dasharray="2 4"/>';
+    g += pipe("M418 150 L470 158", "#17b0a4", 4);
+    // coin stack
+    var cy = 210;
+    for (i = 0; i < 4; i++) g += '<ellipse cx="530" cy="' + (cy - i * 8) + '" rx="26" ry="9" fill="' + (i % 2 ? "#e0b341" : "#f0c860") + '" stroke="#b8901f"/>';
+    g += T(530, cy - 24, "$", { size: 15, fill: "#7a5a12", weight: 800 });
+    g += label(530, 236, "Priced & sold");
+    return wrapA(g, w, h, "Market benchmark price screen and sale");
+  };
+
   /* ============================================================
      APPLICATIONS — realistic product/end-use illustrations
      ============================================================ */
@@ -957,7 +1005,8 @@
     peg:          { kind: "illustration", label: ILLUS_LABEL, caption: "EO polymerises onto an initiator; molecular weight is controlled to give a range of PEG grades." },
     glycolethers: { kind: "illustration", label: ILLUS_LABEL, caption: "An alcohol reacts with EO and the products are purified into a family of glycol ethers." },
     polyols:      { kind: "illustration", label: ILLUS_LABEL, caption: "EO and/or PO are added onto an initiator to build polyether polyols for polyurethane." },
-    storage:      { kind: "photo", label: PHOTO_LABEL, caption: "Products move from tank farm to loading pumps and arms, then to road, ISO-tank, marine and pipeline dispatch." }
+    storage:      { kind: "photo", label: PHOTO_LABEL, caption: "Products move from tank farm to loading pumps and arms, then to road, ISO-tank, marine and pipeline dispatch." },
+    trade:        { kind: "photo", label: PHOTO_LABEL, caption: "The commercial end: cargoes are priced against published benchmarks and sold on term contracts or spot." }
   };
   // application captions
   var APP_CAP = {
