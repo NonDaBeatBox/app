@@ -90,7 +90,7 @@
   function computeVertical() {
     var CX = 60, ROW = 210, INDENT = 120;
     var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eop", "eg"];
-    var deriv = ["meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation"];
+    var deriv = ["meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "polyols"];
     var y = 40, order = 0;
     C.vorder = {};
     spine.forEach(function (id) {

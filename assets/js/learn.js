@@ -19,7 +19,7 @@
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
     { id: "split", label: "The EO split", kind: "nodes", nodes: ["eop", "eg"] },
     { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
-    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation"] },
+    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation", "polyols"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
     { id: "trade", label: "Trade", kind: "nodes", nodes: ["trade"] },
     { id: "quiz", label: "Quiz", kind: "quiz" }

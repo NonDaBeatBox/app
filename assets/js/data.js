@@ -268,7 +268,7 @@
     {
       id: "meg", stage: "8", cat: "product", glyph: "omega", art: "omega",
       title: "MEG", sub: "Mono-ethylene glycol — PET, polyester, coolant",
-      x: 2790, y: 120, w: 214, h: 86,
+      x: 2790, y: 150, w: 214, h: 86,
       brief: {
         purpose: "Mono-ethylene glycol (MEG) — the single biggest ethylene-oxide product, made from the EG stream via the Shell OMEGA route.",
         para: "OMEGA (Only MEG Advantaged) makes MEG in two steps instead of hydrating EO with a big excess of water. EO first reacts with CO₂ in the ethylene-carbonate (EC) reactor to form ethylene carbonate; that carbonate is then hydrolysed with water to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled — the amber loop. The carbonate step is so selective that OMEGA makes almost pure MEG with very little DEG/TEG, using far less water and energy than conventional hydration.",
@@ -296,7 +296,7 @@
     {
       id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
       title: "DEG", sub: "Di-ethylene glycol — resins, plasticisers",
-      x: 2790, y: 218, w: 214, h: 86,
+      x: 2790, y: 246, w: 214, h: 86,
       brief: {
         purpose: "Di-ethylene glycol (DEG) — a glycol co-product, one EO unit longer than MEG.",
         para: "DEG forms when a glycol molecule reacts with a further EO. The OMEGA route makes very little DEG; conventional water hydration makes more. DEG goes into unsaturated polyester resins, plasticisers and polyurethanes, and is used as a humectant and solvent.",
@@ -315,7 +315,7 @@
     {
       id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
       title: "TEG", sub: "Tri-ethylene glycol — gas drying, humectant",
-      x: 2790, y: 316, w: 214, h: 86,
+      x: 2790, y: 342, w: 214, h: 86,
       brief: {
         purpose: "Tri-ethylene glycol (TEG) — a further glycol co-product, three EO units long.",
         para: "TEG forms when DEG reacts with another EO. It absorbs water strongly, which makes it the standard desiccant for drying natural gas; it is also a humectant, plasticiser and air-disinfection agent. It is the smallest-volume of the three ethylene glycols.",
@@ -336,7 +336,7 @@
     {
       id: "mea", stage: "9", cat: "product", glyph: "amines", art: "amines",
       title: "MEA", sub: "Mono-ethanolamine — gas treating, surfactants",
-      x: 2790, y: 430, w: 214, h: 86,
+      x: 2790, y: 540, w: 214, h: 86,
       brief: {
         purpose: "Mono-ethanolamine (MEA) — ammonia plus one EO arm; the first ethanolamine.",
         para: "Ammonia reacts with EO to add one hydroxyethyl (–CH₂CH₂OH) arm, giving MEA. A high ammonia-to-EO ratio favours MEA over DEA/TEA. MEA is widely used to scrub CO₂ and H₂S from gas streams, and to make surfactants and detergents.",
@@ -355,7 +355,7 @@
     {
       id: "dea", stage: "9", cat: "product", glyph: "amines", art: "amines",
       title: "DEA", sub: "Di-ethanolamine — surfactants, gas treating",
-      x: 2790, y: 528, w: 214, h: 86,
+      x: 2790, y: 636, w: 214, h: 86,
       brief: {
         purpose: "Di-ethanolamine (DEA) — ammonia with two EO arms.",
         para: "MEA reacts with a second EO to give DEA (two hydroxyethyl arms). DEA is used in gas treating, as a surfactant and emulsifier, in detergents and metalworking fluids. The MEA/DEA/TEA mix is set by the EO-to-ammonia ratio.",
@@ -374,7 +374,7 @@
     {
       id: "tea", stage: "9", cat: "product", glyph: "amines", art: "amines",
       title: "TEA", sub: "Tri-ethanolamine — cement, cosmetics",
-      x: 2790, y: 626, w: 214, h: 86,
+      x: 2790, y: 732, w: 214, h: 86,
       brief: {
         purpose: "Tri-ethanolamine (TEA) — ammonia with three EO arms.",
         para: "DEA reacts with a third EO to give TEA (three hydroxyethyl arms). A high EO-to-ammonia ratio favours TEA. It is used as a cement grinding aid, a pH adjuster and emulsifier in cosmetics and personal care, and in agrochemical formulations.",
@@ -395,7 +395,7 @@
     {
       id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
       title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
-      x: 2790, y: 748, w: 234, h: 132,
+      x: 2790, y: 880, w: 234, h: 132,
       brief: {
         purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
         para: "A starter such as a fatty alcohol is charged to a stirred reactor and EO is added a little at a time. Each EO adds one –CH₂CH₂O– unit, growing a water-loving chain on the end of the oil-loving starter. The result is an amphiphile: a hydrophobic tail plus a hydrophilic EO chain — the basic structure of most non-ionic surfactants.",
@@ -415,18 +415,42 @@
       }
     },
 
+    /* ===== STAGE 10 — polyether polyols (added back) ===== */
+    {
+      id: "polyols", stage: "10", cat: "product", glyph: "ethoxylation", art: "polyols",
+      title: "Polyether polyols", sub: "Feed to polyurethane foams & elastomers", grades: ["Flexible", "Rigid", "PPG"],
+      x: 2790, y: 1044, w: 234, h: 132,
+      brief: {
+        purpose: "Build polyether polyols by adding EO and/or propylene oxide (PO) onto an initiator, for downstream polyurethane.",
+        para: "EO and/or PO are added onto a multi-functional initiator to grow polyether chains ending in –OH groups (a polyol). The choice and ratio of EO/PO and the initiator set the polyol’s properties. Polyols react with isocyanates downstream to make polyurethanes — flexible and rigid foams, elastomers and coatings.",
+        inputs: [{ label: "Initiator", type: "utility" }, { label: "EO and/or PO feed", type: "product" }],
+        outputs: [{ label: "Polyol product → polyurethane", type: "product" }],
+        equipment: ["EO/PO feed", "Alkoxylation reactor", "Polymerisation", "Finishing"],
+        conditions: [
+          { k: "Monomers", v: "EO and/or PO" },
+          { k: "Product", v: "Polyether polyol (–OH ends)" },
+          { k: "Downstream", v: "Polyurethane" }
+        ],
+        condNote: PUB,
+        molecules: ["eo"],
+        applications: ["foam", "mattress", "carseat", "insulation", "elastomer"],
+        sources: SRC_COMMON,
+        disclaimers: ["EO and PO chemistry shown at a general public level."]
+      }
+    },
+
     /* ===== STORAGE & DELIVERY ===== */
     {
       id: "storage", stage: "→", cat: "logistics", glyph: "storage", art: "storage",
       title: "Product storage & delivery", sub: "Tank farm, loading & dispatch by mode",
-      x: 3560, y: 130, w: 290, h: 770,
+      x: 3560, y: 130, w: 290, h: 1060,
       brief: {
         purpose: "Store finished products and dispatch each one by the transport modes that suit it.",
         para: "Liquid products move from the tank farm through loading pumps and loading arms to road tankers, ISO tanks, drums, IBCs and marine vessels, or leave by pipeline. EO itself is different: because it is hazardous, it is moved only by dedicated pipeline and is never loaded into the general transport modes used for the glycols and amines.",
         inputs: [
           { label: "MEG / DEG / TEG", type: "product" },
           { label: "MEA / DEA / TEA", type: "product" },
-          { label: "Ethoxylates", type: "product" },
+          { label: "Ethoxylates / polyols", type: "product" },
           { label: "EO by dedicated pipeline", type: "product" }
         ],
         outputs: [{ label: "Customer delivery", type: "product" }],
@@ -446,7 +470,7 @@
     {
       id: "trade", stage: "$", cat: "commercial", glyph: "trade", art: "trade",
       title: "Market & trade desk", sub: "Spot vs contract · netback · Incoterms 2020",
-      x: 4020, y: 400, w: 300, h: 230,
+      x: 4020, y: 545, w: 300, h: 230,
       brief: {
         purpose: "Sell the finished products — the commercial end of the value chain, where volumes are priced against global benchmarks and shipped under standard trade terms.",
         para: "Once product leaves storage it enters the market. Commodity chemicals are sold two ways — steady term contracts and one-off spot cargoes — and the trade desk judges every cargo against published benchmarks like “MEG CFR China”. The tools below are interactive: work the netback calculator, and tap the Incoterms journey to see exactly where risk and freight change hands.",
@@ -524,16 +548,18 @@
     { from: "eop", to: "dea", fs: "r", ts: "l", type: "product", label: "→ DEA" },
     { from: "eop", to: "tea", fs: "r", ts: "l", type: "product", label: "→ TEA" },
     { from: "eop", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
+    { from: "eop", to: "polyols", fs: "r", ts: "l", type: "product", label: "EOP to polyols" },
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
     // ---- the products → storage/delivery ----
-    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.05, type: "product", label: "MEG" },
-    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.17, type: "product", label: "DEG" },
-    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.30, type: "product", label: "TEG" },
-    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.45, type: "product", label: "MEA" },
-    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.57, type: "product", label: "DEA" },
-    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.70, type: "product", label: "TEA" },
-    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.88, type: "product", label: "Ethoxylates" },
+    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.06, type: "product", label: "MEG" },
+    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.15, type: "product", label: "DEG" },
+    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.24, type: "product", label: "TEG" },
+    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.43, type: "product", label: "MEA" },
+    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.52, type: "product", label: "DEA" },
+    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.61, type: "product", label: "TEA" },
+    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.77, type: "product", label: "Ethoxylates" },
+    { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.92, type: "product", label: "Polyols" },
     // ---- EO dedicated pipeline (EOP → storage, pipeline only) ----
     { from: "eop", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
     // ---- storage → market/trade ----
@@ -637,13 +663,15 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "polyols", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes
      --------------------------------------------------------------- */
   var GROUPS = [
-    { id: "olefin", label: "OLEFINS · ethylene unit", nodes: ["furnace", "quench", "treatment", "cryo"], color: "#5aa0ff" }
+    { id: "olefin", label: "OLEFINS · ethylene unit", nodes: ["furnace", "quench", "treatment", "cryo"], color: "#5aa0ff" },
+    { id: "glycols", label: "ETHYLENE GLYCOLS", nodes: ["meg", "deg", "teg"], color: "#15a367" },
+    { id: "ethanolamines", label: "ETHANOLAMINES", nodes: ["mea", "dea", "tea"], color: "#7c6fd0" }
   ];
 
   /* ---------------------------------------------------------------
