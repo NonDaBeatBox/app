@@ -191,7 +191,7 @@
           { label: "Reactor recycle gas", type: "recycle" }
         ],
         outputs: [
-          { label: "Crude EO + gas → recovery", type: "product" },
+          { label: "EO → EOP / EG split", type: "product" },
           { label: "CO₂ by-product / purge", type: "recycle" }
         ],
         equipment: ["Gas mixer", "Feed preheater", "Multitubular catalytic reactor", "Silver catalyst (in tubes)", "Reactor-effluent cooler", "Gas separator", "Recycle compressor"],
@@ -211,34 +211,6 @@
         molecules: ["ethylene", "oxygen", "eo", "co2", "water", "ethyl_chloride"],
         sources: SRC_COMMON,
         disclaimers: ["The reactor is a shell-and-tube catalytic reactor, not a single tank.", "Catalyst and moderator details shown are public/general only — no unpublished formulations."]
-      }
-    },
-
-    /* ===== STAGE 6 — EO recovery & purification ===== */
-    {
-      id: "eorecovery", stage: "6", cat: "recovery", glyph: "recovery", art: "eorecovery",
-      title: "EO recovery & purification", sub: "Absorb, strip and distil EO to product grade",
-      x: 2060, y: 340, w: 250, h: 190,
-      brief: {
-        purpose: "Recover ethylene oxide from the reactor gas and purify it, returning the scrubbed gas to the reactor loop.",
-        para: "EO does not leave the reactor as a pure liquid — it comes out mixed with recycle gas, unreacted ethylene and by-products. It is first absorbed into water (EO is very soluble), giving an EO-rich water stream, while the scrubbed gas returns to the reactor. The EO is then stripped back out of the water and purified by distillation, removing light ends and heavy ends to reach product grade.",
-        inputs: [{ label: "Crude EO + gas", type: "product" }, { label: "Absorption water", type: "water" }],
-        outputs: [
-          { label: "Purified EO → distribution", type: "product" },
-          { label: "Recycle gas → reactor", type: "recycle" },
-          { label: "Light / heavy ends", type: "recycle" }
-        ],
-        equipment: ["EO absorber", "Water circulation", "EO stripper", "Light-ends column", "EO purification column", "Reboilers / condensers"],
-        conditions: [
-          { k: "Absorption", v: "EO into water" },
-          { k: "Recovery", v: "Stripping + distillation" },
-          { k: "Recycle gas", v: "Back to reactor" },
-          { k: "CO₂ side stream", v: "Purged (amber)" }
-        ],
-        condNote: PUB,
-        molecules: ["eo", "water"],
-        sources: SRC_COMMON,
-        disclaimers: ["Internal energy and flow data are not shown — utility connections are indicative only."]
       }
     },
 
@@ -540,11 +512,9 @@
     { from: "quench", to: "treatment", fs: "r", ts: "l", type: "hydrocarbon", label: "Compressed cracked gas" },
     { from: "treatment", to: "cryo", fs: "r", ts: "l", type: "hydrocarbon", label: "Dry cracked gas" },
     { from: "cryo", to: "eoreactor", fs: "r", ts: "l", type: "hydrocarbon", label: "Purified ethylene" },
-    // ---- EO product backbone ----
-    { from: "eoreactor", to: "eorecovery", fs: "r", ts: "l", type: "product", label: "Crude EO solution" },
-    // ---- purified EO splits into two boxes: EG (glycol) and EOP (product) ----
-    { from: "eorecovery", to: "eg", fs: "r", ts: "l", type: "product", label: "Purified EO → EG" },
-    { from: "eorecovery", to: "eop", fs: "r", ts: "l", type: "product", label: "Purified EO → EOP" },
+    // ---- EO from the reactor splits into two boxes: EG (glycol) and EOP (product) ----
+    { from: "eoreactor", to: "eg", fs: "r", ts: "l", type: "product", label: "EO → EG" },
+    { from: "eoreactor", to: "eop", fs: "r", ts: "l", type: "product", label: "EO → EOP" },
     // ---- EG → glycol products MEG · DEG · TEG (own boxes) ----
     { from: "eg", to: "meg", fs: "r", ts: "l", type: "product", label: "→ MEG" },
     { from: "eg", to: "deg", fs: "r", ts: "l", type: "product", label: "→ DEG" },
@@ -554,8 +524,6 @@
     { from: "eop", to: "dea", fs: "r", ts: "l", type: "product", label: "→ DEA" },
     { from: "eop", to: "tea", fs: "r", ts: "l", type: "product", label: "→ TEA" },
     { from: "eop", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
-    // ---- recycle: EO recovery gas back to reactor (prominent) ----
-    { from: "eorecovery", to: "eoreactor", fs: "t", ts: "t", type: "recycle", label: "Reactor recycle gas", side: true, arc: 120 },
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
     // ---- the products → storage/delivery ----
@@ -669,7 +637,7 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes

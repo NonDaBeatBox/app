@@ -17,7 +17,7 @@
     { id: "chain", label: "The chain", kind: "intro" },
     { id: "crack", label: "Feed & cracking", kind: "nodes", nodes: ["feedstocks", "furnace"] },
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
-    { id: "split", label: "Recovery & split", kind: "nodes", nodes: ["eorecovery", "eop", "eg"] },
+    { id: "split", label: "The EO split", kind: "nodes", nodes: ["eop", "eg"] },
     { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
     { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
