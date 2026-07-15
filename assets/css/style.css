@@ -309,11 +309,14 @@ ul { list-style: none; padding: 0; }
 .node.cat-recovery .node-bg { stroke: #2db39a; }
 .node.cat-distribution .node-bg { stroke: #b58be0; }
 .node.cat-derivative .node-bg { stroke: #17b0a4; }
+.node.cat-product .node-bg { stroke: #15a367; }
 .node.cat-logistics .node-bg { stroke: #8595ad; }
 .node.cat-commercial .node-bg { stroke: #e0b341; }
 
 .node .node-title { fill: var(--ink); font-weight: 700; font-size: 15px; }
 .node .node-sub { fill: var(--ink-dim); font-size: 11px; }
+.node .node-grade { fill: #eafaf2; stroke: #9adcc0; stroke-width: 1; }
+.node .node-grade-tx { fill: #0f8f5e; font-size: 10px; font-weight: 800; font-family: var(--mono); letter-spacing: .02em; }
 .node .node-tagpill { fill: var(--track); }
 .node .node-tagpill-tx { fill: var(--ink-dim); font-size: 9.5px; font-weight: 700; letter-spacing: .06em; }
 .node .node-metric { fill: var(--ink-dim); font-size: 10.5px; font-family: var(--mono); }

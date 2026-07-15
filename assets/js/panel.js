@@ -345,7 +345,7 @@
   }
 
   function catName(c) {
-    return { feed: "Feed preparation", thermal: "Thermal cracking", separation: "Separation", reaction: "Reaction", recovery: "Recovery & purification", distribution: "Distribution", derivative: "Derivative unit", logistics: "Storage & logistics", commercial: "Market & trade" }[c] || c;
+    return { feed: "Feed preparation", thermal: "Thermal cracking", separation: "Separation", reaction: "Reaction", recovery: "Recovery & purification", distribution: "Distribution", derivative: "Derivative unit", product: "End product", logistics: "Storage & logistics", commercial: "Market & trade" }[c] || c;
   }
 
   EO.panel = { render: render, shortApp: shortApp, briefSections: briefSections, wireBrief: wireBrief };

@@ -272,13 +272,23 @@
       var ty2 = Math.max(50, (h - blockH) / 2 + 18);
       titleLines.forEach(function (ln) { g += '<text class="node-title" x="14" y="' + r1(ty2) + '">' + esc(ln) + '</text>'; ty2 += 20; });
       g += '<text class="node-sub" x="14" y="' + r1(ty2 + 2) + '">' + esc(truncate(n.sub, Math.floor((w - 22) / 5.4))) + '</text>';
+      // product grade labels (e.g. MEG · DEG · TEG)
+      if (n.grades && n.grades.length) {
+        var gx = 14, gyy = h - 26;
+        n.grades.slice(0, 4).forEach(function (gr) {
+          var pw = gr.length * 6.4 + 12;
+          g += '<rect class="node-grade" x="' + r1(gx) + '" y="' + (gyy - 13) + '" width="' + r1(pw) + '" height="17" rx="8.5"/>' +
+            '<text class="node-grade-tx" x="' + r1(gx + pw / 2) + '" y="' + (gyy - 1) + '" text-anchor="middle">' + esc(gr) + '</text>';
+          gx += pw + 6;
+        });
+      }
       g += '<text class="node-open" x="' + (w - 14) + '" y="' + (h - 12) + '" text-anchor="end">click to open ›</text>';
     }
     g += '</g>';
     return g;
   }
   function catTag(cat) {
-    return { feed: "FEED PREP", thermal: "CRACKING", separation: "SEPARATION", reaction: "REACTION", recovery: "RECOVERY", distribution: "DISTRIBUTION", derivative: "DERIVATIVE", logistics: "LOGISTICS", commercial: "TRADE" }[cat] || cat.toUpperCase();
+    return { feed: "FEED PREP", thermal: "CRACKING", separation: "SEPARATION", reaction: "REACTION", recovery: "RECOVERY", distribution: "DISTRIBUTION", derivative: "DERIVATIVE", product: "PRODUCT", logistics: "LOGISTICS", commercial: "TRADE" }[cat] || cat.toUpperCase();
   }
   function topMetric(n) {
     var c = n.brief.conditions;
@@ -337,7 +347,7 @@
     var g = "";
     D.nodes.forEach(function (n) {
       var apps = n.brief.applications;
-      if (!apps || !apps.length || n.cat !== "derivative") return;
+      if (!apps || !apps.length || (n.cat !== "derivative" && n.cat !== "product")) return;
       var r = rect(n);
       var startX = r.x + r.w, startY = r.y + r.h / 2;
       if (C.layout === "v") { startX = r.x + r.w; startY = r.y + r.h - 8; }
@@ -449,7 +459,7 @@
     mm.innerHTML = g;
   }
   function strokeFor(t) { return { hydrocarbon: "#2f6fe0", product: "#17b0a4", recycle: "#f2a53a", water: "#58c1f0", utility: "#8595ad", hazard: "#f0544c", info: "#b58be0" }[t] || "#8595ad"; }
-  function fillFor(c) { return { feed: "#1a3560", thermal: "#4a3320", separation: "#1c3a52", reaction: "#124f48", recovery: "#12463d", distribution: "#3a2b52", derivative: "#124f48", logistics: "#2a3446", commercial: "#4a3f1c" }[c] || "#22344d"; }
+  function fillFor(c) { return { feed: "#1a3560", thermal: "#4a3320", separation: "#1c3a52", reaction: "#124f48", recovery: "#12463d", distribution: "#3a2b52", derivative: "#124f48", product: "#0e5a4c", logistics: "#2a3446", commercial: "#4a3f1c" }[c] || "#22344d"; }
   function updateMinimapView() {
     var b = C.bounds, v = vpSize(), mm = el("minimap"), view = el("minimap-view");
     if (!mm || !view) return;

@@ -295,8 +295,8 @@
 
     /* ===== STAGE 8B — Shell OMEGA route ===== */
     {
-      id: "omega", stage: "8", cat: "derivative", glyph: "omega", art: "omega",
-      title: "Shell OMEGA — EG (glycol) unit", sub: "EO + CO₂ → ethylene carbonate → MEG (EG)",
+      id: "omega", stage: "8", cat: "product", glyph: "omega", art: "omega",
+      title: "Ethylene glycol", sub: "The biggest EO product — PET, polyester, coolant", grades: ["MEG", "DEG", "TEG"],
       x: 2770, y: 200, w: 240, h: 150,
       brief: {
         purpose: "Turn EO into ethylene glycol (EG / MEG) using the Shell OMEGA technology — the glycol route on this map.",
@@ -326,8 +326,8 @@
 
     /* ===== STAGE 9 — ethanolamines ===== */
     {
-      id: "amines", stage: "9", cat: "derivative", glyph: "amines", art: "amines",
-      title: "Ethanolamines process", sub: "EO + ammonia → MEA / DEA / TEA",
+      id: "amines", stage: "9", cat: "product", glyph: "amines", art: "amines",
+      title: "Ethanolamines", sub: "Gas treating, detergents, personal care", grades: ["MEA", "DEA", "TEA"],
       x: 2770, y: 470, w: 240, h: 150,
       brief: {
         purpose: "React EO with ammonia to make mono-, di- and tri-ethanolamine, then separate them.",
@@ -360,8 +360,8 @@
 
     /* ===== STAGE 10 — ethoxylates ===== */
     {
-      id: "ethoxylation", stage: "10", cat: "derivative", glyph: "ethoxylation", art: "ethoxylation",
-      title: "Ethoxylates", sub: "Controlled EO addition onto an initiator",
+      id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
+      title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
       x: 2770, y: 650, w: 240, h: 150,
       brief: {
         purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
@@ -384,8 +384,8 @@
 
     /* ===== STAGE 10 — PEG ===== */
     {
-      id: "peg", stage: "10", cat: "derivative", glyph: "ethoxylation", art: "peg",
-      title: "Poly-ethylene glycol (PEG)", sub: "EO polymerised to controlled molecular weight",
+      id: "peg", stage: "10", cat: "product", glyph: "ethoxylation", art: "peg",
+      title: "Polyethylene glycol", sub: "Cosmetics, pharma, lubricants", grades: ["PEG-400", "PEG-4000", "PEG-8000"],
       x: 2770, y: 830, w: 240, h: 150,
       brief: {
         purpose: "Polymerise EO onto an initiator to make PEG across a range of molecular weights.",
@@ -409,8 +409,8 @@
 
     /* ===== STAGE 10 — glycol ethers ===== */
     {
-      id: "glycolethers", stage: "10", cat: "derivative", glyph: "glycol", art: "glycolethers",
-      title: "Glycol ethers", sub: "Alcohol + EO → glycol-ether solvents",
+      id: "glycolethers", stage: "10", cat: "product", glyph: "glycol", art: "glycolethers",
+      title: "Glycol ethers", sub: "Coalescing solvents — coatings & inks", grades: ["EGBE", "PGME", "DEGBE"],
       x: 2770, y: 1010, w: 240, h: 150,
       brief: {
         purpose: "React an alcohol with EO to make a family of glycol-ether solvents, then purify the cuts.",
@@ -433,8 +433,8 @@
 
     /* ===== STAGE 10 — polyether polyols ===== */
     {
-      id: "polyols", stage: "10", cat: "derivative", glyph: "ethoxylation", art: "polyols",
-      title: "Polyether polyols", sub: "EO/PO onto an initiator → polyols for polyurethane",
+      id: "polyols", stage: "10", cat: "product", glyph: "ethoxylation", art: "polyols",
+      title: "Polyether polyols", sub: "Feed to polyurethane foams & elastomers", grades: ["Flexible", "Rigid", "PPG"],
       x: 2770, y: 1190, w: 240, h: 150,
       brief: {
         purpose: "Build polyether polyols by adding EO and/or propylene oxide (PO) onto an initiator, for downstream polyurethane.",
