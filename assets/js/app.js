@@ -8,24 +8,7 @@
   function el(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
-  var state = { mode: "overview", layers: {}, tourIdx: -1, theme: "dark", view: "map" };
-
-  /* ---------------- day / night theme ---------------- */
-  function applyTheme(theme) {
-    state.theme = theme;
-    document.documentElement.setAttribute("data-theme", theme);
-    var btn = el("btn-theme");
-    if (btn) { btn.textContent = theme === "light" ? "☀" : "☾"; btn.title = (theme === "light" ? "Switch to night theme" : "Switch to day theme"); }
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", theme === "light" ? "#eef1f6" : "#0a1018");
-    try { localStorage.setItem("eo-theme", theme); } catch (e) {}
-  }
-  function initTheme() {
-    var saved = null;
-    try { saved = localStorage.getItem("eo-theme"); } catch (e) {}
-    var theme = saved || ((window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark");
-    applyTheme(theme);
-  }
+  var state = { mode: "overview", layers: {}, tourIdx: -1, view: "map" };
 
   /* ---------------- left rail ---------------- */
   function buildLayers() {
@@ -273,7 +256,6 @@
     el("zoom-reset").onclick = function () { EO.canvas.reset(); };
     el("btn-help").onclick = function () { openModal("How to use this map", helpHtml()); };
     el("btn-tour").onclick = startTour;
-    el("btn-theme").onclick = function () { applyTheme(state.theme === "light" ? "dark" : "light"); };
     el("disc-more").onclick = function () { openModal("Accuracy & disclaimers", disclaimerHtml()); };
     // modal / lightbox close
     document.querySelectorAll("[data-close]").forEach(function (b) {
@@ -286,7 +268,6 @@
 
   /* ---------------- boot ---------------- */
   function boot() {
-    initTheme();
     buildLayers();
     buildLegend();
     buildStageNav();
