@@ -2650,68 +2650,130 @@ body.view-learn .learn-view { display: block; }
       }
     },
 
-    /* ===== STAGE 8B — Shell OMEGA route ===== */
+    /* ===== STAGE 8 — EG products: MEG · DEG · TEG (own boxes) ===== */
     {
-      id: "omega", stage: "8", cat: "product", glyph: "omega", art: "omega",
-      title: "Ethylene glycol", sub: "The biggest EO product — PET, polyester, coolant", grades: ["MEG", "DEG", "TEG"],
-      x: 2770, y: 200, w: 240, h: 150,
+      id: "meg", stage: "8", cat: "product", glyph: "omega", art: "omega",
+      title: "MEG", sub: "Mono-ethylene glycol — PET, polyester, coolant",
+      x: 2790, y: 120, w: 214, h: 86,
       brief: {
-        purpose: "Turn EO into ethylene glycol (EG / MEG) using the Shell OMEGA technology — the glycol route on this map.",
-        para: "OMEGA (Only MEG Advantaged) makes glycol in two steps instead of hydrating EO with a big excess of water. First, EO reacts with CO₂ in the ethylene-carbonate (EC) reactor over a catalyst to form ethylene carbonate. Then that carbonate is hydrolysed with water in a second reactor to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled back to the EC reactor — the prominent amber loop. Because the carbonate step is so selective, OMEGA makes almost pure MEG with very little DEG/TEG, and it needs far less water and evaporation energy than conventional hydration.",
-        para2: "The OMEGA 'machine', step by step: EC reactor (EO + CO₂ → carbonate) → hydrolysis reactor (carbonate + water → MEG + CO₂) → CO₂ separator → CO₂ recycle compressor → MEG purification. Click through the illustration to see how the pieces connect.",
-        inputs: [{ label: "EO feed (EOP)", type: "product" }, { label: "CO₂ feed", type: "recycle" }, { label: "Water", type: "water" }],
-        outputs: [{ label: "MEG (EG) product", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
-        equipment: ["Ethylene-carbonate (EC) reactor", "Catalyst", "Hydrolysis reactor", "CO₂ separator", "CO₂ recycle compressor", "MEG purification"],
+        purpose: "Mono-ethylene glycol (MEG) — the single biggest ethylene-oxide product, made from the EG stream via the Shell OMEGA route.",
+        para: "OMEGA (Only MEG Advantaged) makes MEG in two steps instead of hydrating EO with a big excess of water. EO first reacts with CO₂ in the ethylene-carbonate (EC) reactor to form ethylene carbonate; that carbonate is then hydrolysed with water to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled — the amber loop. The carbonate step is so selective that OMEGA makes almost pure MEG with very little DEG/TEG, using far less water and energy than conventional hydration.",
+        para2: "The OMEGA 'machine', step by step: EC reactor (EO + CO₂ → carbonate) → hydrolysis reactor (carbonate + water → MEG + CO₂) → CO₂ separator → CO₂ recycle compressor → MEG purification.",
+        inputs: [{ label: "EO (from EG split)", type: "product" }, { label: "CO₂ (recycled)", type: "recycle" }, { label: "Water", type: "water" }],
+        outputs: [{ label: "MEG product → storage", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
+        equipment: ["Ethylene-carbonate (EC) reactor", "Hydrolysis reactor", "CO₂ separator", "CO₂ recycle compressor", "MEG purification"],
         reactions: [
           { kind: "", label: "Step 1 — carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
           { kind: "", label: "Step 2 — hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
         ],
         conditions: [
-          { k: "Route", v: "Carbonate intermediate" },
+          { k: "Route", v: "Shell OMEGA (carbonate)" },
           { k: "CO₂", v: "Recycled in a loop" },
-          { k: "Selectivity", v: "Very high to MEG" },
-          { k: "vs hydration", v: "Less water & energy" }
+          { k: "Selectivity", v: "Very high to MEG" }
         ],
         condNote: PUB,
         molecules: ["eo", "co2", "ethylene_carbonate", "water", "meg"],
-        products: [{ name: "MEG (EG)", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] }],
+        products: [{ name: "MEG", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] }],
         applications: ["petbottle", "fiber", "antifreeze", "film", "coolant"],
         sources: SRC_COMMON.concat(["Public descriptions of the Shell OMEGA process"]),
-        disclaimers: ["Shell OMEGA technology is described from public sources only.", "Equipment sequence is representative; figures are public illustrative values."]
+        disclaimers: ["Shell OMEGA technology is described from public sources only.", "Figures are public illustrative values."]
+      }
+    },
+    {
+      id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
+      title: "DEG", sub: "Di-ethylene glycol — resins, plasticisers",
+      x: 2790, y: 218, w: 214, h: 86,
+      brief: {
+        purpose: "Di-ethylene glycol (DEG) — a glycol co-product, one EO unit longer than MEG.",
+        para: "DEG forms when a glycol molecule reacts with a further EO. The OMEGA route makes very little DEG; conventional water hydration makes more. DEG goes into unsaturated polyester resins, plasticisers and polyurethanes, and is used as a humectant and solvent.",
+        inputs: [{ label: "EO (from EG split)", type: "product" }],
+        outputs: [{ label: "DEG product → storage", type: "product" }],
+        reactions: [{ kind: "", label: "Chain growth", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] }],
+        conditions: [{ k: "Formation", v: "MEG + EO → DEG" }, { k: "Yield", v: "Minor co-product" }],
+        condNote: PUB,
+        molecules: ["meg", "eo", "deg"],
+        products: [{ name: "DEG", mol: "deg", apps: ["resin", "plasticizer", "solvent"] }],
+        applications: ["resin", "plasticizer", "solvent"],
+        sources: SRC_COMMON,
+        disclaimers: ["Co-product yields are public illustrative values."]
+      }
+    },
+    {
+      id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
+      title: "TEG", sub: "Tri-ethylene glycol — gas drying, humectant",
+      x: 2790, y: 316, w: 214, h: 86,
+      brief: {
+        purpose: "Tri-ethylene glycol (TEG) — a further glycol co-product, three EO units long.",
+        para: "TEG forms when DEG reacts with another EO. It absorbs water strongly, which makes it the standard desiccant for drying natural gas; it is also a humectant, plasticiser and air-disinfection agent. It is the smallest-volume of the three ethylene glycols.",
+        inputs: [{ label: "EO (from EG split)", type: "product" }],
+        outputs: [{ label: "TEG product → storage", type: "product" }],
+        reactions: [{ kind: "", label: "Chain growth", eq: "DEG + EO  →  TEG", mols: ["deg", "eo", "teg"] }],
+        conditions: [{ k: "Formation", v: "DEG + EO → TEG" }, { k: "Key use", v: "Natural-gas drying" }],
+        condNote: PUB,
+        molecules: ["deg", "eo", "teg"],
+        products: [{ name: "TEG", mol: "teg", apps: ["gasdehydration", "solvent", "personalcare"] }],
+        applications: ["gasdehydration", "solvent", "personalcare"],
+        sources: SRC_COMMON,
+        disclaimers: ["Co-product yields are public illustrative values."]
       }
     },
 
-    /* ===== STAGE 9 — ethanolamines ===== */
+    /* ===== STAGE 9 — ethanolamine products: MEA · DEA · TEA (own boxes) ===== */
     {
-      id: "amines", stage: "9", cat: "product", glyph: "amines", art: "amines",
-      title: "Ethanolamines", sub: "Gas treating, detergents, personal care", grades: ["MEA", "DEA", "TEA"],
-      x: 2770, y: 470, w: 240, h: 150,
+      id: "mea", stage: "9", cat: "product", glyph: "amines", art: "amines",
+      title: "MEA", sub: "Mono-ethanolamine — gas treating, surfactants",
+      x: 2790, y: 430, w: 214, h: 86,
       brief: {
-        purpose: "React EO with ammonia to make mono-, di- and tri-ethanolamine, then separate them.",
-        para: "Ammonia reacts with EO to add a hydroxyethyl (–CH₂CH₂OH) arm, giving MEA. MEA can react with more EO to give DEA (two arms), and DEA with more EO to give TEA (three arms). Changing the EO-to-ammonia ratio shifts the product mix: more ammonia favours MEA, more EO favours DEA/TEA. Excess ammonia is recovered and recycled, and the three products are separated by distillation.",
-        inputs: [{ label: "EO feed", type: "product" }, { label: "Ammonia feed", type: "utility" }],
-        outputs: [{ label: "MEA / DEA / TEA products", type: "product" }, { label: "Ammonia recycle", type: "recycle" }],
-        equipment: ["Amination reactor", "Ammonia recovery", "MEA column", "DEA column", "TEA column"],
-        reactions: [
-          { kind: "", label: "MEA (one arm)", eq: "NH₃ + EO  →  MEA", mols: ["ammonia", "eo", "mea"] },
-          { kind: "", label: "DEA (two arms)", eq: "MEA + EO  →  DEA", mols: ["mea", "eo", "dea"] },
-          { kind: "", label: "TEA (three arms)", eq: "DEA + EO  →  TEA", mols: ["dea", "eo", "tea"] }
-        ],
-        conditions: [
-          { k: "Reactants", v: "EO + ammonia" },
-          { k: "Product split", v: "Set by EO : NH₃ ratio" },
-          { k: "MEA / DEA / TEA", v: "1 / 2 / 3 hydroxyethyl arms" }
-        ],
+        purpose: "Mono-ethanolamine (MEA) — ammonia plus one EO arm; the first ethanolamine.",
+        para: "Ammonia reacts with EO to add one hydroxyethyl (–CH₂CH₂OH) arm, giving MEA. A high ammonia-to-EO ratio favours MEA over DEA/TEA. MEA is widely used to scrub CO₂ and H₂S from gas streams, and to make surfactants and detergents.",
+        inputs: [{ label: "EO (from EOP)", type: "product" }, { label: "Ammonia", type: "utility" }],
+        outputs: [{ label: "MEA product → storage", type: "product" }],
+        reactions: [{ kind: "", label: "One arm", eq: "NH₃ + EO  →  MEA", mols: ["ammonia", "eo", "mea"] }],
+        conditions: [{ k: "Reactants", v: "NH₃ + EO" }, { k: "Favoured by", v: "Excess ammonia" }],
         condNote: PUB,
-        molecules: ["ammonia", "eo", "mea", "dea", "tea"],
-        products: [
-          { name: "MEA", mol: "mea", apps: ["gastreat", "surfactant", "cement"] },
-          { name: "DEA", mol: "dea", apps: ["gastreat", "detergent", "cement"] },
-          { name: "TEA", mol: "tea", apps: ["personalcare", "cement", "agri"] }
-        ],
-        applications: ["gastreat", "surfactant", "personalcare", "detergent", "cement", "agri"],
+        molecules: ["ammonia", "eo", "mea"],
+        products: [{ name: "MEA", mol: "mea", apps: ["gastreat", "surfactant", "detergent"] }],
+        applications: ["gastreat", "surfactant", "detergent"],
         sources: SRC_COMMON,
-        disclaimers: ["MEA, DEA and TEA are made and then separated — not by one single direct reaction."]
+        disclaimers: ["MEA, DEA and TEA are co-products separated by distillation."]
+      }
+    },
+    {
+      id: "dea", stage: "9", cat: "product", glyph: "amines", art: "amines",
+      title: "DEA", sub: "Di-ethanolamine — surfactants, gas treating",
+      x: 2790, y: 528, w: 214, h: 86,
+      brief: {
+        purpose: "Di-ethanolamine (DEA) — ammonia with two EO arms.",
+        para: "MEA reacts with a second EO to give DEA (two hydroxyethyl arms). DEA is used in gas treating, as a surfactant and emulsifier, in detergents and metalworking fluids. The MEA/DEA/TEA mix is set by the EO-to-ammonia ratio.",
+        inputs: [{ label: "EO (from EOP)", type: "product" }, { label: "Ammonia", type: "utility" }],
+        outputs: [{ label: "DEA product → storage", type: "product" }],
+        reactions: [{ kind: "", label: "Two arms", eq: "MEA + EO  →  DEA", mols: ["mea", "eo", "dea"] }],
+        conditions: [{ k: "Formation", v: "MEA + EO → DEA" }, { k: "Mix", v: "Set by EO : NH₃ ratio" }],
+        condNote: PUB,
+        molecules: ["mea", "eo", "dea"],
+        products: [{ name: "DEA", mol: "dea", apps: ["surfactant", "gastreat", "detergent"] }],
+        applications: ["surfactant", "gastreat", "detergent"],
+        sources: SRC_COMMON,
+        disclaimers: ["MEA, DEA and TEA are co-products separated by distillation."]
+      }
+    },
+    {
+      id: "tea", stage: "9", cat: "product", glyph: "amines", art: "amines",
+      title: "TEA", sub: "Tri-ethanolamine — cement, cosmetics",
+      x: 2790, y: 626, w: 214, h: 86,
+      brief: {
+        purpose: "Tri-ethanolamine (TEA) — ammonia with three EO arms.",
+        para: "DEA reacts with a third EO to give TEA (three hydroxyethyl arms). A high EO-to-ammonia ratio favours TEA. It is used as a cement grinding aid, a pH adjuster and emulsifier in cosmetics and personal care, and in agrochemical formulations.",
+        inputs: [{ label: "EO (from EOP)", type: "product" }, { label: "Ammonia", type: "utility" }],
+        outputs: [{ label: "TEA product → storage", type: "product" }],
+        reactions: [{ kind: "", label: "Three arms", eq: "DEA + EO  →  TEA", mols: ["dea", "eo", "tea"] }],
+        conditions: [{ k: "Formation", v: "DEA + EO → TEA" }, { k: "Favoured by", v: "Excess EO" }],
+        condNote: PUB,
+        molecules: ["dea", "eo", "tea"],
+        products: [{ name: "TEA", mol: "tea", apps: ["cement", "personalcare", "agri"] }],
+        applications: ["cement", "personalcare", "agri"],
+        sources: SRC_COMMON,
+        disclaimers: ["MEA, DEA and TEA are co-products separated by distillation."]
       }
     },
 
@@ -2719,7 +2781,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
       title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
-      x: 2770, y: 650, w: 240, h: 150,
+      x: 2790, y: 716, w: 234, h: 132,
       brief: {
         purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
         para: "A starter such as a fatty alcohol is charged to a stirred reactor and EO is added a little at a time. Each EO adds one –CH₂CH₂O– unit, growing a water-loving chain on the end of the oil-loving starter. The result is an amphiphile: a hydrophobic tail plus a hydrophilic EO chain — the basic structure of most non-ionic surfactants.",
@@ -2743,7 +2805,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "peg", stage: "10", cat: "product", glyph: "ethoxylation", art: "peg",
       title: "Polyethylene glycol", sub: "Cosmetics, pharma, lubricants", grades: ["PEG-400", "PEG-4000", "PEG-8000"],
-      x: 2770, y: 830, w: 240, h: 150,
+      x: 2790, y: 864, w: 234, h: 132,
       brief: {
         purpose: "Polymerise EO onto an initiator to make PEG across a range of molecular weights.",
         para: "EO is added onto an initiator and the –CH₂CH₂O– chain is grown to a target length. Controlling how much EO is added sets the molecular weight, which in turn sets whether the PEG is a mobile liquid, a paste or a waxy solid. PEG grades are named by their approximate molecular weight.",
@@ -2768,7 +2830,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "glycolethers", stage: "10", cat: "product", glyph: "glycol", art: "glycolethers",
       title: "Glycol ethers", sub: "Coalescing solvents — coatings & inks", grades: ["EGBE", "PGME", "DEGBE"],
-      x: 2770, y: 1010, w: 240, h: 150,
+      x: 2790, y: 1012, w: 234, h: 132,
       brief: {
         purpose: "React an alcohol with EO to make a family of glycol-ether solvents, then purify the cuts.",
         para: "An alcohol reacts with EO to give a glycol ether — a molecule that dissolves both water-based and oil-based materials, which makes it a valuable coalescing solvent. Different alcohols and different numbers of EO units give a family of products separated by distillation.",
@@ -2792,7 +2854,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "polyols", stage: "10", cat: "product", glyph: "ethoxylation", art: "polyols",
       title: "Polyether polyols", sub: "Feed to polyurethane foams & elastomers", grades: ["Flexible", "Rigid", "PPG"],
-      x: 2770, y: 1190, w: 240, h: 150,
+      x: 2790, y: 1160, w: 234, h: 132,
       brief: {
         purpose: "Build polyether polyols by adding EO and/or propylene oxide (PO) onto an initiator, for downstream polyurethane.",
         para: "EO and/or PO are added onto a multi-functional initiator to grow polyether chains ending in –OH groups (a polyol). The choice and ratio of EO/PO and the initiator set the polyol’s properties. Polyols react with isocyanates downstream to make polyurethanes — flexible and rigid foams, elastomers and coatings.",
@@ -2816,7 +2878,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "storage", stage: "→", cat: "logistics", glyph: "storage", art: "storage",
       title: "Product storage & delivery", sub: "Tank farm, loading & dispatch by mode",
-      x: 3560, y: 320, w: 290, h: 760,
+      x: 3560, y: 180, w: 290, h: 1060,
       brief: {
         purpose: "Store finished products and dispatch each one by the transport modes that suit it.",
         para: "Liquid products move from the tank farm through loading pumps and loading arms to road tankers, ISO tanks, drums, IBCs and marine vessels, or leave by pipeline. EO itself is different: because it is hazardous, it is moved only by dedicated pipeline and is never loaded into the general transport modes used for the glycols and amines.",
@@ -2843,7 +2905,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "trade", stage: "$", cat: "commercial", glyph: "trade", art: "trade",
       title: "Market & trade desk", sub: "Spot vs contract · netback · Incoterms 2020",
-      x: 4020, y: 540, w: 300, h: 230,
+      x: 4020, y: 600, w: 300, h: 230,
       brief: {
         purpose: "Sell the finished products — the commercial end of the value chain, where volumes are priced against global benchmarks and shipped under standard trade terms.",
         para: "Once product leaves storage it enters the market. Commodity chemicals are sold two ways — steady term contracts and one-off spot cargoes — and the trade desk judges every cargo against published benchmarks like “MEG CFR China”. The tools below are interactive: work the netback calculator, and tap the Incoterms journey to see exactly where risk and freight change hands.",
@@ -2914,10 +2976,14 @@ body.view-learn .learn-view { display: block; }
     // ---- purified EO splits into two boxes: EG (glycol) and EOP (product) ----
     { from: "eorecovery", to: "eg", fs: "r", ts: "l", type: "product", label: "Purified EO → EG" },
     { from: "eorecovery", to: "eop", fs: "r", ts: "l", type: "product", label: "Purified EO → EOP" },
-    // ---- EG box → OMEGA glycol unit ----
-    { from: "eg", to: "omega", fs: "r", ts: "l", type: "product", label: "EO → EG (glycol)" },
-    // ---- EOP box → the five derivative units ----
-    { from: "eop", to: "amines", fs: "r", ts: "l", type: "product", label: "EOP to amines" },
+    // ---- EG → glycol products MEG · DEG · TEG (own boxes) ----
+    { from: "eg", to: "meg", fs: "r", ts: "l", type: "product", label: "→ MEG" },
+    { from: "eg", to: "deg", fs: "r", ts: "l", type: "product", label: "→ DEG" },
+    { from: "eg", to: "teg", fs: "r", ts: "l", type: "product", label: "→ TEG" },
+    // ---- EOP → ethanolamines MEA · DEA · TEA (own boxes) + other product units ----
+    { from: "eop", to: "mea", fs: "r", ts: "l", type: "product", label: "→ MEA" },
+    { from: "eop", to: "dea", fs: "r", ts: "l", type: "product", label: "→ DEA" },
+    { from: "eop", to: "tea", fs: "r", ts: "l", type: "product", label: "→ TEA" },
     { from: "eop", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
     { from: "eop", to: "peg", fs: "r", ts: "l", type: "product", label: "EOP to PEG" },
     { from: "eop", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "EOP to glycol ethers" },
@@ -2927,12 +2993,16 @@ body.view-learn .learn-view { display: block; }
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
     // ---- products → storage/delivery (spread along the tall dispatch column) ----
-    { from: "omega", to: "storage", fs: "r", ts: "l", toff: 0.03, type: "product", label: "MEG (EG)" },
-    { from: "amines", to: "storage", fs: "r", ts: "l", toff: 0.31, type: "product", label: "MEA / DEA / TEA" },
-    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.47, type: "product", label: "Ethoxylates" },
-    { from: "peg", to: "storage", fs: "r", ts: "l", toff: 0.62, type: "product", label: "PEG" },
-    { from: "glycolethers", to: "storage", fs: "r", ts: "l", toff: 0.80, type: "product", label: "Glycol ethers" },
-    { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.95, type: "product", label: "Polyols" },
+    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.02, type: "product", label: "MEG" },
+    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.10, type: "product", label: "DEG" },
+    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.18, type: "product", label: "TEG" },
+    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.30, type: "product", label: "MEA" },
+    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.38, type: "product", label: "DEA" },
+    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.46, type: "product", label: "TEA" },
+    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.58, type: "product", label: "Ethoxylates" },
+    { from: "peg", to: "storage", fs: "r", ts: "l", toff: 0.70, type: "product", label: "PEG" },
+    { from: "glycolethers", to: "storage", fs: "r", ts: "l", toff: 0.82, type: "product", label: "Glycol ethers" },
+    { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.94, type: "product", label: "Polyols" },
     // ---- EO dedicated pipeline (EOP → storage, pipeline only) ----
     { from: "eop", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
     // ---- storage → market/trade ----
@@ -2948,8 +3018,8 @@ body.view-learn .learn-view { display: block; }
     { node: "cryo", side: "t", dir: "out", type: "recycle", label: "CH₄ / H₂ off-gas" },
     { node: "eoreactor", side: "t", dir: "in", type: "utility", label: "Oxygen feed" },
     { node: "eoreactor", side: "b", dir: "out", type: "recycle", label: "CO₂ by-product" },
-    { node: "amines", side: "t", dir: "in", type: "utility", label: "Ammonia feed" },
-    { node: "omega", side: "t", dir: "in", type: "recycle", label: "CO₂ feed" },
+    { node: "mea", side: "t", dir: "in", type: "utility", label: "Ammonia" },
+    { node: "meg", side: "t", dir: "in", type: "recycle", label: "CO₂ (recycle)" },
     { node: "treatment", side: "t", dir: "out", type: "recycle", label: "Acid gas / CO₂" }
   ];
 
@@ -3036,7 +3106,7 @@ body.view-learn .learn-view { display: block; }
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes
@@ -3173,7 +3243,7 @@ body.view-learn .learn-view { display: block; }
   function computeVertical() {
     var CX = 60, ROW = 210, INDENT = 120;
     var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg"];
-    var deriv = ["omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols"];
+    var deriv = ["meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols"];
     var y = 40, order = 0;
     C.vorder = {};
     spine.forEach(function (id) {
@@ -4135,8 +4205,8 @@ body.view-learn .learn-view { display: block; }
     { id: "crack", label: "Feed & cracking", kind: "nodes", nodes: ["feedstocks", "furnace"] },
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
     { id: "split", label: "Recovery & split", kind: "nodes", nodes: ["eorecovery", "eop", "eg"] },
-    { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["omega"] },
-    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["amines", "ethoxylation", "peg", "glycolethers", "polyols"] },
+    { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
+    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
     { id: "trade", label: "Trade", kind: "nodes", nodes: ["trade"] },
     { id: "quiz", label: "Quiz", kind: "quiz" }

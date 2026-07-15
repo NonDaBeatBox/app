@@ -18,8 +18,8 @@
     { id: "crack", label: "Feed & cracking", kind: "nodes", nodes: ["feedstocks", "furnace"] },
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
     { id: "split", label: "Recovery & split", kind: "nodes", nodes: ["eorecovery", "eop", "eg"] },
-    { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["omega"] },
-    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["amines", "ethoxylation", "peg", "glycolethers", "polyols"] },
+    { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
+    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
     { id: "trade", label: "Trade", kind: "nodes", nodes: ["trade"] },
     { id: "quiz", label: "Quiz", kind: "quiz" }
