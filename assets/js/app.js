@@ -257,10 +257,9 @@
     buildCanvasLegend();
     buildFabs();
     buildTourBar();
-    wireModes();
     wireControls();
     wireKeys();
-    setMode("overview");
+    document.body.classList.add("mode-overview");
     EO.canvas.init();
     EO.canvas.setAnimate(true);
 

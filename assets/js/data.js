@@ -50,6 +50,13 @@
           { k: "Dilution steam", v: "Lowers hydrocarbon partial pressure" }
         ],
         condNote: PUB,
+        feedList: [
+          { name: "Ethane", formula: "C₂H₆", note: "Light gas — the highest ethylene yield." },
+          { name: "Propane", formula: "C₃H₈", note: "Light gas; also makes some propylene." },
+          { name: "LPG", formula: "C₃–C₄", note: "Propane / butane mixture." },
+          { name: "NGL", formula: "C₂–C₅⁺", note: "Natural-gas liquids." },
+          { name: "Naphtha", formula: "C₅–C₁₀ mix", note: "Liquid feed — broad product slate; not one molecule." }
+        ],
         molecules: ["ethane", "propane"],
         moleculeNote: "Naphtha is a mixture of many hydrocarbons, so it has no single structure.",
         sources: SRC_COMMON,
@@ -238,101 +245,66 @@
     /* ===== STAGE 7 — EO distribution header ===== */
     {
       id: "manifold", stage: "7", cat: "distribution", glyph: "manifold", art: "manifold",
-      title: "Purified-EO distribution header", sub: "Split one EO stream to every derivative unit",
+      title: "EO product split — EOP & EG", sub: "Purified EO → EOP (product) + EG (glycol)",
       x: 2390, y: 330, w: 250, h: 210,
       brief: {
-        purpose: "Divide the single purified-EO stream between the glycol unit and the HPEO derivative units.",
-        para: "A distribution header (a conceptual manifold, not a real piping arrangement) sends purified EO to the glycol plant and high-purity EO (HPEO) to the ethanolamine, ethoxylate, PEG, glycol-ether and polyether-polyol units. EO can also be moved by dedicated pipeline. Because EO is hazardous, it travels only by dedicated pipeline — never by the general transport modes used for the liquid products.",
+        purpose: "Divide the purified ethylene-oxide stream into its two destinations: EOP (ethylene oxide as a product) and EG (ethylene glycol).",
+        para: "Purified EO goes two ways. Part of it is kept as EOP — high-purity ethylene oxide product — and piped to the derivative units (ethanolamines, ethoxylates, PEG, glycol ethers and polyols). The rest is converted to EG — ethylene glycol — in the Shell OMEGA glycol unit. Because EO is hazardous, EOP moves only by dedicated pipeline, never by the general transport modes used for the finished liquids.",
+        splits: [
+          { code: "EOP", name: "Ethylene oxide product", note: "High-purity EO piped to the derivative units.", color: "accent" },
+          { code: "EG", name: "Ethylene glycol", note: "EO converted to MEG in the Shell OMEGA unit.", color: "product" }
+        ],
         inputs: [{ label: "Purified EO", type: "product" }],
         outputs: [
-          { label: "EO → glycol production", type: "product" },
-          { label: "EO → Shell OMEGA route", type: "product" },
-          { label: "HPEO → ethanolamines", type: "product" },
-          { label: "HPEO → ethoxylates", type: "product" },
-          { label: "HPEO → PEG", type: "product" },
-          { label: "HPEO → glycol ethers", type: "product" },
-          { label: "HPEO → polyether polyols", type: "product" },
-          { label: "EO by dedicated pipeline", type: "product" }
+          { label: "EO → EG (Shell OMEGA glycol)", type: "product" },
+          { label: "EOP → ethanolamines", type: "product" },
+          { label: "EOP → ethoxylates", type: "product" },
+          { label: "EOP → PEG", type: "product" },
+          { label: "EOP → glycol ethers", type: "product" },
+          { label: "EOP → polyether polyols", type: "product" },
+          { label: "EOP by dedicated pipeline", type: "product" }
         ],
-        equipment: ["Distribution header", "Branch valves", "Labelled branch lines", "Vessel / pipeline connections"],
+        equipment: ["Distribution header", "Branch valves", "EOP pipeline connection", "Glycol-unit feed"],
         conditions: [
-          { k: "Function", v: "One EO stream → many units" },
+          { k: "EOP", v: "EO kept as product" },
+          { k: "EG", v: "EO → glycol (OMEGA)" },
           { k: "EO transport", v: "Dedicated pipeline only" }
         ],
         condNote: PUB,
         molecules: ["eo"],
         sources: SRC_COMMON,
-        disclaimers: ["Conceptual EO distribution header — not plant piping configuration.", "Branch valves and lines are graphical detail only."]
+        disclaimers: ["Conceptual EO split — not plant piping configuration.", "Branch valves and lines are graphical detail only."]
       }
     },
 
     /* ===== STAGE 8B — Shell OMEGA route ===== */
     {
-      id: "omega", stage: "8B", cat: "derivative", glyph: "omega", art: "omega",
-      title: "Shell OMEGA glycol route", sub: "EO → ethylene carbonate → MEG (CO₂ recycled)",
-      x: 2770, y: 60, w: 240, h: 150,
+      id: "omega", stage: "EG", cat: "derivative", glyph: "omega", art: "omega",
+      title: "Shell OMEGA — EG (glycol) unit", sub: "EO + CO₂ → ethylene carbonate → MEG (EG)",
+      x: 2770, y: 200, w: 240, h: 150,
       brief: {
-        purpose: "Make mono-ethylene glycol (MEG) from EO via ethylene carbonate, using and recycling CO₂ — an alternative to conventional hydration.",
-        para: "Instead of hydrating EO directly, the OMEGA route first reacts EO with CO₂ to form ethylene carbonate, then hydrolyses that intermediate to MEG, releasing the CO₂ again. The CO₂ is captured and recycled, so the loop is highly selective to MEG and makes very little DEG/TEG. The amber CO₂ recycle loop is the defining feature of this route.",
-        inputs: [{ label: "EO feed", type: "product" }, { label: "CO₂ feed", type: "recycle" }, { label: "Water", type: "water" }],
-        outputs: [{ label: "MEG product", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
+        purpose: "Turn EO into ethylene glycol (EG / MEG) using the Shell OMEGA technology — the glycol route on this map.",
+        para: "OMEGA (Only MEG Advantaged) makes glycol in two steps instead of hydrating EO with a big excess of water. First, EO reacts with CO₂ in the ethylene-carbonate (EC) reactor over a catalyst to form ethylene carbonate. Then that carbonate is hydrolysed with water in a second reactor to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled back to the EC reactor — the prominent amber loop. Because the carbonate step is so selective, OMEGA makes almost pure MEG with very little DEG/TEG, and it needs far less water and evaporation energy than conventional hydration.",
+        para2: "The OMEGA 'machine', step by step: EC reactor (EO + CO₂ → carbonate) → hydrolysis reactor (carbonate + water → MEG + CO₂) → CO₂ separator → CO₂ recycle compressor → MEG purification. Click through the illustration to see how the pieces connect.",
+        inputs: [{ label: "EO feed (EOP)", type: "product" }, { label: "CO₂ feed", type: "recycle" }, { label: "Water", type: "water" }],
+        outputs: [{ label: "MEG (EG) product", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
         equipment: ["Ethylene-carbonate (EC) reactor", "Catalyst", "Hydrolysis reactor", "CO₂ separator", "CO₂ recycle compressor", "MEG purification"],
         reactions: [
-          { kind: "", label: "Carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
-          { kind: "", label: "Hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
+          { kind: "", label: "Step 1 — carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
+          { kind: "", label: "Step 2 — hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
         ],
         conditions: [
           { k: "Route", v: "Carbonate intermediate" },
           { k: "CO₂", v: "Recycled in a loop" },
           { k: "Selectivity", v: "Very high to MEG" },
-          { k: "Co-products", v: "Little DEG / TEG" }
+          { k: "vs hydration", v: "Less water & energy" }
         ],
         condNote: PUB,
         molecules: ["eo", "co2", "ethylene_carbonate", "water", "meg"],
-        products: [{ name: "MEG", mol: "meg" }],
+        products: [{ name: "MEG (EG)", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] }],
         applications: ["petbottle", "fiber", "antifreeze", "film", "coolant"],
         sources: SRC_COMMON.concat(["Public descriptions of the Shell OMEGA process"]),
-        disclaimers: ["Distinct from conventional hydration — shown as a separate route.", "Comparison figures are public illustrative values."]
-      }
-    },
-
-    /* ===== STAGE 8A — conventional glycols ===== */
-    {
-      id: "glycol", stage: "8A", cat: "derivative", glyph: "glycol", art: "glycol",
-      title: "Conventional glycol production", sub: "EO hydration → MEG + DEG + TEG",
-      x: 2770, y: 240, w: 240, h: 150,
-      brief: {
-        purpose: "React EO with a large excess of water to make mainly MEG, plus DEG and TEG, then separate them by boiling point.",
-        para: "EO and water are mixed and hydrated; the first product is MEG, but MEG can react with more EO to give DEG, and DEG with more EO to give TEG. Using a large excess of water (about 20 parts water to 1 part EO) keeps EO dilute, so it mostly meets water rather than glycol — favouring MEG. The reactor effluent is concentrated in a multiple-effect evaporator train, then a distillation ladder separates the glycols by their rising boiling points.",
-        inputs: [{ label: "EO feed", type: "product" }, { label: "Excess water (~20:1)", type: "water" }],
-        outputs: [{ label: "MEG / DEG / TEG products", type: "product" }, { label: "Water recycle", type: "recycle" }],
-        equipment: ["Feed mixing", "Hydration reactor", "Effluent cooling", "Multiple-effect evaporator train", "MEG column", "DEG column", "TEG / heavy-glycol column", "Product tanks"],
-        reactions: [
-          { kind: "", label: "MEG", eq: "EO + H₂O  →  MEG", mols: ["eo", "water", "meg"] },
-          { kind: "", label: "DEG", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] },
-          { kind: "", label: "TEG", eq: "DEG + EO  →  TEG", mols: ["deg", "eo", "teg"] }
-        ],
-        conditions: [
-          { k: "Water-to-EO ratio", v: "≈ 20 : 1" },
-          { k: "Reaction temperature", v: "≈ 200 °C" },
-          { k: "Main product", v: "MEG" },
-          { k: "Co-products", v: "DEG, TEG" }
-        ],
-        condNote: "Illustrative public technology values — not plant data",
-        ladder: [
-          { k: "MEG boiling point", v: "≈ 197 °C" },
-          { k: "DEG boiling point", v: "≈ 246 °C" },
-          { k: "TEG boiling point", v: "≈ 287 °C" }
-        ],
-        molecules: ["eo", "water", "meg", "deg", "teg"],
-        products: [
-          { name: "MEG", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] },
-          { name: "DEG", mol: "deg", apps: ["resin", "plasticizer", "solvent"] },
-          { name: "TEG", mol: "teg", apps: ["gasdehydration", "solvent"] }
-        ],
-        applications: ["petbottle", "fiber", "antifreeze", "resin", "gasdehydration"],
-        sources: SRC_COMMON,
-        disclaimers: ["Excess water favours MEG by keeping EO dilute.", "Illustrative public technology values — not plant data."]
+        disclaimers: ["Shell OMEGA technology is described from public sources only.", "Equipment sequence is representative; figures are public illustrative values."]
       }
     },
 
@@ -567,21 +539,19 @@
     // ---- EO product backbone ----
     { from: "eoreactor", to: "eorecovery", fs: "r", ts: "l", type: "product", label: "Crude EO solution" },
     { from: "eorecovery", to: "manifold", fs: "r", ts: "l", type: "product", label: "Purified EO" },
-    // ---- distribution header → derivatives ----
-    { from: "manifold", to: "omega", fs: "r", ts: "l", type: "product", label: "EO to OMEGA" },
-    { from: "manifold", to: "glycol", fs: "r", ts: "l", type: "product", label: "EO to glycol unit" },
-    { from: "manifold", to: "amines", fs: "r", ts: "l", type: "product", label: "HPEO to amines" },
-    { from: "manifold", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "HPEO to ethoxylates" },
-    { from: "manifold", to: "peg", fs: "r", ts: "l", type: "product", label: "HPEO to PEG" },
-    { from: "manifold", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "HPEO to glycol ethers" },
-    { from: "manifold", to: "polyols", fs: "r", ts: "l", type: "product", label: "HPEO to polyols" },
+    // ---- EO split → EG (glycol via OMEGA) + EOP (EO product to derivatives) ----
+    { from: "manifold", to: "omega", fs: "r", ts: "l", type: "product", label: "EO → EG (glycol)" },
+    { from: "manifold", to: "amines", fs: "r", ts: "l", type: "product", label: "EOP to amines" },
+    { from: "manifold", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
+    { from: "manifold", to: "peg", fs: "r", ts: "l", type: "product", label: "EOP to PEG" },
+    { from: "manifold", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "EOP to glycol ethers" },
+    { from: "manifold", to: "polyols", fs: "r", ts: "l", type: "product", label: "EOP to polyols" },
     // ---- recycle: EO recovery gas back to reactor (prominent) ----
     { from: "eorecovery", to: "eoreactor", fs: "t", ts: "t", type: "recycle", label: "Reactor recycle gas", side: true, arc: 120 },
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
     // ---- products → storage/delivery (spread along the tall dispatch column) ----
-    { from: "omega", to: "storage", fs: "r", ts: "l", toff: 0.03, type: "product", label: "MEG" },
-    { from: "glycol", to: "storage", fs: "r", ts: "l", toff: 0.13, type: "product", label: "MEG / DEG / TEG" },
+    { from: "omega", to: "storage", fs: "r", ts: "l", toff: 0.03, type: "product", label: "MEG (EG)" },
     { from: "amines", to: "storage", fs: "r", ts: "l", toff: 0.31, type: "product", label: "MEA / DEA / TEA" },
     { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.47, type: "product", label: "Ethoxylates" },
     { from: "peg", to: "storage", fs: "r", ts: "l", toff: 0.62, type: "product", label: "PEG" },
@@ -604,7 +574,6 @@
     { node: "eoreactor", side: "b", dir: "out", type: "recycle", label: "CO₂ by-product" },
     { node: "amines", side: "t", dir: "in", type: "utility", label: "Ammonia feed" },
     { node: "omega", side: "t", dir: "in", type: "recycle", label: "CO₂ feed" },
-    { node: "glycol", side: "b", dir: "in", type: "water", label: "Process water" },
     { node: "treatment", side: "t", dir: "out", type: "recycle", label: "Acid gas / CO₂" }
   ];
 
@@ -615,11 +584,6 @@
     { id: "mainflow", label: "Main flow", on: true, kind: "info", swatch: "hydrocarbon", locked: true },
     { id: "allstreams", label: "All streams", on: true, kind: "streams" },
     { id: "recycle", label: "Recycle streams", on: true, kind: "stream", swatch: "recycle" },
-    { id: "utilities", label: "Utilities & water", on: true, kind: "stream", swatch: "water" },
-    { id: "labels", label: "Stream labels", on: true, kind: "text" },
-    { id: "molecules", label: "Molecules", on: false, kind: "chem" },
-    { id: "equipment", label: "Equipment (in nodes)", on: true, kind: "equip" },
-    { id: "equipnames", label: "Equipment names", on: false, kind: "equip" },
     { id: "enduses", label: "End uses", on: false, kind: "product" },
     { id: "delivery", label: "Delivery routes", on: false, kind: "logistics" }
   ];
@@ -628,10 +592,7 @@
     { css: "hydrocarbon", label: "Hydrocarbon & ethylene", solid: true },
     { css: "product", label: "EO & derivative products", solid: true },
     { css: "recycle", label: "Recycle / purge / side", dash: true },
-    { css: "water", label: "Water & steam", solid: true },
-    { css: "utility", label: "Utilities / support", solid: true },
-    { css: "hazard", label: "Hazard / combustion", dash: true },
-    { css: "info", label: "Information only", dot: true }
+    { css: "hazard", label: "Hazard / combustion", dash: true }
   ];
 
   var MODES = {
@@ -675,7 +636,23 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "glycol", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+
+  /* ---------------------------------------------------------------
+     GROUPS — dashed bounding boxes drawn around a set of nodes
+     --------------------------------------------------------------- */
+  var GROUPS = [
+    { id: "olefin", label: "OLEFINS · ethylene unit", nodes: ["furnace", "quench", "treatment", "cryo"], color: "#5aa0ff" }
+  ];
+
+  /* ---------------------------------------------------------------
+     ANNOTATIONS — persistent labels tied to a node anchor
+     (not affected by the stream-label layer)
+     --------------------------------------------------------------- */
+  var ANNOTATIONS = [
+    { atNode: "manifold", side: "r", dx: 60, dy: -78, text: "EG", sub: "ethylene glycol", color: "#17b0a4" },
+    { atNode: "manifold", side: "r", dx: 60, dy: 20, text: "EOP", sub: "EO product", color: "#38bdf8" }
+  ];
 
   /* ---------------------------------------------------------------
      expose
@@ -688,6 +665,8 @@
     byId: byId,
     streams: STREAMS,
     feeds: FEEDS,
+    groups: GROUPS,
+    annotations: ANNOTATIONS,
     layers: LAYERS,
     legend: LEGEND,
     modes: MODES,

@@ -157,10 +157,12 @@
     // Section 3 — Incoterms
     h += '<section class="panel-sec"><div class="sec-h"><span class="sec-ico">⚓</span>Incoterms 2020, drawn</div>';
     h += '<p class="p-para" style="margin-top:0">Where does risk pass, and how far does the seller pay the freight? Tap a term.</p>';
+    h += '<div class="ic-light">';
     h += '<div id="ic-block">' + incotermHtml(t, t.defaultTerm) + '</div>';
-    h += '<div class="callout warn-callout" style="margin-top:10px"><span class="co-ico">◆</span><div>' + esc(t.callout) + '</div></div>';
-    h += '<div class="callout src" style="margin-top:8px"><span class="co-ico">↺</span><div>' + esc(t.closeLoop) + '</div></div>';
-    h += '<p style="font-size:10.5px;color:var(--ink-faint);margin-top:8px">Incoterms® 2020 summaries for learning only — not legal advice.</p>';
+    h += '<div class="ic-callout"><span>◆</span><div>' + esc(t.callout) + '</div></div>';
+    h += '<div class="ic-note"><span>↺</span><div>' + esc(t.closeLoop) + '</div></div>';
+    h += '<p class="ic-foot">Incoterms® 2020 summaries for learning only — not legal advice.</p>';
+    h += '</div>';
     h += '</section>';
     return h;
   }
@@ -174,12 +176,12 @@
   // pad-style Incoterms journey + chips + detail + table for a selected code
   var IC_SX = [34, 102, 170, 238, 306], IC_BASE = 104;
   function icGlyph(kind, x) {
-    var s = 'fill="none" stroke="#c6d4e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
+    var s = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
     var o = 'transform="translate(' + x + ',' + IC_BASE + ')"';
     if (kind === "plant") return '<g ' + o + '><path d="M-14 0 v-20 h28 v20" ' + s + '/><path d="M-14 -8 h28" ' + s + '/><path d="M-4 -20 v-6 h6 v6" ' + s + '/></g>';
     if (kind === "crane") return '<g ' + o + '><path d="M-9 0 v-24" ' + s + '/><path d="M-9 -24 h20" ' + s + '/><path d="M9 -24 v10" ' + s + '/><path d="M-13 0 h8" ' + s + '/></g>';
     if (kind === "ship") return '<g ' + o + '><path d="M-15 -4 h30 l-4 8 h-22 z" ' + s + '/><path d="M-8 -4 v-9 h13 v9" ' + s + '/><path d="M-2 -13 v-4 h6" ' + s + '/></g>';
-    if (kind === "door") return '<g ' + o + '><path d="M-10 0 v-22 h20 v22" ' + s + '/><path d="M-10 0 h20" ' + s + '/><circle cx="5" cy="-11" r="1.6" fill="#c6d4e6"/></g>';
+    if (kind === "door") return '<g ' + o + '><path d="M-10 0 v-22 h20 v22" ' + s + '/><path d="M-10 0 h20" ' + s + '/><circle cx="5" cy="-11" r="1.6" fill="currentColor"/></g>';
     return "";
   }
   function incotermHtml(t, code) {
@@ -196,9 +198,9 @@
     var svg = '<svg viewBox="0 0 340 150" width="100%" class="ic-svg" role="img" aria-label="Incoterms journey for ' + esc(it.code) + '">';
     if (brData) svg += '<path d="M' + brX1 + ' 40 v-6 h' + (brX2 - brX1) + ' v6" fill="none" stroke="#17b0a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
       '<text x="' + ((brX1 + brX2) / 2) + '" y="26" text-anchor="middle" class="ic-mono" fill="#17b0a4">SELLER PAYS FREIGHT</text>';
-    svg += '<line x1="20" y1="' + IC_BASE + '" x2="320" y2="' + IC_BASE + '" stroke="#c6d4e6" stroke-width="1.3" stroke-dasharray="1 5" stroke-linecap="round"/>';
+    svg += '<line x1="20" y1="' + IC_BASE + '" x2="320" y2="' + IC_BASE + '" stroke="currentColor" stroke-width="1.3" stroke-dasharray="1 5" stroke-linecap="round"/>';
     IC_SX.forEach(function (x, i) {
-      svg += '<circle cx="' + x + '" cy="' + IC_BASE + '" r="2.4" fill="#c6d4e6"/>' + icGlyph(glyphs[i], x) +
+      svg += '<circle cx="' + x + '" cy="' + IC_BASE + '" r="2.4" fill="currentColor"/>' + icGlyph(glyphs[i], x) +
         '<text x="' + x + '" y="' + (IC_BASE + 16) + '" text-anchor="middle" class="ic-mono">' + esc(t.stations[i][0]) + '</text>' +
         '<text x="' + x + '" y="' + (IC_BASE + 26) + '" text-anchor="middle" class="ic-mono">' + esc(t.stations[i][1]) + '</text>';
     });
@@ -257,6 +259,21 @@
     wireIC();
   }
 
+  function feedListBlock(list) {
+    return '<div class="feed-list">' + list.map(function (f) {
+      return '<div class="feed-item"><div class="fi-head"><span class="fi-name">' + esc(f.name) + '</span>' +
+        '<span class="fi-formula mono">' + esc(f.formula) + '</span></div><div class="fi-note">' + esc(f.note) + '</div></div>';
+    }).join("") + '</div>';
+  }
+  function splitsBlock(splits) {
+    return '<div class="io-grid">' + splits.map(function (s) {
+      var col = s.color === "accent" ? "var(--accent)" : "var(--s-product)";
+      return '<div class="trade-card" style="border-left-color:' + col + '"><div class="tc-tag" style="color:' + col + '">' + esc(s.code) + '</div>' +
+        '<div style="font-weight:600;color:var(--ink);font-size:12.5px;margin:2px 0 4px">' + esc(s.name) + '</div>' +
+        '<div style="font-size:11.5px;color:var(--ink-dim);line-height:1.4">' + esc(s.note) + '</div></div>';
+    }).join("") + '</div>';
+  }
+
   /* ---------- main render ---------- */
   function render(id) {
     var n = D.byId[id]; if (!n) return;
@@ -274,7 +291,14 @@
     var body1 = figure(n.art);
     body1 += '<p class="p-lead">' + esc(b.purpose) + '</p>';
     if (b.para) body1 += '<p class="p-para">' + esc(b.para) + '</p>';
+    if (b.para2) body1 += '<p class="p-para">' + esc(b.para2) + '</p>';
     html += sec("Overview", "◲", body1);
+
+    // feedstock list (feed-preparation stage)
+    if (b.feedList) html += sec("Feedstocks", "▤", feedListBlock(b.feedList));
+
+    // EO product split (EOP / EG)
+    if (b.splits) html += sec("EO splits into", "⑃", splitsBlock(b.splits));
 
     // interactive market & trade module
     if (b.trade) html += tradeHtml(b.trade);

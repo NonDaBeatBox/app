@@ -10,6 +10,8 @@
   var D = EO.data;
   var SVG = "http://www.w3.org/2000/svg";
   var C = {}; // module state
+  var SHOW_GLYPH = (D.layers || []).some(function (l) { return l.id === "equipment"; });
+  var SHOW_MOL = (D.layers || []).some(function (l) { return l.id === "molecules"; });
 
   /* ---------- small utils ---------- */
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -88,7 +90,7 @@
   function computeVertical() {
     var CX = 60, ROW = 210, INDENT = 120;
     var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold"];
-    var deriv = ["omega", "glycol", "amines", "ethoxylation", "peg", "glycolethers", "polyols"];
+    var deriv = ["omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols"];
     var y = 40, order = 0;
     C.vorder = {};
     spine.forEach(function (id) {
@@ -122,11 +124,11 @@
     computeBounds();
     var svg = el("process-svg");
     svg.setAttribute("viewBox", "0 0 " + (svg.clientWidth || 1000) + " " + (svg.clientHeight || 700));
-    el("layer-grid").innerHTML = renderGrid();
+    el("layer-grid").innerHTML = renderGrid() + renderGroups();
     el("layer-streams").innerHTML = renderStreams();
     el("layer-stream-labels").innerHTML = renderStreamLabels();
     el("layer-nodes").innerHTML = renderNodes();
-    el("layer-annotations").innerHTML = renderFeeds() + renderEnduse() + renderDelivery();
+    el("layer-annotations").innerHTML = renderFeeds() + renderEnduse() + renderDelivery() + renderAnnotations();
     renderMinimap();
     applyTransform();
   }
@@ -137,6 +139,42 @@
     for (var x = x0; x < b.maxX; x += step) g += '<line class="grid-line' + (x % 320 === 0 ? ' major' : '') + '" x1="' + x + '" y1="' + b.minY + '" x2="' + x + '" y2="' + b.maxY + '"/>';
     for (var y = y0; y < b.maxY; y += step) g += '<line class="grid-line' + (y % 320 === 0 ? ' major' : '') + '" x1="' + b.minX + '" y1="' + y + '" x2="' + b.maxX + '" y2="' + y + '"/>';
     return g;
+  }
+
+  /* ---- group boxes (e.g. the OLEFINS unit around steps 2–4) ---- */
+  function renderGroups() {
+    if (!D.groups) return "";
+    var pad = 26, top = 34;
+    return D.groups.map(function (grp) {
+      var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+      grp.nodes.forEach(function (id) {
+        var n = D.byId[id]; if (!n) return; var r = rect(n);
+        minX = Math.min(minX, r.x); minY = Math.min(minY, r.y);
+        maxX = Math.max(maxX, r.x + r.w); maxY = Math.max(maxY, r.y + r.h);
+      });
+      if (minX > maxX) return "";
+      var x = minX - pad, y = minY - pad - top, w = (maxX - minX) + pad * 2, h = (maxY - minY) + pad * 2 + top;
+      var lw = grp.label.length * 6.4 + 20;
+      return '<g class="group-box" data-group="' + grp.id + '">' +
+        '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="' + r1(w) + '" height="' + r1(h) + '" rx="18" fill="none" stroke="' + grp.color + '" stroke-width="1.6" stroke-dasharray="10 8" opacity="0.85"/>' +
+        '<rect x="' + r1(x + 16) + '" y="' + r1(y - 11) + '" width="' + r1(lw) + '" height="22" rx="11" fill="#0b1626" stroke="' + grp.color + '"/>' +
+        '<text x="' + r1(x + 16 + lw / 2) + '" y="' + r1(y + 4) + '" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="0.08em" fill="' + grp.color + '" font-family="Inter, sans-serif">' + esc(grp.label) + '</text></g>';
+    }).join("");
+  }
+
+  /* ---- persistent annotations (EOP / EG split labels) ---- */
+  function renderAnnotations() {
+    if (!D.annotations || C.layout === "v") return "";
+    return D.annotations.map(function (a) {
+      var n = D.byId[a.atNode]; if (!n) return "";
+      var p = anchor(n, a.side || "r", 0.5);
+      var x = p.x + (a.dx || 0), y = p.y + (a.dy || 0);
+      var w = Math.max(a.text.length * 9 + 16, (a.sub ? a.sub.length * 5 + 12 : 0));
+      return '<g class="annot">' +
+        '<rect x="' + r1(x - w / 2) + '" y="' + r1(y - 13) + '" width="' + r1(w) + '" height="' + (a.sub ? 30 : 20) + '" rx="7" fill="#0b1626" stroke="' + a.color + '"/>' +
+        '<text x="' + r1(x) + '" y="' + r1(y + 1) + '" text-anchor="middle" font-size="12.5" font-weight="800" fill="' + a.color + '" font-family="Inter, sans-serif">' + esc(a.text) + '</text>' +
+        (a.sub ? '<text x="' + r1(x) + '" y="' + r1(y + 12) + '" text-anchor="middle" font-size="8" fill="#9db0c8" font-family="Inter, sans-serif">' + esc(a.sub) + '</text>' : "") + '</g>';
+    }).join("");
   }
 
   /* ---- streams ---- */
@@ -208,30 +246,34 @@
     g += '<g><rect class="node-tagpill" x="' + (w - tag.length * 6 - 20) + '" y="10" width="' + (tag.length * 6 + 10) + '" height="18" rx="9"/>' +
       '<text class="node-tagpill-tx" x="' + (w - (tag.length * 6 + 10) / 2 - 10) + '" y="22.5" text-anchor="middle">' + esc(tag) + '</text></g>';
     // title (wrap to 2 lines) + sub
-    var titleLines = wrapText(n.title, w - 24, 15);
-    var ty = 50;
-    titleLines.slice(0, 2).forEach(function (ln) { g += '<text class="node-title" x="14" y="' + ty + '">' + esc(ln) + '</text>'; ty += 18; });
-    g += '<text class="node-sub" x="14" y="' + (ty + 1) + '">' + esc(truncate(n.sub, Math.floor((w - 24) / 5.6))) + '</text>';
-    // media (glyph)
-    var mediaY = ty + 10, mediaH = h - mediaY - 34;
-    if (mediaH > 40) {
-      g += '<g class="node-equipment">' + embedSvg(EO.glyph(n.glyph), 12, mediaY, w - 24, mediaH) + '</g>';
+    var titleLines = wrapText(n.title, w - 24, 15).slice(0, 2);
+    if (SHOW_GLYPH) {
+      var ty = 50;
+      titleLines.forEach(function (ln) { g += '<text class="node-title" x="14" y="' + ty + '">' + esc(ln) + '</text>'; ty += 18; });
+      g += '<text class="node-sub" x="14" y="' + (ty + 1) + '">' + esc(truncate(n.sub, Math.floor((w - 24) / 5.6))) + '</text>';
+      var mediaY = ty + 10, mediaH = h - mediaY - 34;
+      if (mediaH > 40) g += '<g class="node-equipment">' + embedSvg(EO.glyph(n.glyph), 12, mediaY, w - 24, mediaH) + '</g>';
+      if (SHOW_MOL && n.brief.molecules && n.brief.molecules.length) {
+        var mols = n.brief.molecules.slice(0, Math.min(3, Math.floor((w - 20) / 46)));
+        var mw = 42, gap = (w - 20 - mols.length * mw) / (mols.length + 1);
+        var mg = '<g class="node-molecule">';
+        mols.forEach(function (m, i) {
+          var mx = 10 + gap + i * (mw + gap);
+          mg += '<rect x="' + r1(mx) + '" y="' + (h - 30) + '" width="' + mw + '" height="26" rx="6" fill="#0a1420" stroke="#22344d"/>' +
+            embedSvg(EO.mol(m), mx + 2, h - 29, mw - 4, 24);
+        });
+        g += mg + '</g>';
+      }
+      var metric = topMetric(n);
+      if (metric) g += '<g class="node-metric-row"><text class="node-metric" x="14" y="' + (h - 12) + '"><tspan class="node-metric-k">' + esc(metric.k) + '</tspan>  ' + esc(metric.v) + '</text></g>';
+    } else {
+      // compact labelled box — no equipment drawing
+      var blockH = titleLines.length * 20 + 20;
+      var ty2 = Math.max(50, (h - blockH) / 2 + 18);
+      titleLines.forEach(function (ln) { g += '<text class="node-title" x="14" y="' + r1(ty2) + '">' + esc(ln) + '</text>'; ty2 += 20; });
+      g += '<text class="node-sub" x="14" y="' + r1(ty2 + 2) + '">' + esc(truncate(n.sub, Math.floor((w - 22) / 5.4))) + '</text>';
+      g += '<text class="node-open" x="' + (w - 14) + '" y="' + (h - 12) + '" text-anchor="end">click to open ›</text>';
     }
-    // molecules strip (chem)
-    if (n.brief.molecules && n.brief.molecules.length) {
-      var mols = n.brief.molecules.slice(0, Math.min(3, Math.floor((w - 20) / 46)));
-      var mw = 42, gap = (w - 20 - mols.length * mw) / (mols.length + 1);
-      var mg = '<g class="node-molecule">';
-      mols.forEach(function (m, i) {
-        var mx = 10 + gap + i * (mw + gap);
-        mg += '<rect x="' + r1(mx) + '" y="' + (h - 30) + '" width="' + mw + '" height="26" rx="6" fill="#0a1420" stroke="#22344d"/>' +
-          embedSvg(EO.mol(m), mx + 2, h - 29, mw - 4, 24);
-      });
-      g += mg + '</g>';
-    }
-    // metric row (equipment/chem)
-    var metric = topMetric(n);
-    if (metric) g += '<g class="node-metric-row"><text class="node-metric" x="14" y="' + (h - 12) + '"><tspan class="node-metric-k">' + esc(metric.k) + '</tspan>  ' + esc(metric.v) + '</text></g>';
     g += '</g>';
     return g;
   }

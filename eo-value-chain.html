@@ -136,7 +136,7 @@ ul { list-style: none; padding: 0; }
   box-shadow: 0 2px 10px -3px rgba(56,189,248,.6);
 }
 
-.topbar-actions { display: flex; gap: 8px; }
+.topbar-actions { display: flex; gap: 8px; margin-left: auto; }
 .ghost-btn {
   font-size: 12.5px;
   font-weight: 600;
@@ -342,6 +342,10 @@ ul { list-style: none; padding: 0; }
 .node .node-metric { fill: var(--ink-dim); font-size: 10.5px; font-family: var(--mono); }
 .node .node-metric-k { fill: var(--ink-faint); }
 .node .node-io { fill: var(--ink-faint); font-size: 9.5px; }
+.node .node-open { fill: var(--ink-faint); font-size: 10px; font-family: "Inter", sans-serif; opacity: 0; transition: opacity .12s; }
+.node:hover .node-open { opacity: .9; }
+.group-box text { pointer-events: none; }
+.annot { pointer-events: none; }
 .node .stage-badge { fill: #0c1a2e; }
 .node .stage-badge-tx { fill: var(--accent); font-size: 11px; font-weight: 800; font-family: var(--mono); }
 
@@ -505,6 +509,14 @@ body.mode-chemistry .node-metric-row { display: none; }
 .fig-media svg { display: block; width: 100%; height: auto; }
 .ac-media svg { display: block; width: 100%; height: auto; }
 
+/* feedstock list */
+.feed-list { display: flex; flex-direction: column; gap: 7px; }
+.feed-item { border: 1px solid var(--line); border-left: 3px solid var(--s-hydrocarbon); border-radius: 9px; padding: 9px 11px; background: #0b1626; }
+.feed-item .fi-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.feed-item .fi-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+.feed-item .fi-formula { font-size: 11.5px; color: var(--s-hydrocarbon); }
+.feed-item .fi-note { font-size: 11.5px; color: var(--ink-dim); margin-top: 3px; line-height: 1.4; }
+
 /* chips / pills */
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
 .chip {
@@ -567,8 +579,32 @@ body { color-scheme: dark; }
 .nb-verdict { font-size: 13.5px; color: var(--ink); line-height: 1.5; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
 
 .ic-card { background: #0a1420; border: 1px solid var(--line); border-radius: 10px; padding: 12px 10px 10px; }
-.ic-svg { display: block; max-width: 520px; margin: 0 auto; }
-.ic-mono { font-family: var(--mono); font-size: 7.5px; letter-spacing: .04em; text-transform: uppercase; fill: #c6d4e6; }
+.ic-svg { display: block; max-width: 520px; margin: 0 auto; color: #c6d4e6; }
+.ic-mono { font-family: var(--mono); font-size: 7.5px; letter-spacing: .04em; text-transform: uppercase; fill: currentColor; }
+
+/* --- Incoterms: lighter theme --- */
+.ic-light { background: #f3efe4; border: 1px solid #d9d2c0; border-radius: 12px; padding: 12px; color: #26313f; }
+.ic-light .ic-svg { color: #2b3a4f; }
+.ic-light .ic-card { background: #fbf8f0; border-color: #ddd6c4; }
+.ic-light .ic-chip { background: #ffffff; border-color: #cfc7b3; color: #26313f; }
+.ic-light .ic-chip:hover { border-color: #2f6fe0; }
+.ic-light .ic-chip.on { background: linear-gradient(180deg, #5cc8f5, #38bdf8); color: #05121f; border-color: #38bdf8; }
+.ic-light .ic-detail { background: #fbf8f0; border-color: #ddd6c4; border-left-color: var(--s-product); }
+.ic-light .ic-name, .ic-light .ic-code { color: #1f2a37; }
+.ic-light .ic-who { border-top-color: #e3ddcc; }
+.ic-light .ic-who .mono { color: #7b8797; }
+.ic-light .ic-who > span:last-child { color: #26313f; }
+.ic-light .matrix.ic-table { border-color: #ddd6c4; }
+.ic-light .matrix.ic-table th { background: #efeadc; color: #5a6472; border-bottom-color: #ddd6c4; }
+.ic-light .matrix.ic-table td { color: #4a5566; border-color: #e3ddcc; }
+.ic-light .matrix.ic-table td:first-child { color: #1f2a37; }
+.ic-light .matrix.ic-table tr.on td { background: #e7f2ff; }
+.ic-light .matrix.ic-table td:first-child, .ic-light .matrix.ic-table th:first-child { background: #fbf8f0; }
+.ic-callout { display: flex; gap: 8px; margin-top: 10px; padding: 10px 11px; border-radius: 9px; background: #fcefd6; border: 1px solid #e6c982; color: #6b4d16; font-size: 11.5px; line-height: 1.5; }
+.ic-callout span:first-child { color: #c6871f; }
+.ic-note { display: flex; gap: 8px; margin-top: 8px; padding: 10px 11px; border-radius: 9px; background: #eef1f6; border: 1px solid #cfd7e2; color: #33445c; font-size: 11.5px; line-height: 1.5; }
+.ic-note span:first-child { color: #2f6fe0; }
+.ic-foot { font-size: 10.5px; color: #8a836f; margin-top: 8px; }
 .ic-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
 .ic-chip { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .05em; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; transition: border-color .12s; }
 .ic-chip:hover { border-color: var(--accent); }
@@ -758,12 +794,6 @@ body { color-scheme: dark; }
           <strong>Ethylene Oxide Value Chain</strong>
           <span>Interactive process-map training board</span>
         </div>
-      </div>
-
-      <div class="mode-switch" role="tablist" aria-label="Detail level">
-        <button class="mode-btn is-active" data-mode="overview" role="tab" aria-selected="true">Process overview</button>
-        <button class="mode-btn" data-mode="equipment" role="tab" aria-selected="false">Equipment detail</button>
-        <button class="mode-btn" data-mode="chemistry" role="tab" aria-selected="false">Chemistry detail</button>
       </div>
 
       <div class="topbar-actions">
@@ -2244,6 +2274,13 @@ body { color-scheme: dark; }
           { k: "Dilution steam", v: "Lowers hydrocarbon partial pressure" }
         ],
         condNote: PUB,
+        feedList: [
+          { name: "Ethane", formula: "C₂H₆", note: "Light gas — the highest ethylene yield." },
+          { name: "Propane", formula: "C₃H₈", note: "Light gas; also makes some propylene." },
+          { name: "LPG", formula: "C₃–C₄", note: "Propane / butane mixture." },
+          { name: "NGL", formula: "C₂–C₅⁺", note: "Natural-gas liquids." },
+          { name: "Naphtha", formula: "C₅–C₁₀ mix", note: "Liquid feed — broad product slate; not one molecule." }
+        ],
         molecules: ["ethane", "propane"],
         moleculeNote: "Naphtha is a mixture of many hydrocarbons, so it has no single structure.",
         sources: SRC_COMMON,
@@ -2432,101 +2469,66 @@ body { color-scheme: dark; }
     /* ===== STAGE 7 — EO distribution header ===== */
     {
       id: "manifold", stage: "7", cat: "distribution", glyph: "manifold", art: "manifold",
-      title: "Purified-EO distribution header", sub: "Split one EO stream to every derivative unit",
+      title: "EO product split — EOP & EG", sub: "Purified EO → EOP (product) + EG (glycol)",
       x: 2390, y: 330, w: 250, h: 210,
       brief: {
-        purpose: "Divide the single purified-EO stream between the glycol unit and the HPEO derivative units.",
-        para: "A distribution header (a conceptual manifold, not a real piping arrangement) sends purified EO to the glycol plant and high-purity EO (HPEO) to the ethanolamine, ethoxylate, PEG, glycol-ether and polyether-polyol units. EO can also be moved by dedicated pipeline. Because EO is hazardous, it travels only by dedicated pipeline — never by the general transport modes used for the liquid products.",
+        purpose: "Divide the purified ethylene-oxide stream into its two destinations: EOP (ethylene oxide as a product) and EG (ethylene glycol).",
+        para: "Purified EO goes two ways. Part of it is kept as EOP — high-purity ethylene oxide product — and piped to the derivative units (ethanolamines, ethoxylates, PEG, glycol ethers and polyols). The rest is converted to EG — ethylene glycol — in the Shell OMEGA glycol unit. Because EO is hazardous, EOP moves only by dedicated pipeline, never by the general transport modes used for the finished liquids.",
+        splits: [
+          { code: "EOP", name: "Ethylene oxide product", note: "High-purity EO piped to the derivative units.", color: "accent" },
+          { code: "EG", name: "Ethylene glycol", note: "EO converted to MEG in the Shell OMEGA unit.", color: "product" }
+        ],
         inputs: [{ label: "Purified EO", type: "product" }],
         outputs: [
-          { label: "EO → glycol production", type: "product" },
-          { label: "EO → Shell OMEGA route", type: "product" },
-          { label: "HPEO → ethanolamines", type: "product" },
-          { label: "HPEO → ethoxylates", type: "product" },
-          { label: "HPEO → PEG", type: "product" },
-          { label: "HPEO → glycol ethers", type: "product" },
-          { label: "HPEO → polyether polyols", type: "product" },
-          { label: "EO by dedicated pipeline", type: "product" }
+          { label: "EO → EG (Shell OMEGA glycol)", type: "product" },
+          { label: "EOP → ethanolamines", type: "product" },
+          { label: "EOP → ethoxylates", type: "product" },
+          { label: "EOP → PEG", type: "product" },
+          { label: "EOP → glycol ethers", type: "product" },
+          { label: "EOP → polyether polyols", type: "product" },
+          { label: "EOP by dedicated pipeline", type: "product" }
         ],
-        equipment: ["Distribution header", "Branch valves", "Labelled branch lines", "Vessel / pipeline connections"],
+        equipment: ["Distribution header", "Branch valves", "EOP pipeline connection", "Glycol-unit feed"],
         conditions: [
-          { k: "Function", v: "One EO stream → many units" },
+          { k: "EOP", v: "EO kept as product" },
+          { k: "EG", v: "EO → glycol (OMEGA)" },
           { k: "EO transport", v: "Dedicated pipeline only" }
         ],
         condNote: PUB,
         molecules: ["eo"],
         sources: SRC_COMMON,
-        disclaimers: ["Conceptual EO distribution header — not plant piping configuration.", "Branch valves and lines are graphical detail only."]
+        disclaimers: ["Conceptual EO split — not plant piping configuration.", "Branch valves and lines are graphical detail only."]
       }
     },
 
     /* ===== STAGE 8B — Shell OMEGA route ===== */
     {
-      id: "omega", stage: "8B", cat: "derivative", glyph: "omega", art: "omega",
-      title: "Shell OMEGA glycol route", sub: "EO → ethylene carbonate → MEG (CO₂ recycled)",
-      x: 2770, y: 60, w: 240, h: 150,
+      id: "omega", stage: "EG", cat: "derivative", glyph: "omega", art: "omega",
+      title: "Shell OMEGA — EG (glycol) unit", sub: "EO + CO₂ → ethylene carbonate → MEG (EG)",
+      x: 2770, y: 200, w: 240, h: 150,
       brief: {
-        purpose: "Make mono-ethylene glycol (MEG) from EO via ethylene carbonate, using and recycling CO₂ — an alternative to conventional hydration.",
-        para: "Instead of hydrating EO directly, the OMEGA route first reacts EO with CO₂ to form ethylene carbonate, then hydrolyses that intermediate to MEG, releasing the CO₂ again. The CO₂ is captured and recycled, so the loop is highly selective to MEG and makes very little DEG/TEG. The amber CO₂ recycle loop is the defining feature of this route.",
-        inputs: [{ label: "EO feed", type: "product" }, { label: "CO₂ feed", type: "recycle" }, { label: "Water", type: "water" }],
-        outputs: [{ label: "MEG product", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
+        purpose: "Turn EO into ethylene glycol (EG / MEG) using the Shell OMEGA technology — the glycol route on this map.",
+        para: "OMEGA (Only MEG Advantaged) makes glycol in two steps instead of hydrating EO with a big excess of water. First, EO reacts with CO₂ in the ethylene-carbonate (EC) reactor over a catalyst to form ethylene carbonate. Then that carbonate is hydrolysed with water in a second reactor to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled back to the EC reactor — the prominent amber loop. Because the carbonate step is so selective, OMEGA makes almost pure MEG with very little DEG/TEG, and it needs far less water and evaporation energy than conventional hydration.",
+        para2: "The OMEGA 'machine', step by step: EC reactor (EO + CO₂ → carbonate) → hydrolysis reactor (carbonate + water → MEG + CO₂) → CO₂ separator → CO₂ recycle compressor → MEG purification. Click through the illustration to see how the pieces connect.",
+        inputs: [{ label: "EO feed (EOP)", type: "product" }, { label: "CO₂ feed", type: "recycle" }, { label: "Water", type: "water" }],
+        outputs: [{ label: "MEG (EG) product", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
         equipment: ["Ethylene-carbonate (EC) reactor", "Catalyst", "Hydrolysis reactor", "CO₂ separator", "CO₂ recycle compressor", "MEG purification"],
         reactions: [
-          { kind: "", label: "Carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
-          { kind: "", label: "Hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
+          { kind: "", label: "Step 1 — carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
+          { kind: "", label: "Step 2 — hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
         ],
         conditions: [
           { k: "Route", v: "Carbonate intermediate" },
           { k: "CO₂", v: "Recycled in a loop" },
           { k: "Selectivity", v: "Very high to MEG" },
-          { k: "Co-products", v: "Little DEG / TEG" }
+          { k: "vs hydration", v: "Less water & energy" }
         ],
         condNote: PUB,
         molecules: ["eo", "co2", "ethylene_carbonate", "water", "meg"],
-        products: [{ name: "MEG", mol: "meg" }],
+        products: [{ name: "MEG (EG)", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] }],
         applications: ["petbottle", "fiber", "antifreeze", "film", "coolant"],
         sources: SRC_COMMON.concat(["Public descriptions of the Shell OMEGA process"]),
-        disclaimers: ["Distinct from conventional hydration — shown as a separate route.", "Comparison figures are public illustrative values."]
-      }
-    },
-
-    /* ===== STAGE 8A — conventional glycols ===== */
-    {
-      id: "glycol", stage: "8A", cat: "derivative", glyph: "glycol", art: "glycol",
-      title: "Conventional glycol production", sub: "EO hydration → MEG + DEG + TEG",
-      x: 2770, y: 240, w: 240, h: 150,
-      brief: {
-        purpose: "React EO with a large excess of water to make mainly MEG, plus DEG and TEG, then separate them by boiling point.",
-        para: "EO and water are mixed and hydrated; the first product is MEG, but MEG can react with more EO to give DEG, and DEG with more EO to give TEG. Using a large excess of water (about 20 parts water to 1 part EO) keeps EO dilute, so it mostly meets water rather than glycol — favouring MEG. The reactor effluent is concentrated in a multiple-effect evaporator train, then a distillation ladder separates the glycols by their rising boiling points.",
-        inputs: [{ label: "EO feed", type: "product" }, { label: "Excess water (~20:1)", type: "water" }],
-        outputs: [{ label: "MEG / DEG / TEG products", type: "product" }, { label: "Water recycle", type: "recycle" }],
-        equipment: ["Feed mixing", "Hydration reactor", "Effluent cooling", "Multiple-effect evaporator train", "MEG column", "DEG column", "TEG / heavy-glycol column", "Product tanks"],
-        reactions: [
-          { kind: "", label: "MEG", eq: "EO + H₂O  →  MEG", mols: ["eo", "water", "meg"] },
-          { kind: "", label: "DEG", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] },
-          { kind: "", label: "TEG", eq: "DEG + EO  →  TEG", mols: ["deg", "eo", "teg"] }
-        ],
-        conditions: [
-          { k: "Water-to-EO ratio", v: "≈ 20 : 1" },
-          { k: "Reaction temperature", v: "≈ 200 °C" },
-          { k: "Main product", v: "MEG" },
-          { k: "Co-products", v: "DEG, TEG" }
-        ],
-        condNote: "Illustrative public technology values — not plant data",
-        ladder: [
-          { k: "MEG boiling point", v: "≈ 197 °C" },
-          { k: "DEG boiling point", v: "≈ 246 °C" },
-          { k: "TEG boiling point", v: "≈ 287 °C" }
-        ],
-        molecules: ["eo", "water", "meg", "deg", "teg"],
-        products: [
-          { name: "MEG", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] },
-          { name: "DEG", mol: "deg", apps: ["resin", "plasticizer", "solvent"] },
-          { name: "TEG", mol: "teg", apps: ["gasdehydration", "solvent"] }
-        ],
-        applications: ["petbottle", "fiber", "antifreeze", "resin", "gasdehydration"],
-        sources: SRC_COMMON,
-        disclaimers: ["Excess water favours MEG by keeping EO dilute.", "Illustrative public technology values — not plant data."]
+        disclaimers: ["Shell OMEGA technology is described from public sources only.", "Equipment sequence is representative; figures are public illustrative values."]
       }
     },
 
@@ -2761,21 +2763,19 @@ body { color-scheme: dark; }
     // ---- EO product backbone ----
     { from: "eoreactor", to: "eorecovery", fs: "r", ts: "l", type: "product", label: "Crude EO solution" },
     { from: "eorecovery", to: "manifold", fs: "r", ts: "l", type: "product", label: "Purified EO" },
-    // ---- distribution header → derivatives ----
-    { from: "manifold", to: "omega", fs: "r", ts: "l", type: "product", label: "EO to OMEGA" },
-    { from: "manifold", to: "glycol", fs: "r", ts: "l", type: "product", label: "EO to glycol unit" },
-    { from: "manifold", to: "amines", fs: "r", ts: "l", type: "product", label: "HPEO to amines" },
-    { from: "manifold", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "HPEO to ethoxylates" },
-    { from: "manifold", to: "peg", fs: "r", ts: "l", type: "product", label: "HPEO to PEG" },
-    { from: "manifold", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "HPEO to glycol ethers" },
-    { from: "manifold", to: "polyols", fs: "r", ts: "l", type: "product", label: "HPEO to polyols" },
+    // ---- EO split → EG (glycol via OMEGA) + EOP (EO product to derivatives) ----
+    { from: "manifold", to: "omega", fs: "r", ts: "l", type: "product", label: "EO → EG (glycol)" },
+    { from: "manifold", to: "amines", fs: "r", ts: "l", type: "product", label: "EOP to amines" },
+    { from: "manifold", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
+    { from: "manifold", to: "peg", fs: "r", ts: "l", type: "product", label: "EOP to PEG" },
+    { from: "manifold", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "EOP to glycol ethers" },
+    { from: "manifold", to: "polyols", fs: "r", ts: "l", type: "product", label: "EOP to polyols" },
     // ---- recycle: EO recovery gas back to reactor (prominent) ----
     { from: "eorecovery", to: "eoreactor", fs: "t", ts: "t", type: "recycle", label: "Reactor recycle gas", side: true, arc: 120 },
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
     // ---- products → storage/delivery (spread along the tall dispatch column) ----
-    { from: "omega", to: "storage", fs: "r", ts: "l", toff: 0.03, type: "product", label: "MEG" },
-    { from: "glycol", to: "storage", fs: "r", ts: "l", toff: 0.13, type: "product", label: "MEG / DEG / TEG" },
+    { from: "omega", to: "storage", fs: "r", ts: "l", toff: 0.03, type: "product", label: "MEG (EG)" },
     { from: "amines", to: "storage", fs: "r", ts: "l", toff: 0.31, type: "product", label: "MEA / DEA / TEA" },
     { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.47, type: "product", label: "Ethoxylates" },
     { from: "peg", to: "storage", fs: "r", ts: "l", toff: 0.62, type: "product", label: "PEG" },
@@ -2798,7 +2798,6 @@ body { color-scheme: dark; }
     { node: "eoreactor", side: "b", dir: "out", type: "recycle", label: "CO₂ by-product" },
     { node: "amines", side: "t", dir: "in", type: "utility", label: "Ammonia feed" },
     { node: "omega", side: "t", dir: "in", type: "recycle", label: "CO₂ feed" },
-    { node: "glycol", side: "b", dir: "in", type: "water", label: "Process water" },
     { node: "treatment", side: "t", dir: "out", type: "recycle", label: "Acid gas / CO₂" }
   ];
 
@@ -2809,11 +2808,6 @@ body { color-scheme: dark; }
     { id: "mainflow", label: "Main flow", on: true, kind: "info", swatch: "hydrocarbon", locked: true },
     { id: "allstreams", label: "All streams", on: true, kind: "streams" },
     { id: "recycle", label: "Recycle streams", on: true, kind: "stream", swatch: "recycle" },
-    { id: "utilities", label: "Utilities & water", on: true, kind: "stream", swatch: "water" },
-    { id: "labels", label: "Stream labels", on: true, kind: "text" },
-    { id: "molecules", label: "Molecules", on: false, kind: "chem" },
-    { id: "equipment", label: "Equipment (in nodes)", on: true, kind: "equip" },
-    { id: "equipnames", label: "Equipment names", on: false, kind: "equip" },
     { id: "enduses", label: "End uses", on: false, kind: "product" },
     { id: "delivery", label: "Delivery routes", on: false, kind: "logistics" }
   ];
@@ -2822,10 +2816,7 @@ body { color-scheme: dark; }
     { css: "hydrocarbon", label: "Hydrocarbon & ethylene", solid: true },
     { css: "product", label: "EO & derivative products", solid: true },
     { css: "recycle", label: "Recycle / purge / side", dash: true },
-    { css: "water", label: "Water & steam", solid: true },
-    { css: "utility", label: "Utilities / support", solid: true },
-    { css: "hazard", label: "Hazard / combustion", dash: true },
-    { css: "info", label: "Information only", dot: true }
+    { css: "hazard", label: "Hazard / combustion", dash: true }
   ];
 
   var MODES = {
@@ -2869,7 +2860,23 @@ body { color-scheme: dark; }
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "glycol", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+
+  /* ---------------------------------------------------------------
+     GROUPS — dashed bounding boxes drawn around a set of nodes
+     --------------------------------------------------------------- */
+  var GROUPS = [
+    { id: "olefin", label: "OLEFINS · ethylene unit", nodes: ["furnace", "quench", "treatment", "cryo"], color: "#5aa0ff" }
+  ];
+
+  /* ---------------------------------------------------------------
+     ANNOTATIONS — persistent labels tied to a node anchor
+     (not affected by the stream-label layer)
+     --------------------------------------------------------------- */
+  var ANNOTATIONS = [
+    { atNode: "manifold", side: "r", dx: 60, dy: -78, text: "EG", sub: "ethylene glycol", color: "#17b0a4" },
+    { atNode: "manifold", side: "r", dx: 60, dy: 20, text: "EOP", sub: "EO product", color: "#38bdf8" }
+  ];
 
   /* ---------------------------------------------------------------
      expose
@@ -2882,6 +2889,8 @@ body { color-scheme: dark; }
     byId: byId,
     streams: STREAMS,
     feeds: FEEDS,
+    groups: GROUPS,
+    annotations: ANNOTATIONS,
     layers: LAYERS,
     legend: LEGEND,
     modes: MODES,
@@ -2908,6 +2917,8 @@ body { color-scheme: dark; }
   var D = EO.data;
   var SVG = "http://www.w3.org/2000/svg";
   var C = {}; // module state
+  var SHOW_GLYPH = (D.layers || []).some(function (l) { return l.id === "equipment"; });
+  var SHOW_MOL = (D.layers || []).some(function (l) { return l.id === "molecules"; });
 
   /* ---------- small utils ---------- */
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -2986,7 +2997,7 @@ body { color-scheme: dark; }
   function computeVertical() {
     var CX = 60, ROW = 210, INDENT = 120;
     var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold"];
-    var deriv = ["omega", "glycol", "amines", "ethoxylation", "peg", "glycolethers", "polyols"];
+    var deriv = ["omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols"];
     var y = 40, order = 0;
     C.vorder = {};
     spine.forEach(function (id) {
@@ -3020,11 +3031,11 @@ body { color-scheme: dark; }
     computeBounds();
     var svg = el("process-svg");
     svg.setAttribute("viewBox", "0 0 " + (svg.clientWidth || 1000) + " " + (svg.clientHeight || 700));
-    el("layer-grid").innerHTML = renderGrid();
+    el("layer-grid").innerHTML = renderGrid() + renderGroups();
     el("layer-streams").innerHTML = renderStreams();
     el("layer-stream-labels").innerHTML = renderStreamLabels();
     el("layer-nodes").innerHTML = renderNodes();
-    el("layer-annotations").innerHTML = renderFeeds() + renderEnduse() + renderDelivery();
+    el("layer-annotations").innerHTML = renderFeeds() + renderEnduse() + renderDelivery() + renderAnnotations();
     renderMinimap();
     applyTransform();
   }
@@ -3035,6 +3046,42 @@ body { color-scheme: dark; }
     for (var x = x0; x < b.maxX; x += step) g += '<line class="grid-line' + (x % 320 === 0 ? ' major' : '') + '" x1="' + x + '" y1="' + b.minY + '" x2="' + x + '" y2="' + b.maxY + '"/>';
     for (var y = y0; y < b.maxY; y += step) g += '<line class="grid-line' + (y % 320 === 0 ? ' major' : '') + '" x1="' + b.minX + '" y1="' + y + '" x2="' + b.maxX + '" y2="' + y + '"/>';
     return g;
+  }
+
+  /* ---- group boxes (e.g. the OLEFINS unit around steps 2–4) ---- */
+  function renderGroups() {
+    if (!D.groups) return "";
+    var pad = 26, top = 34;
+    return D.groups.map(function (grp) {
+      var minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+      grp.nodes.forEach(function (id) {
+        var n = D.byId[id]; if (!n) return; var r = rect(n);
+        minX = Math.min(minX, r.x); minY = Math.min(minY, r.y);
+        maxX = Math.max(maxX, r.x + r.w); maxY = Math.max(maxY, r.y + r.h);
+      });
+      if (minX > maxX) return "";
+      var x = minX - pad, y = minY - pad - top, w = (maxX - minX) + pad * 2, h = (maxY - minY) + pad * 2 + top;
+      var lw = grp.label.length * 6.4 + 20;
+      return '<g class="group-box" data-group="' + grp.id + '">' +
+        '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="' + r1(w) + '" height="' + r1(h) + '" rx="18" fill="none" stroke="' + grp.color + '" stroke-width="1.6" stroke-dasharray="10 8" opacity="0.85"/>' +
+        '<rect x="' + r1(x + 16) + '" y="' + r1(y - 11) + '" width="' + r1(lw) + '" height="22" rx="11" fill="#0b1626" stroke="' + grp.color + '"/>' +
+        '<text x="' + r1(x + 16 + lw / 2) + '" y="' + r1(y + 4) + '" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="0.08em" fill="' + grp.color + '" font-family="Inter, sans-serif">' + esc(grp.label) + '</text></g>';
+    }).join("");
+  }
+
+  /* ---- persistent annotations (EOP / EG split labels) ---- */
+  function renderAnnotations() {
+    if (!D.annotations || C.layout === "v") return "";
+    return D.annotations.map(function (a) {
+      var n = D.byId[a.atNode]; if (!n) return "";
+      var p = anchor(n, a.side || "r", 0.5);
+      var x = p.x + (a.dx || 0), y = p.y + (a.dy || 0);
+      var w = Math.max(a.text.length * 9 + 16, (a.sub ? a.sub.length * 5 + 12 : 0));
+      return '<g class="annot">' +
+        '<rect x="' + r1(x - w / 2) + '" y="' + r1(y - 13) + '" width="' + r1(w) + '" height="' + (a.sub ? 30 : 20) + '" rx="7" fill="#0b1626" stroke="' + a.color + '"/>' +
+        '<text x="' + r1(x) + '" y="' + r1(y + 1) + '" text-anchor="middle" font-size="12.5" font-weight="800" fill="' + a.color + '" font-family="Inter, sans-serif">' + esc(a.text) + '</text>' +
+        (a.sub ? '<text x="' + r1(x) + '" y="' + r1(y + 12) + '" text-anchor="middle" font-size="8" fill="#9db0c8" font-family="Inter, sans-serif">' + esc(a.sub) + '</text>' : "") + '</g>';
+    }).join("");
   }
 
   /* ---- streams ---- */
@@ -3106,30 +3153,34 @@ body { color-scheme: dark; }
     g += '<g><rect class="node-tagpill" x="' + (w - tag.length * 6 - 20) + '" y="10" width="' + (tag.length * 6 + 10) + '" height="18" rx="9"/>' +
       '<text class="node-tagpill-tx" x="' + (w - (tag.length * 6 + 10) / 2 - 10) + '" y="22.5" text-anchor="middle">' + esc(tag) + '</text></g>';
     // title (wrap to 2 lines) + sub
-    var titleLines = wrapText(n.title, w - 24, 15);
-    var ty = 50;
-    titleLines.slice(0, 2).forEach(function (ln) { g += '<text class="node-title" x="14" y="' + ty + '">' + esc(ln) + '</text>'; ty += 18; });
-    g += '<text class="node-sub" x="14" y="' + (ty + 1) + '">' + esc(truncate(n.sub, Math.floor((w - 24) / 5.6))) + '</text>';
-    // media (glyph)
-    var mediaY = ty + 10, mediaH = h - mediaY - 34;
-    if (mediaH > 40) {
-      g += '<g class="node-equipment">' + embedSvg(EO.glyph(n.glyph), 12, mediaY, w - 24, mediaH) + '</g>';
+    var titleLines = wrapText(n.title, w - 24, 15).slice(0, 2);
+    if (SHOW_GLYPH) {
+      var ty = 50;
+      titleLines.forEach(function (ln) { g += '<text class="node-title" x="14" y="' + ty + '">' + esc(ln) + '</text>'; ty += 18; });
+      g += '<text class="node-sub" x="14" y="' + (ty + 1) + '">' + esc(truncate(n.sub, Math.floor((w - 24) / 5.6))) + '</text>';
+      var mediaY = ty + 10, mediaH = h - mediaY - 34;
+      if (mediaH > 40) g += '<g class="node-equipment">' + embedSvg(EO.glyph(n.glyph), 12, mediaY, w - 24, mediaH) + '</g>';
+      if (SHOW_MOL && n.brief.molecules && n.brief.molecules.length) {
+        var mols = n.brief.molecules.slice(0, Math.min(3, Math.floor((w - 20) / 46)));
+        var mw = 42, gap = (w - 20 - mols.length * mw) / (mols.length + 1);
+        var mg = '<g class="node-molecule">';
+        mols.forEach(function (m, i) {
+          var mx = 10 + gap + i * (mw + gap);
+          mg += '<rect x="' + r1(mx) + '" y="' + (h - 30) + '" width="' + mw + '" height="26" rx="6" fill="#0a1420" stroke="#22344d"/>' +
+            embedSvg(EO.mol(m), mx + 2, h - 29, mw - 4, 24);
+        });
+        g += mg + '</g>';
+      }
+      var metric = topMetric(n);
+      if (metric) g += '<g class="node-metric-row"><text class="node-metric" x="14" y="' + (h - 12) + '"><tspan class="node-metric-k">' + esc(metric.k) + '</tspan>  ' + esc(metric.v) + '</text></g>';
+    } else {
+      // compact labelled box — no equipment drawing
+      var blockH = titleLines.length * 20 + 20;
+      var ty2 = Math.max(50, (h - blockH) / 2 + 18);
+      titleLines.forEach(function (ln) { g += '<text class="node-title" x="14" y="' + r1(ty2) + '">' + esc(ln) + '</text>'; ty2 += 20; });
+      g += '<text class="node-sub" x="14" y="' + r1(ty2 + 2) + '">' + esc(truncate(n.sub, Math.floor((w - 22) / 5.4))) + '</text>';
+      g += '<text class="node-open" x="' + (w - 14) + '" y="' + (h - 12) + '" text-anchor="end">click to open ›</text>';
     }
-    // molecules strip (chem)
-    if (n.brief.molecules && n.brief.molecules.length) {
-      var mols = n.brief.molecules.slice(0, Math.min(3, Math.floor((w - 20) / 46)));
-      var mw = 42, gap = (w - 20 - mols.length * mw) / (mols.length + 1);
-      var mg = '<g class="node-molecule">';
-      mols.forEach(function (m, i) {
-        var mx = 10 + gap + i * (mw + gap);
-        mg += '<rect x="' + r1(mx) + '" y="' + (h - 30) + '" width="' + mw + '" height="26" rx="6" fill="#0a1420" stroke="#22344d"/>' +
-          embedSvg(EO.mol(m), mx + 2, h - 29, mw - 4, 24);
-      });
-      g += mg + '</g>';
-    }
-    // metric row (equipment/chem)
-    var metric = topMetric(n);
-    if (metric) g += '<g class="node-metric-row"><text class="node-metric" x="14" y="' + (h - 12) + '"><tspan class="node-metric-k">' + esc(metric.k) + '</tspan>  ' + esc(metric.v) + '</text></g>';
     g += '</g>';
     return g;
   }
@@ -3675,10 +3726,12 @@ body { color-scheme: dark; }
     // Section 3 — Incoterms
     h += '<section class="panel-sec"><div class="sec-h"><span class="sec-ico">⚓</span>Incoterms 2020, drawn</div>';
     h += '<p class="p-para" style="margin-top:0">Where does risk pass, and how far does the seller pay the freight? Tap a term.</p>';
+    h += '<div class="ic-light">';
     h += '<div id="ic-block">' + incotermHtml(t, t.defaultTerm) + '</div>';
-    h += '<div class="callout warn-callout" style="margin-top:10px"><span class="co-ico">◆</span><div>' + esc(t.callout) + '</div></div>';
-    h += '<div class="callout src" style="margin-top:8px"><span class="co-ico">↺</span><div>' + esc(t.closeLoop) + '</div></div>';
-    h += '<p style="font-size:10.5px;color:var(--ink-faint);margin-top:8px">Incoterms® 2020 summaries for learning only — not legal advice.</p>';
+    h += '<div class="ic-callout"><span>◆</span><div>' + esc(t.callout) + '</div></div>';
+    h += '<div class="ic-note"><span>↺</span><div>' + esc(t.closeLoop) + '</div></div>';
+    h += '<p class="ic-foot">Incoterms® 2020 summaries for learning only — not legal advice.</p>';
+    h += '</div>';
     h += '</section>';
     return h;
   }
@@ -3692,12 +3745,12 @@ body { color-scheme: dark; }
   // pad-style Incoterms journey + chips + detail + table for a selected code
   var IC_SX = [34, 102, 170, 238, 306], IC_BASE = 104;
   function icGlyph(kind, x) {
-    var s = 'fill="none" stroke="#c6d4e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
+    var s = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
     var o = 'transform="translate(' + x + ',' + IC_BASE + ')"';
     if (kind === "plant") return '<g ' + o + '><path d="M-14 0 v-20 h28 v20" ' + s + '/><path d="M-14 -8 h28" ' + s + '/><path d="M-4 -20 v-6 h6 v6" ' + s + '/></g>';
     if (kind === "crane") return '<g ' + o + '><path d="M-9 0 v-24" ' + s + '/><path d="M-9 -24 h20" ' + s + '/><path d="M9 -24 v10" ' + s + '/><path d="M-13 0 h8" ' + s + '/></g>';
     if (kind === "ship") return '<g ' + o + '><path d="M-15 -4 h30 l-4 8 h-22 z" ' + s + '/><path d="M-8 -4 v-9 h13 v9" ' + s + '/><path d="M-2 -13 v-4 h6" ' + s + '/></g>';
-    if (kind === "door") return '<g ' + o + '><path d="M-10 0 v-22 h20 v22" ' + s + '/><path d="M-10 0 h20" ' + s + '/><circle cx="5" cy="-11" r="1.6" fill="#c6d4e6"/></g>';
+    if (kind === "door") return '<g ' + o + '><path d="M-10 0 v-22 h20 v22" ' + s + '/><path d="M-10 0 h20" ' + s + '/><circle cx="5" cy="-11" r="1.6" fill="currentColor"/></g>';
     return "";
   }
   function incotermHtml(t, code) {
@@ -3714,9 +3767,9 @@ body { color-scheme: dark; }
     var svg = '<svg viewBox="0 0 340 150" width="100%" class="ic-svg" role="img" aria-label="Incoterms journey for ' + esc(it.code) + '">';
     if (brData) svg += '<path d="M' + brX1 + ' 40 v-6 h' + (brX2 - brX1) + ' v6" fill="none" stroke="#17b0a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
       '<text x="' + ((brX1 + brX2) / 2) + '" y="26" text-anchor="middle" class="ic-mono" fill="#17b0a4">SELLER PAYS FREIGHT</text>';
-    svg += '<line x1="20" y1="' + IC_BASE + '" x2="320" y2="' + IC_BASE + '" stroke="#c6d4e6" stroke-width="1.3" stroke-dasharray="1 5" stroke-linecap="round"/>';
+    svg += '<line x1="20" y1="' + IC_BASE + '" x2="320" y2="' + IC_BASE + '" stroke="currentColor" stroke-width="1.3" stroke-dasharray="1 5" stroke-linecap="round"/>';
     IC_SX.forEach(function (x, i) {
-      svg += '<circle cx="' + x + '" cy="' + IC_BASE + '" r="2.4" fill="#c6d4e6"/>' + icGlyph(glyphs[i], x) +
+      svg += '<circle cx="' + x + '" cy="' + IC_BASE + '" r="2.4" fill="currentColor"/>' + icGlyph(glyphs[i], x) +
         '<text x="' + x + '" y="' + (IC_BASE + 16) + '" text-anchor="middle" class="ic-mono">' + esc(t.stations[i][0]) + '</text>' +
         '<text x="' + x + '" y="' + (IC_BASE + 26) + '" text-anchor="middle" class="ic-mono">' + esc(t.stations[i][1]) + '</text>';
     });
@@ -3775,6 +3828,21 @@ body { color-scheme: dark; }
     wireIC();
   }
 
+  function feedListBlock(list) {
+    return '<div class="feed-list">' + list.map(function (f) {
+      return '<div class="feed-item"><div class="fi-head"><span class="fi-name">' + esc(f.name) + '</span>' +
+        '<span class="fi-formula mono">' + esc(f.formula) + '</span></div><div class="fi-note">' + esc(f.note) + '</div></div>';
+    }).join("") + '</div>';
+  }
+  function splitsBlock(splits) {
+    return '<div class="io-grid">' + splits.map(function (s) {
+      var col = s.color === "accent" ? "var(--accent)" : "var(--s-product)";
+      return '<div class="trade-card" style="border-left-color:' + col + '"><div class="tc-tag" style="color:' + col + '">' + esc(s.code) + '</div>' +
+        '<div style="font-weight:600;color:var(--ink);font-size:12.5px;margin:2px 0 4px">' + esc(s.name) + '</div>' +
+        '<div style="font-size:11.5px;color:var(--ink-dim);line-height:1.4">' + esc(s.note) + '</div></div>';
+    }).join("") + '</div>';
+  }
+
   /* ---------- main render ---------- */
   function render(id) {
     var n = D.byId[id]; if (!n) return;
@@ -3792,7 +3860,14 @@ body { color-scheme: dark; }
     var body1 = figure(n.art);
     body1 += '<p class="p-lead">' + esc(b.purpose) + '</p>';
     if (b.para) body1 += '<p class="p-para">' + esc(b.para) + '</p>';
+    if (b.para2) body1 += '<p class="p-para">' + esc(b.para2) + '</p>';
     html += sec("Overview", "◲", body1);
+
+    // feedstock list (feed-preparation stage)
+    if (b.feedList) html += sec("Feedstocks", "▤", feedListBlock(b.feedList));
+
+    // EO product split (EOP / EG)
+    if (b.splits) html += sec("EO splits into", "⑃", splitsBlock(b.splits));
 
     // interactive market & trade module
     if (b.trade) html += tradeHtml(b.trade);
@@ -4129,10 +4204,9 @@ body { color-scheme: dark; }
     buildCanvasLegend();
     buildFabs();
     buildTourBar();
-    wireModes();
     wireControls();
     wireKeys();
-    setMode("overview");
+    document.body.classList.add("mode-overview");
     EO.canvas.init();
     EO.canvas.setAnimate(true);
 
