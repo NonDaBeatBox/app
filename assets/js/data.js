@@ -242,21 +242,16 @@
       }
     },
 
-    /* ===== STAGE 7 — EO distribution header ===== */
+    /* ===== STAGE 7 — the EO split: two product boxes, EOP & EG ===== */
     {
-      id: "manifold", stage: "7", cat: "distribution", glyph: "manifold", art: "manifold",
-      title: "EO product split — EOP & EG", sub: "Purified EO → EOP (product) + EG (glycol)",
-      x: 2390, y: 330, w: 250, h: 210,
+      id: "eop", stage: "7", cat: "distribution", glyph: "manifold", art: "manifold",
+      title: "EOP — ethylene-oxide product", sub: "High-purity EO piped to the derivative units",
+      x: 2400, y: 415, w: 230, h: 132,
       brief: {
-        purpose: "Divide the purified ethylene-oxide stream into its two destinations: EOP (ethylene oxide as a product) and EG (ethylene glycol).",
-        para: "Purified EO goes two ways. Part of it is kept as EOP — high-purity ethylene oxide product — and piped to the derivative units (ethanolamines, ethoxylates, PEG, glycol ethers and polyols). The rest is converted to EG — ethylene glycol — in the Shell OMEGA glycol unit. Because EO is hazardous, EOP moves only by dedicated pipeline, never by the general transport modes used for the finished liquids.",
-        splits: [
-          { code: "EOP", name: "Ethylene oxide product", note: "High-purity EO piped to the derivative units.", color: "accent" },
-          { code: "EG", name: "Ethylene glycol", note: "EO converted to MEG in the Shell OMEGA unit.", color: "product" }
-        ],
+        purpose: "Keep part of the purified EO as EOP — the high-purity ethylene-oxide product that feeds the derivative units.",
+        para: "Most of the purified EO is kept as EOP: high-purity ethylene-oxide product. Because EO is hazardous and volatile, EOP never travels by road or sea as EO — it moves only by dedicated pipeline to the derivative units on the same integrated site: ethanolamines, ethoxylates, PEG, glycol ethers and polyether polyols.",
         inputs: [{ label: "Purified EO", type: "product" }],
         outputs: [
-          { label: "EO → EG (Shell OMEGA glycol)", type: "product" },
           { label: "EOP → ethanolamines", type: "product" },
           { label: "EOP → ethoxylates", type: "product" },
           { label: "EOP → PEG", type: "product" },
@@ -264,22 +259,43 @@
           { label: "EOP → polyether polyols", type: "product" },
           { label: "EOP by dedicated pipeline", type: "product" }
         ],
-        equipment: ["Distribution header", "Branch valves", "EOP pipeline connection", "Glycol-unit feed"],
+        equipment: ["Distribution header", "Branch valves", "EOP pipeline connection"],
         conditions: [
           { k: "EOP", v: "EO kept as product" },
-          { k: "EG", v: "EO → glycol (OMEGA)" },
+          { k: "Destinations", v: "Five derivative units" },
           { k: "EO transport", v: "Dedicated pipeline only" }
         ],
         condNote: PUB,
         molecules: ["eo"],
         sources: SRC_COMMON,
-        disclaimers: ["Conceptual EO split — not plant piping configuration.", "Branch valves and lines are graphical detail only."]
+        disclaimers: ["Conceptual EO distribution — not plant piping configuration.", "Branch valves and lines are graphical detail only."]
+      }
+    },
+    {
+      id: "eg", stage: "7", cat: "distribution", glyph: "glycol", art: "glycol",
+      title: "EG — ethylene glycol", sub: "EO routed to the Shell OMEGA glycol unit",
+      x: 2400, y: 232, w: 230, h: 120,
+      brief: {
+        purpose: "Route the rest of the purified EO to EG — ethylene glycol — made in the Shell OMEGA unit.",
+        para: "The other half of the split becomes EG: ethylene glycol. The EO earmarked for glycol is sent to the Shell OMEGA unit, where it reacts with CO₂ and water to give mono-ethylene glycol (MEG) — the single biggest EO derivative, used for PET bottles, polyester fibre, film and coolant.",
+        inputs: [{ label: "Purified EO", type: "product" }],
+        outputs: [{ label: "EO → OMEGA glycol unit", type: "product" }, { label: "→ MEG (EG) product", type: "product" }],
+        equipment: ["Glycol-unit feed line", "Branch valve"],
+        conditions: [
+          { k: "EG", v: "EO → ethylene glycol" },
+          { k: "Route", v: "Shell OMEGA" },
+          { k: "Main product", v: "MEG" }
+        ],
+        condNote: PUB,
+        molecules: ["eo", "meg"],
+        sources: SRC_COMMON,
+        disclaimers: ["Conceptual EO distribution — not plant piping configuration."]
       }
     },
 
     /* ===== STAGE 8B — Shell OMEGA route ===== */
     {
-      id: "omega", stage: "EG", cat: "derivative", glyph: "omega", art: "omega",
+      id: "omega", stage: "8", cat: "derivative", glyph: "omega", art: "omega",
       title: "Shell OMEGA — EG (glycol) unit", sub: "EO + CO₂ → ethylene carbonate → MEG (EG)",
       x: 2770, y: 200, w: 240, h: 150,
       brief: {
@@ -538,14 +554,17 @@
     { from: "cryo", to: "eoreactor", fs: "r", ts: "l", type: "hydrocarbon", label: "Purified ethylene" },
     // ---- EO product backbone ----
     { from: "eoreactor", to: "eorecovery", fs: "r", ts: "l", type: "product", label: "Crude EO solution" },
-    { from: "eorecovery", to: "manifold", fs: "r", ts: "l", type: "product", label: "Purified EO" },
-    // ---- EO split → EG (glycol via OMEGA) + EOP (EO product to derivatives) ----
-    { from: "manifold", to: "omega", fs: "r", ts: "l", type: "product", label: "EO → EG (glycol)" },
-    { from: "manifold", to: "amines", fs: "r", ts: "l", type: "product", label: "EOP to amines" },
-    { from: "manifold", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
-    { from: "manifold", to: "peg", fs: "r", ts: "l", type: "product", label: "EOP to PEG" },
-    { from: "manifold", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "EOP to glycol ethers" },
-    { from: "manifold", to: "polyols", fs: "r", ts: "l", type: "product", label: "EOP to polyols" },
+    // ---- purified EO splits into two boxes: EG (glycol) and EOP (product) ----
+    { from: "eorecovery", to: "eg", fs: "r", ts: "l", type: "product", label: "Purified EO → EG" },
+    { from: "eorecovery", to: "eop", fs: "r", ts: "l", type: "product", label: "Purified EO → EOP" },
+    // ---- EG box → OMEGA glycol unit ----
+    { from: "eg", to: "omega", fs: "r", ts: "l", type: "product", label: "EO → EG (glycol)" },
+    // ---- EOP box → the five derivative units ----
+    { from: "eop", to: "amines", fs: "r", ts: "l", type: "product", label: "EOP to amines" },
+    { from: "eop", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
+    { from: "eop", to: "peg", fs: "r", ts: "l", type: "product", label: "EOP to PEG" },
+    { from: "eop", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "EOP to glycol ethers" },
+    { from: "eop", to: "polyols", fs: "r", ts: "l", type: "product", label: "EOP to polyols" },
     // ---- recycle: EO recovery gas back to reactor (prominent) ----
     { from: "eorecovery", to: "eoreactor", fs: "t", ts: "t", type: "recycle", label: "Reactor recycle gas", side: true, arc: 120 },
     // ---- ethane recycle: cryo back to furnace ----
@@ -557,8 +576,8 @@
     { from: "peg", to: "storage", fs: "r", ts: "l", toff: 0.62, type: "product", label: "PEG" },
     { from: "glycolethers", to: "storage", fs: "r", ts: "l", toff: 0.80, type: "product", label: "Glycol ethers" },
     { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.95, type: "product", label: "Polyols" },
-    // ---- EO dedicated pipeline (manifold → storage, pipeline only) ----
-    { from: "manifold", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
+    // ---- EO dedicated pipeline (EOP → storage, pipeline only) ----
+    { from: "eop", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
     // ---- storage → market/trade ----
     { from: "storage", to: "trade", fs: "r", ts: "l", type: "product", label: "Product to market" }
   ];
@@ -660,7 +679,7 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes
@@ -674,8 +693,7 @@
      (not affected by the stream-label layer)
      --------------------------------------------------------------- */
   var ANNOTATIONS = [
-    { atNode: "manifold", side: "r", dx: 60, dy: -78, text: "EG", sub: "ethylene glycol", color: "#17b0a4" },
-    { atNode: "manifold", side: "r", dx: 60, dy: 20, text: "EOP", sub: "EO product", color: "#38bdf8" }
+    // EOP and EG are now their own boxes (nodes) — no floating labels needed.
   ];
 
   /* ---------------------------------------------------------------

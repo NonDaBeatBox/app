@@ -1061,7 +1061,7 @@
     eoreactor:    { kind: "illustration", label: ILLUS_LABEL, caption: "Ethylene, oxygen and recycle gas react over a silver catalyst in cooled tubes; most gas is recycled and CO₂ is purged." },
     eorecovery:   { kind: "illustration", label: ILLUS_LABEL, caption: "EO is absorbed into water, stripped, and purified by distillation; scrubbed recycle gas returns to the reactor loop." },
     manifold:     { kind: "illustration", label: ILLUS_LABEL, caption: "One purified-EO stream is split at a distribution header to the glycol unit and the HPEO derivative units." },
-    glycol:       { kind: "illustration", label: ILLUS_LABEL, caption: "EO is hydrated with large excess water; evaporation and a distillation ladder separate MEG, DEG and TEG by boiling point." },
+    glycol:       { kind: "illustration", label: ILLUS_LABEL, caption: "The EG branch: EO earmarked for glycol is routed to the OMEGA unit and converted to mono-ethylene glycol (MEG)." },
     omega:        { kind: "illustration", label: ILLUS_LABEL, caption: "The OMEGA route first makes ethylene carbonate from EO + CO₂, then hydrolyses it to MEG, recycling the CO₂." },
     amines:       { kind: "illustration", label: ILLUS_LABEL, caption: "EO reacts with ammonia; the EO:NH₃ ratio sets the MEA/DEA/TEA split, which is then separated by distillation." },
     ethoxylation: { kind: "illustration", label: ILLUS_LABEL, caption: "EO is added in a controlled way onto a fatty alcohol / initiator, growing an amphiphilic ethoxylate chain." },

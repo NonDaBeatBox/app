@@ -89,7 +89,7 @@
   /* ---------- mobile vertical layout ---------- */
   function computeVertical() {
     var CX = 60, ROW = 210, INDENT = 120;
-    var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold"];
+    var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg"];
     var deriv = ["omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols"];
     var y = 40, order = 0;
     C.vorder = {};
