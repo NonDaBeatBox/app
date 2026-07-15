@@ -180,7 +180,7 @@
     /* ===== STAGE 5 — EO reactor system ===== */
     {
       id: "eoreactor", stage: "5", cat: "reaction", glyph: "reactor", art: "eoreactor",
-      title: "EO reactor system", sub: "Silver-catalysed partial oxidation of ethylene",
+      title: "EO reactor system", sub: "Makes ethylene oxide (EO)",
       x: 1730, y: 340, w: 250, h: 190,
       brief: {
         purpose: "React ethylene with oxygen over a silver catalyst to make ethylene oxide, while recycling most of the gas and rejecting the CO₂ that forms.",
@@ -214,10 +214,28 @@
       }
     },
 
+    /* ===== CO₂ by-product (from the EO reactor) ===== */
+    {
+      id: "co2prod", stage: "5b", cat: "product", glyph: "storage", art: "storage",
+      title: "CO₂", sub: "Liquid & gas", grades: ["Liquid", "Gas"],
+      x: 1730, y: 660, w: 234, h: 100,
+      brief: {
+        purpose: "Carbon dioxide — captured and sold as a by-product of the EO reactor.",
+        para: "The EO reaction makes CO₂ as a by-product. Instead of only venting it, part is captured and supplied as liquid CO₂ (beverage carbonation, chilling and freezing) and as gaseous CO₂ (industrial gas).",
+        inputs: [{ label: "CO₂ from EO reactor", type: "recycle" }],
+        outputs: [{ label: "Liquid CO₂", type: "product" }, { label: "Gas CO₂", type: "product" }],
+        conditions: [{ k: "Source", v: "EO reactor by-product" }, { k: "Forms", v: "Liquid · gas" }],
+        condNote: PUB,
+        molecules: ["co2"],
+        sources: SRC_COMMON,
+        disclaimers: ["CO₂ recovery shown at a general public level."]
+      }
+    },
+
     /* ===== STAGE 7 — the EO split: two product boxes, EOP & EG ===== */
     {
       id: "eop", stage: "7", cat: "distribution", glyph: "manifold", art: "manifold",
-      title: "EOP — ethylene-oxide product", sub: "High-purity EO piped to the derivative units",
+      title: "EOP — ethylene-oxide product", sub: "EO product for derivatives",
       x: 2400, y: 415, w: 230, h: 132,
       brief: {
         purpose: "Keep part of the purified EO as EOP — the high-purity ethylene-oxide product that feeds the ethanolamine and ethoxylate units.",
@@ -244,7 +262,7 @@
     },
     {
       id: "eg", stage: "7", cat: "distribution", glyph: "glycol", art: "glycol",
-      title: "EG — ethylene glycol", sub: "EO routed to the Shell OMEGA glycol unit",
+      title: "EG — ethylene glycol", sub: "Ethylene glycol products",
       x: 2400, y: 232, w: 230, h: 120,
       brief: {
         purpose: "Route the rest of the purified EO to EG — ethylene glycol — made in the Shell OMEGA unit.",
@@ -267,7 +285,7 @@
     /* ===== STAGE 8 — EG products: MEG · DEG · TEG (own boxes) ===== */
     {
       id: "meg", stage: "8", cat: "product", glyph: "omega", art: "omega",
-      title: "MEG", sub: "Mono-ethylene glycol — PET, polyester, coolant",
+      title: "MEG", sub: "Bottles · fibre · film",
       x: 2790, y: 150, w: 214, h: 86,
       brief: {
         purpose: "Mono-ethylene glycol (MEG) — the single biggest ethylene-oxide product, made from the EG stream via the Shell OMEGA route.",
@@ -295,7 +313,7 @@
     },
     {
       id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
-      title: "DEG", sub: "Di-ethylene glycol — resins, plasticisers",
+      title: "DEG", sub: "Resins · automotive",
       x: 2790, y: 246, w: 214, h: 86,
       brief: {
         purpose: "Di-ethylene glycol (DEG) — a glycol co-product, one EO unit longer than MEG.",
@@ -306,15 +324,15 @@
         conditions: [{ k: "Formation", v: "MEG + EO → DEG" }, { k: "Yield", v: "Minor co-product" }],
         condNote: PUB,
         molecules: ["meg", "eo", "deg"],
-        products: [{ name: "DEG", mol: "deg", apps: ["resin", "plasticizer", "solvent"] }],
-        applications: ["resin", "plasticizer", "solvent"],
+        products: [{ name: "DEG", mol: "deg", apps: ["resin", "elastomer", "coating"] }],
+        applications: ["resin", "elastomer", "coating"],
         sources: SRC_COMMON,
         disclaimers: ["Co-product yields are public illustrative values."]
       }
     },
     {
       id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
-      title: "TEG", sub: "Tri-ethylene glycol — gas drying, humectant",
+      title: "TEG", sub: "Gas drying · paints",
       x: 2790, y: 342, w: 214, h: 86,
       brief: {
         purpose: "Tri-ethylene glycol (TEG) — a further glycol co-product, three EO units long.",
@@ -325,8 +343,8 @@
         conditions: [{ k: "Formation", v: "DEG + EO → TEG" }, { k: "Key use", v: "Natural-gas drying" }],
         condNote: PUB,
         molecules: ["deg", "eo", "teg"],
-        products: [{ name: "TEG", mol: "teg", apps: ["gasdehydration", "solvent", "personalcare"] }],
-        applications: ["gasdehydration", "solvent", "personalcare"],
+        products: [{ name: "TEG", mol: "teg", apps: ["gasdehydration", "paint", "coating"] }],
+        applications: ["gasdehydration", "paint", "coating"],
         sources: SRC_COMMON,
         disclaimers: ["Co-product yields are public illustrative values."]
       }
@@ -335,7 +353,7 @@
     /* ===== STAGE 9 — ethanolamine products: MEA · DEA · TEA (own boxes) ===== */
     {
       id: "mea", stage: "9", cat: "product", glyph: "amines", art: "amines",
-      title: "MEA", sub: "Mono-ethanolamine — gas treating, surfactants",
+      title: "MEA", sub: "Detergents · gas treating",
       x: 2790, y: 540, w: 214, h: 86,
       brief: {
         purpose: "Mono-ethanolamine (MEA) — ammonia plus one EO arm; the first ethanolamine.",
@@ -354,7 +372,7 @@
     },
     {
       id: "dea", stage: "9", cat: "product", glyph: "amines", art: "amines",
-      title: "DEA", sub: "Di-ethanolamine — surfactants, gas treating",
+      title: "DEA", sub: "Surfactants · gas treating",
       x: 2790, y: 636, w: 214, h: 86,
       brief: {
         purpose: "Di-ethanolamine (DEA) — ammonia with two EO arms.",
@@ -373,7 +391,7 @@
     },
     {
       id: "tea", stage: "9", cat: "product", glyph: "amines", art: "amines",
-      title: "TEA", sub: "Tri-ethanolamine — cement, cosmetics",
+      title: "TEA", sub: "Cement · cosmetics",
       x: 2790, y: 732, w: 214, h: 86,
       brief: {
         purpose: "Tri-ethanolamine (TEA) — ammonia with three EO arms.",
@@ -394,7 +412,7 @@
     /* ===== STAGE 10 — ethoxylates (kept) ===== */
     {
       id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
-      title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
+      title: "Ethoxylates", sub: "Detergents · personal care", grades: ["AE", "APE", "FMEE"],
       x: 2790, y: 930, w: 234, h: 132,
       brief: {
         purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
@@ -418,7 +436,7 @@
     /* ===== STAGE 10 — polyether polyols (added back) ===== */
     {
       id: "polyols", stage: "10", cat: "product", glyph: "ethoxylation", art: "polyols",
-      title: "Polyether polyols", sub: "Feed to polyurethane foams & elastomers", grades: ["Flexible", "Rigid", "PPG"],
+      title: "Polyether polyols", sub: "Polyurethane foam", grades: ["Flexible", "Rigid", "PPG"],
       x: 2790, y: 1174, w: 234, h: 132,
       brief: {
         purpose: "Build polyether polyols by adding EO and/or propylene oxide (PO) onto an initiator, for downstream polyurethane.",
@@ -539,6 +557,8 @@
     // ---- EO from the reactor splits into two boxes: EG (glycol) and EOP (product) ----
     { from: "eoreactor", to: "eg", fs: "r", ts: "l", type: "product", label: "EO → EG" },
     { from: "eoreactor", to: "eop", fs: "r", ts: "l", type: "product", label: "EO → EOP" },
+    // ---- CO₂ by-product from the reactor ----
+    { from: "eoreactor", to: "co2prod", fs: "b", ts: "t", type: "recycle", label: "CO₂ by-product" },
     // ---- EG → glycol products MEG · DEG · TEG (own boxes) ----
     { from: "eg", to: "meg", fs: "r", ts: "l", type: "product", label: "→ MEG" },
     { from: "eg", to: "deg", fs: "r", ts: "l", type: "product", label: "→ DEG" },
@@ -574,7 +594,6 @@
     { node: "furnace", side: "b", dir: "in", type: "hazard", label: "Fuel gas (burners)" },
     { node: "cryo", side: "t", dir: "out", type: "recycle", label: "CH₄ / H₂ off-gas" },
     { node: "eoreactor", side: "t", dir: "in", type: "utility", label: "Oxygen feed" },
-    { node: "eoreactor", side: "b", dir: "out", type: "recycle", label: "CO₂ by-product" },
     { node: "mea", side: "t", dir: "in", type: "utility", label: "Ammonia" },
     { node: "meg", side: "t", dir: "in", type: "recycle", label: "CO₂ (recycle)" },
     { node: "treatment", side: "t", dir: "out", type: "recycle", label: "Acid gas / CO₂" }
@@ -663,7 +682,7 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "polyols", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "co2prod", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "polyols", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes
@@ -673,7 +692,8 @@
     { id: "glycols", label: "ETHYLENE GLYCOLS", nodes: ["meg", "deg", "teg"], color: "#15a367" },
     { id: "ethanolamines", label: "ETHANOLAMINES", nodes: ["mea", "dea", "tea"], color: "#7c6fd0" },
     { id: "surfactants", label: "SURFACTANTS", nodes: ["ethoxylation"], color: "#d98a3a" },
-    { id: "polyolcat", label: "POLYOLS", nodes: ["polyols"], color: "#4aa3d6" }
+    { id: "polyolcat", label: "POLYOLS", nodes: ["polyols"], color: "#4aa3d6" },
+    { id: "co2cat", label: "CO₂ BY-PRODUCT", nodes: ["co2prod"], color: "#5aa88f" }
   ];
 
   /* ---------------------------------------------------------------
