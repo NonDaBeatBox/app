@@ -157,7 +157,7 @@
       var lw = grp.label.length * 6.4 + 20;
       return '<g class="group-box" data-group="' + grp.id + '">' +
         '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="' + r1(w) + '" height="' + r1(h) + '" rx="18" fill="none" stroke="' + grp.color + '" stroke-width="1.6" stroke-dasharray="10 8" opacity="0.85"/>' +
-        '<rect x="' + r1(x + 16) + '" y="' + r1(y - 11) + '" width="' + r1(lw) + '" height="22" rx="11" fill="#0b1626" stroke="' + grp.color + '"/>' +
+        '<rect x="' + r1(x + 16) + '" y="' + r1(y - 11) + '" width="' + r1(lw) + '" height="22" rx="11" class="fill-surface" stroke="' + grp.color + '"/>' +
         '<text x="' + r1(x + 16 + lw / 2) + '" y="' + r1(y + 4) + '" text-anchor="middle" font-size="11" font-weight="800" letter-spacing="0.08em" fill="' + grp.color + '" font-family="Inter, sans-serif">' + esc(grp.label) + '</text></g>';
     }).join("");
   }
@@ -171,7 +171,7 @@
       var x = p.x + (a.dx || 0), y = p.y + (a.dy || 0);
       var w = Math.max(a.text.length * 9 + 16, (a.sub ? a.sub.length * 5 + 12 : 0));
       return '<g class="annot">' +
-        '<rect x="' + r1(x - w / 2) + '" y="' + r1(y - 13) + '" width="' + r1(w) + '" height="' + (a.sub ? 30 : 20) + '" rx="7" fill="#0b1626" stroke="' + a.color + '"/>' +
+        '<rect x="' + r1(x - w / 2) + '" y="' + r1(y - 13) + '" width="' + r1(w) + '" height="' + (a.sub ? 30 : 20) + '" rx="7" class="fill-surface" stroke="' + a.color + '"/>' +
         '<text x="' + r1(x) + '" y="' + r1(y + 1) + '" text-anchor="middle" font-size="12.5" font-weight="800" fill="' + a.color + '" font-family="Inter, sans-serif">' + esc(a.text) + '</text>' +
         (a.sub ? '<text x="' + r1(x) + '" y="' + r1(y + 12) + '" text-anchor="middle" font-size="8" fill="#9db0c8" font-family="Inter, sans-serif">' + esc(a.sub) + '</text>' : "") + '</g>';
     }).join("");
@@ -347,7 +347,7 @@
       apps.slice(0, 4).forEach(function (app, i) {
         var x = cx + i * (chipW + gap), y = startY - 13;
         g += '<g class="enduse-chip" data-app="' + app + '" data-node="' + n.id + '" style="cursor:pointer">' +
-          '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="' + chipW + '" height="26" rx="13" fill="#0b1626" stroke="#17604f"/>' +
+          '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="' + chipW + '" height="26" rx="13" class="fill-surface" stroke="#17604f"/>' +
           '<circle cx="' + r1(x + 13) + '" cy="' + r1(y + 13) + '" r="5" fill="#17b0a4"/>' +
           '<text x="' + r1(x + 24) + '" y="' + r1(y + 17) + '" font-size="9.5" fill="#9fd8cf" font-family="Inter,sans-serif" font-weight="600">' + esc(shortApp(app)) + '</text></g>';
       });
@@ -373,7 +373,7 @@
       var x = startX + 42 + col * 132, y = startY - 58 + row * 30;
       var isEO = m.indexOf("EO") === 0;
       g += '<g class="delivery-chip" data-mode="' + esc(m) + '">' +
-        '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="122" height="24" rx="7" fill="#0b1626" stroke="' + (isEO ? "#7a4020" : "#294a70") + '"/>' +
+        '<rect x="' + r1(x) + '" y="' + r1(y) + '" width="122" height="24" rx="7" class="fill-surface" stroke="' + (isEO ? "#7a4020" : "#294a70") + '"/>' +
         '<text x="' + r1(x + 10) + '" y="' + r1(y + 16) + '" font-size="10" fill="' + (isEO ? "#e6b07a" : "#a9bcd6") + '" font-family="Inter,sans-serif" font-weight="600">' + esc(m) + '</text></g>';
     });
     g += '</g>';
@@ -437,7 +437,7 @@
   function renderMinimap() {
     var b = C.bounds, mm = el("minimap-svg");
     mm.setAttribute("viewBox", b.minX + " " + b.minY + " " + (b.maxX - b.minX) + " " + (b.maxY - b.minY));
-    var g = '<rect x="' + b.minX + '" y="' + b.minY + '" width="' + (b.maxX - b.minX) + '" height="' + (b.maxY - b.minY) + '" fill="#0a1320"/>';
+    var g = '<rect x="' + b.minX + '" y="' + b.minY + '" width="' + (b.maxX - b.minX) + '" height="' + (b.maxY - b.minY) + '" class="mm-bg"/>';
     D.streams.forEach(function (s) {
       var e = effAnchors(s); var pts = routePoints(e.a, e.sa, e.b, e.sb, { arc: e.arc });
       g += '<path d="' + roundedPath(pts, 8) + '" fill="none" stroke="' + strokeFor(s.type) + '" stroke-width="6" opacity="0.5"/>';
@@ -631,6 +631,11 @@
     init: function () {
       C.t = { x: 0, y: 0 }; C.k = 1; C.kmin = 0.14; C.selected = null;
       C.layout = window.innerWidth <= 900 ? "v" : "h";
+      var defs = el("svg-defs");
+      if (defs) defs.innerHTML =
+        '<linearGradient id="nodeGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" style="stop-color:var(--node-top)"/>' +
+        '<stop offset="1" style="stop-color:var(--node-bot)"/></linearGradient>';
       computeVertical();
       buildAdj();
       render();
