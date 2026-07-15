@@ -19,7 +19,7 @@
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
     { id: "split", label: "Recovery & split", kind: "nodes", nodes: ["eorecovery", "eop", "eg"] },
     { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
-    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols"] },
+    { id: "deriv", label: "Ethanolamines", kind: "nodes", nodes: ["mea", "dea", "tea"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
     { id: "trade", label: "Trade", kind: "nodes", nodes: ["trade"] },
     { id: "quiz", label: "Quiz", kind: "quiz" }
@@ -87,7 +87,7 @@
       '<div class="fig-caption">A modern petrochemical complex groups crackers, separation trains and derivative units on one integrated site.</div></div>' +
       '<div class="learn-cards">' +
         card("Make it", "var(--s-hydrocarbon)", "Crack a hydrocarbon feed to ethylene in the <b>olefins</b> unit, then partially oxidise it over silver to ethylene oxide.") +
-        card("Use it", "var(--s-product)", "EO splits into <b>EOP</b> (product) and <b>EG</b> (glycol via OMEGA), and becomes ethanolamines, ethoxylates, PEG and polyols — bottles, fibre, coolant, detergents, foam.") +
+        card("Use it", "var(--s-product)", "EO splits into <b>EOP</b> (product) and <b>EG</b> (glycol via OMEGA), becoming the ethylene glycols <b>MEG · DEG · TEG</b> and the ethanolamines <b>MEA · DEA · TEA</b> — PET bottles, polyester fibre, coolant, gas treating and detergents.") +
         card("Sell it", "var(--s-recycle)", "The finished products are commodities, priced against global benchmarks and shipped under standard trade terms.") +
       '</div>' +
       '<p class="p-para">Read each stage with the tabs above, or open the <b>Map</b> to explore it. Finish with the <b>Quiz</b>. All figures are public illustrative values — not plant or commercial data.</p>';

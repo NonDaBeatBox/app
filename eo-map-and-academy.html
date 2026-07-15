@@ -2605,21 +2605,19 @@ body.view-learn .learn-view { display: block; }
       title: "EOP — ethylene-oxide product", sub: "High-purity EO piped to the derivative units",
       x: 2400, y: 415, w: 230, h: 132,
       brief: {
-        purpose: "Keep part of the purified EO as EOP — the high-purity ethylene-oxide product that feeds the derivative units.",
-        para: "Most of the purified EO is kept as EOP: high-purity ethylene-oxide product. Because EO is hazardous and volatile, EOP never travels by road or sea as EO — it moves only by dedicated pipeline to the derivative units on the same integrated site: ethanolamines, ethoxylates, PEG, glycol ethers and polyether polyols.",
+        purpose: "Keep part of the purified EO as EOP — the high-purity ethylene-oxide product that feeds the ethanolamine units.",
+        para: "Most of the purified EO is kept as EOP: high-purity ethylene-oxide product. Because EO is hazardous and volatile, EOP never travels by road or sea as EO — it moves only by dedicated pipeline to the ethanolamine units on the same integrated site, where it reacts with ammonia to give MEA, DEA and TEA.",
         inputs: [{ label: "Purified EO", type: "product" }],
         outputs: [
-          { label: "EOP → ethanolamines", type: "product" },
-          { label: "EOP → ethoxylates", type: "product" },
-          { label: "EOP → PEG", type: "product" },
-          { label: "EOP → glycol ethers", type: "product" },
-          { label: "EOP → polyether polyols", type: "product" },
+          { label: "EOP → MEA", type: "product" },
+          { label: "EOP → DEA", type: "product" },
+          { label: "EOP → TEA", type: "product" },
           { label: "EOP by dedicated pipeline", type: "product" }
         ],
         equipment: ["Distribution header", "Branch valves", "EOP pipeline connection"],
         conditions: [
           { k: "EOP", v: "EO kept as product" },
-          { k: "Destinations", v: "Five derivative units" },
+          { k: "Products", v: "MEA · DEA · TEA" },
           { k: "EO transport", v: "Dedicated pipeline only" }
         ],
         condNote: PUB,
@@ -2777,115 +2775,17 @@ body.view-learn .learn-view { display: block; }
       }
     },
 
-    /* ===== STAGE 10 — ethoxylates ===== */
-    {
-      id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
-      title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
-      x: 2790, y: 716, w: 234, h: 132,
-      brief: {
-        purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
-        para: "A starter such as a fatty alcohol is charged to a stirred reactor and EO is added a little at a time. Each EO adds one –CH₂CH₂O– unit, growing a water-loving chain on the end of the oil-loving starter. The result is an amphiphile: a hydrophobic tail plus a hydrophilic EO chain — the basic structure of most non-ionic surfactants.",
-        inputs: [{ label: "Fatty alcohol / initiator", type: "utility" }, { label: "EO feed (metered)", type: "product" }],
-        outputs: [{ label: "Ethoxylate product", type: "product" }],
-        equipment: ["EO metering", "Stirred ethoxylation reactor", "Reaction cooler", "Product finishing"],
-        conditions: [
-          { k: "EO addition", v: "Controlled / metered" },
-          { k: "Chain growth", v: "–CH₂CH₂O– units" },
-          { k: "Structure", v: "Amphiphile (tail + EO chain)" }
-        ],
-        condNote: PUB,
-        molecules: ["eo"],
-        applications: ["detergent", "cleaner", "surfactant", "emulsifier"],
-        sources: SRC_COMMON,
-        disclaimers: ["Structure shown is a generic amphiphile, not a specific commercial product."]
-      }
-    },
-
-    /* ===== STAGE 10 — PEG ===== */
-    {
-      id: "peg", stage: "10", cat: "product", glyph: "ethoxylation", art: "peg",
-      title: "Polyethylene glycol", sub: "Cosmetics, pharma, lubricants", grades: ["PEG-400", "PEG-4000", "PEG-8000"],
-      x: 2790, y: 864, w: 234, h: 132,
-      brief: {
-        purpose: "Polymerise EO onto an initiator to make PEG across a range of molecular weights.",
-        para: "EO is added onto an initiator and the –CH₂CH₂O– chain is grown to a target length. Controlling how much EO is added sets the molecular weight, which in turn sets whether the PEG is a mobile liquid, a paste or a waxy solid. PEG grades are named by their approximate molecular weight.",
-        inputs: [{ label: "Initiator", type: "utility" }, { label: "EO feed", type: "product" }],
-        outputs: [{ label: "PEG grades", type: "product" }],
-        equipment: ["EO feed", "Polymerisation reactor", "Molecular-weight control", "Finishing / grading"],
-        conditions: [
-          { k: "Repeat unit", v: "HO–(CH₂CH₂O)ₙ–H" },
-          { k: "Chain growth", v: "EO addition" },
-          { k: "Grades", v: "By molecular weight" }
-        ],
-        condNote: PUB,
-        molecules: ["eo", "peg"],
-        formula: "HO–(CH₂CH₂O)ₙ–H",
-        applications: ["personalcare", "pharma", "toothpaste", "solvent"],
-        sources: SRC_COMMON,
-        disclaimers: ["Grade ranges are general public information."]
-      }
-    },
-
-    /* ===== STAGE 10 — glycol ethers ===== */
-    {
-      id: "glycolethers", stage: "10", cat: "product", glyph: "glycol", art: "glycolethers",
-      title: "Glycol ethers", sub: "Coalescing solvents — coatings & inks", grades: ["EGBE", "PGME", "DEGBE"],
-      x: 2790, y: 1012, w: 234, h: 132,
-      brief: {
-        purpose: "React an alcohol with EO to make a family of glycol-ether solvents, then purify the cuts.",
-        para: "An alcohol reacts with EO to give a glycol ether — a molecule that dissolves both water-based and oil-based materials, which makes it a valuable coalescing solvent. Different alcohols and different numbers of EO units give a family of products separated by distillation.",
-        inputs: [{ label: "Alcohol feed", type: "utility" }, { label: "EO feed", type: "product" }],
-        outputs: [{ label: "Glycol-ether products", type: "product" }],
-        equipment: ["Etherification reactor", "Purification", "Product-cut columns"],
-        conditions: [
-          { k: "Reactants", v: "Alcohol + EO" },
-          { k: "Family", v: "Several glycol ethers" },
-          { k: "Separation", v: "Distillation" }
-        ],
-        condNote: PUB,
-        molecules: ["eo"],
-        applications: ["paint", "coating", "ink", "cleaner", "electronics"],
-        sources: SRC_COMMON,
-        disclaimers: ["Product family is representative."]
-      }
-    },
-
-    /* ===== STAGE 10 — polyether polyols ===== */
-    {
-      id: "polyols", stage: "10", cat: "product", glyph: "ethoxylation", art: "polyols",
-      title: "Polyether polyols", sub: "Feed to polyurethane foams & elastomers", grades: ["Flexible", "Rigid", "PPG"],
-      x: 2790, y: 1160, w: 234, h: 132,
-      brief: {
-        purpose: "Build polyether polyols by adding EO and/or propylene oxide (PO) onto an initiator, for downstream polyurethane.",
-        para: "EO and/or PO are added onto a multi-functional initiator to grow polyether chains ending in –OH groups (a polyol). The choice and ratio of EO/PO and the initiator set the polyol’s properties. Polyols react with isocyanates downstream to make polyurethanes — flexible and rigid foams, elastomers and coatings.",
-        inputs: [{ label: "Initiator", type: "utility" }, { label: "EO and/or PO feed", type: "product" }],
-        outputs: [{ label: "Polyol product → polyurethane", type: "product" }],
-        equipment: ["EO/PO feed", "Alkoxylation reactor", "Polymerisation", "Finishing"],
-        conditions: [
-          { k: "Monomers", v: "EO and/or PO" },
-          { k: "Product", v: "Polyether polyol (–OH ends)" },
-          { k: "Downstream", v: "Polyurethane" }
-        ],
-        condNote: PUB,
-        molecules: ["eo"],
-        applications: ["foam", "mattress", "carseat", "insulation", "elastomer"],
-        sources: SRC_COMMON,
-        disclaimers: ["EO and PO chemistry shown at a general public level."]
-      }
-    },
-
     /* ===== STORAGE & DELIVERY ===== */
     {
       id: "storage", stage: "→", cat: "logistics", glyph: "storage", art: "storage",
       title: "Product storage & delivery", sub: "Tank farm, loading & dispatch by mode",
-      x: 3560, y: 180, w: 290, h: 1060,
+      x: 3560, y: 130, w: 290, h: 600,
       brief: {
         purpose: "Store finished products and dispatch each one by the transport modes that suit it.",
         para: "Liquid products move from the tank farm through loading pumps and loading arms to road tankers, ISO tanks, drums, IBCs and marine vessels, or leave by pipeline. EO itself is different: because it is hazardous, it is moved only by dedicated pipeline and is never loaded into the general transport modes used for the glycols and amines.",
         inputs: [
           { label: "MEG / DEG / TEG", type: "product" },
           { label: "MEA / DEA / TEA", type: "product" },
-          { label: "Ethoxylates / PEG / glycol ethers / polyols", type: "product" },
           { label: "EO by dedicated pipeline", type: "product" }
         ],
         outputs: [{ label: "Customer delivery", type: "product" }],
@@ -2905,7 +2805,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "trade", stage: "$", cat: "commercial", glyph: "trade", art: "trade",
       title: "Market & trade desk", sub: "Spot vs contract · netback · Incoterms 2020",
-      x: 4020, y: 600, w: 300, h: 230,
+      x: 4020, y: 315, w: 300, h: 230,
       brief: {
         purpose: "Sell the finished products — the commercial end of the value chain, where volumes are priced against global benchmarks and shipped under standard trade terms.",
         para: "Once product leaves storage it enters the market. Commodity chemicals are sold two ways — steady term contracts and one-off spot cargoes — and the trade desk judges every cargo against published benchmarks like “MEG CFR China”. The tools below are interactive: work the netback calculator, and tap the Incoterms journey to see exactly where risk and freight change hands.",
@@ -2980,29 +2880,21 @@ body.view-learn .learn-view { display: block; }
     { from: "eg", to: "meg", fs: "r", ts: "l", type: "product", label: "→ MEG" },
     { from: "eg", to: "deg", fs: "r", ts: "l", type: "product", label: "→ DEG" },
     { from: "eg", to: "teg", fs: "r", ts: "l", type: "product", label: "→ TEG" },
-    // ---- EOP → ethanolamines MEA · DEA · TEA (own boxes) + other product units ----
+    // ---- EOP → ethanolamines MEA · DEA · TEA (own boxes) ----
     { from: "eop", to: "mea", fs: "r", ts: "l", type: "product", label: "→ MEA" },
     { from: "eop", to: "dea", fs: "r", ts: "l", type: "product", label: "→ DEA" },
     { from: "eop", to: "tea", fs: "r", ts: "l", type: "product", label: "→ TEA" },
-    { from: "eop", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
-    { from: "eop", to: "peg", fs: "r", ts: "l", type: "product", label: "EOP to PEG" },
-    { from: "eop", to: "glycolethers", fs: "r", ts: "l", type: "product", label: "EOP to glycol ethers" },
-    { from: "eop", to: "polyols", fs: "r", ts: "l", type: "product", label: "EOP to polyols" },
     // ---- recycle: EO recovery gas back to reactor (prominent) ----
     { from: "eorecovery", to: "eoreactor", fs: "t", ts: "t", type: "recycle", label: "Reactor recycle gas", side: true, arc: 120 },
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
-    // ---- products → storage/delivery (spread along the tall dispatch column) ----
-    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.02, type: "product", label: "MEG" },
-    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.10, type: "product", label: "DEG" },
-    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.18, type: "product", label: "TEG" },
-    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.30, type: "product", label: "MEA" },
-    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.38, type: "product", label: "DEA" },
-    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.46, type: "product", label: "TEA" },
-    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.58, type: "product", label: "Ethoxylates" },
-    { from: "peg", to: "storage", fs: "r", ts: "l", toff: 0.70, type: "product", label: "PEG" },
-    { from: "glycolethers", to: "storage", fs: "r", ts: "l", toff: 0.82, type: "product", label: "Glycol ethers" },
-    { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.94, type: "product", label: "Polyols" },
+    // ---- the six products → storage/delivery ----
+    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.06, type: "product", label: "MEG" },
+    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.22, type: "product", label: "DEG" },
+    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.38, type: "product", label: "TEG" },
+    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.58, type: "product", label: "MEA" },
+    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.74, type: "product", label: "DEA" },
+    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.90, type: "product", label: "TEA" },
     // ---- EO dedicated pipeline (EOP → storage, pipeline only) ----
     { from: "eop", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
     // ---- storage → market/trade ----
@@ -3106,7 +2998,7 @@ body.view-learn .learn-view { display: block; }
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes
@@ -3243,7 +3135,7 @@ body.view-learn .learn-view { display: block; }
   function computeVertical() {
     var CX = 60, ROW = 210, INDENT = 120;
     var spine = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg"];
-    var deriv = ["meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols"];
+    var deriv = ["meg", "deg", "teg", "mea", "dea", "tea"];
     var y = 40, order = 0;
     C.vorder = {};
     spine.forEach(function (id) {
@@ -4206,7 +4098,7 @@ body.view-learn .learn-view { display: block; }
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
     { id: "split", label: "Recovery & split", kind: "nodes", nodes: ["eorecovery", "eop", "eg"] },
     { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
-    { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation", "peg", "glycolethers", "polyols"] },
+    { id: "deriv", label: "Ethanolamines", kind: "nodes", nodes: ["mea", "dea", "tea"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
     { id: "trade", label: "Trade", kind: "nodes", nodes: ["trade"] },
     { id: "quiz", label: "Quiz", kind: "quiz" }
@@ -4274,7 +4166,7 @@ body.view-learn .learn-view { display: block; }
       '<div class="fig-caption">A modern petrochemical complex groups crackers, separation trains and derivative units on one integrated site.</div></div>' +
       '<div class="learn-cards">' +
         card("Make it", "var(--s-hydrocarbon)", "Crack a hydrocarbon feed to ethylene in the <b>olefins</b> unit, then partially oxidise it over silver to ethylene oxide.") +
-        card("Use it", "var(--s-product)", "EO splits into <b>EOP</b> (product) and <b>EG</b> (glycol via OMEGA), and becomes ethanolamines, ethoxylates, PEG and polyols — bottles, fibre, coolant, detergents, foam.") +
+        card("Use it", "var(--s-product)", "EO splits into <b>EOP</b> (product) and <b>EG</b> (glycol via OMEGA), becoming the ethylene glycols <b>MEG · DEG · TEG</b> and the ethanolamines <b>MEA · DEA · TEA</b> — PET bottles, polyester fibre, coolant, gas treating and detergents.") +
         card("Sell it", "var(--s-recycle)", "The finished products are commodities, priced against global benchmarks and shipped under standard trade terms.") +
       '</div>' +
       '<p class="p-para">Read each stage with the tabs above, or open the <b>Map</b> to explore it. Finish with the <b>Quiz</b>. All figures are public illustrative values — not plant or commercial data.</p>';
