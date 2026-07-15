@@ -248,19 +248,20 @@
       title: "EOP — ethylene-oxide product", sub: "High-purity EO piped to the derivative units",
       x: 2400, y: 415, w: 230, h: 132,
       brief: {
-        purpose: "Keep part of the purified EO as EOP — the high-purity ethylene-oxide product that feeds the ethanolamine units.",
-        para: "Most of the purified EO is kept as EOP: high-purity ethylene-oxide product. Because EO is hazardous and volatile, EOP never travels by road or sea as EO — it moves only by dedicated pipeline to the ethanolamine units on the same integrated site, where it reacts with ammonia to give MEA, DEA and TEA.",
+        purpose: "Keep part of the purified EO as EOP — the high-purity ethylene-oxide product that feeds the ethanolamine and ethoxylate units.",
+        para: "Most of the purified EO is kept as EOP: high-purity ethylene-oxide product. Because EO is hazardous and volatile, EOP never travels by road or sea as EO — it moves only by dedicated pipeline to the derivative units on the same integrated site: the ethanolamines (EO + ammonia → MEA, DEA, TEA) and ethoxylate surfactants (EO onto fatty alcohols).",
         inputs: [{ label: "Purified EO", type: "product" }],
         outputs: [
           { label: "EOP → MEA", type: "product" },
           { label: "EOP → DEA", type: "product" },
           { label: "EOP → TEA", type: "product" },
+          { label: "EOP → ethoxylates", type: "product" },
           { label: "EOP by dedicated pipeline", type: "product" }
         ],
         equipment: ["Distribution header", "Branch valves", "EOP pipeline connection"],
         conditions: [
           { k: "EOP", v: "EO kept as product" },
-          { k: "Products", v: "MEA · DEA · TEA" },
+          { k: "Products", v: "MEA · DEA · TEA · ethoxylates" },
           { k: "EO transport", v: "Dedicated pipeline only" }
         ],
         condNote: PUB,
@@ -418,17 +419,42 @@
       }
     },
 
+    /* ===== STAGE 10 — ethoxylates (kept) ===== */
+    {
+      id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
+      title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
+      x: 2790, y: 748, w: 234, h: 132,
+      brief: {
+        purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
+        para: "A starter such as a fatty alcohol is charged to a stirred reactor and EO is added a little at a time. Each EO adds one –CH₂CH₂O– unit, growing a water-loving chain on the end of the oil-loving starter. The result is an amphiphile: a hydrophobic tail plus a hydrophilic EO chain — the basic structure of most non-ionic surfactants.",
+        inputs: [{ label: "Fatty alcohol / initiator", type: "utility" }, { label: "EO feed (metered)", type: "product" }],
+        outputs: [{ label: "Ethoxylate product → storage", type: "product" }],
+        equipment: ["EO metering", "Stirred ethoxylation reactor", "Reaction cooler", "Product finishing"],
+        conditions: [
+          { k: "EO addition", v: "Controlled / metered" },
+          { k: "Chain growth", v: "–CH₂CH₂O– units" },
+          { k: "Structure", v: "Amphiphile (tail + EO chain)" }
+        ],
+        condNote: PUB,
+        molecules: ["eo"],
+        applications: ["detergent", "cleaner", "surfactant", "emulsifier"],
+        sources: SRC_COMMON,
+        disclaimers: ["Structure shown is a generic amphiphile, not a specific commercial product."]
+      }
+    },
+
     /* ===== STORAGE & DELIVERY ===== */
     {
       id: "storage", stage: "→", cat: "logistics", glyph: "storage", art: "storage",
       title: "Product storage & delivery", sub: "Tank farm, loading & dispatch by mode",
-      x: 3560, y: 130, w: 290, h: 600,
+      x: 3560, y: 130, w: 290, h: 770,
       brief: {
         purpose: "Store finished products and dispatch each one by the transport modes that suit it.",
         para: "Liquid products move from the tank farm through loading pumps and loading arms to road tankers, ISO tanks, drums, IBCs and marine vessels, or leave by pipeline. EO itself is different: because it is hazardous, it is moved only by dedicated pipeline and is never loaded into the general transport modes used for the glycols and amines.",
         inputs: [
           { label: "MEG / DEG / TEG", type: "product" },
           { label: "MEA / DEA / TEA", type: "product" },
+          { label: "Ethoxylates", type: "product" },
           { label: "EO by dedicated pipeline", type: "product" }
         ],
         outputs: [{ label: "Customer delivery", type: "product" }],
@@ -448,7 +474,7 @@
     {
       id: "trade", stage: "$", cat: "commercial", glyph: "trade", art: "trade",
       title: "Market & trade desk", sub: "Spot vs contract · netback · Incoterms 2020",
-      x: 4020, y: 315, w: 300, h: 230,
+      x: 4020, y: 400, w: 300, h: 230,
       brief: {
         purpose: "Sell the finished products — the commercial end of the value chain, where volumes are priced against global benchmarks and shipped under standard trade terms.",
         para: "Once product leaves storage it enters the market. Commodity chemicals are sold two ways — steady term contracts and one-off spot cargoes — and the trade desk judges every cargo against published benchmarks like “MEG CFR China”. The tools below are interactive: work the netback calculator, and tap the Incoterms journey to see exactly where risk and freight change hands.",
@@ -523,21 +549,23 @@
     { from: "eg", to: "meg", fs: "r", ts: "l", type: "product", label: "→ MEG" },
     { from: "eg", to: "deg", fs: "r", ts: "l", type: "product", label: "→ DEG" },
     { from: "eg", to: "teg", fs: "r", ts: "l", type: "product", label: "→ TEG" },
-    // ---- EOP → ethanolamines MEA · DEA · TEA (own boxes) ----
+    // ---- EOP → ethanolamines MEA · DEA · TEA (own boxes) + ethoxylates ----
     { from: "eop", to: "mea", fs: "r", ts: "l", type: "product", label: "→ MEA" },
     { from: "eop", to: "dea", fs: "r", ts: "l", type: "product", label: "→ DEA" },
     { from: "eop", to: "tea", fs: "r", ts: "l", type: "product", label: "→ TEA" },
+    { from: "eop", to: "ethoxylation", fs: "r", ts: "l", type: "product", label: "EOP to ethoxylates" },
     // ---- recycle: EO recovery gas back to reactor (prominent) ----
     { from: "eorecovery", to: "eoreactor", fs: "t", ts: "t", type: "recycle", label: "Reactor recycle gas", side: true, arc: 120 },
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
-    // ---- the six products → storage/delivery ----
-    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.06, type: "product", label: "MEG" },
-    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.22, type: "product", label: "DEG" },
-    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.38, type: "product", label: "TEG" },
-    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.58, type: "product", label: "MEA" },
-    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.74, type: "product", label: "DEA" },
-    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.90, type: "product", label: "TEA" },
+    // ---- the products → storage/delivery ----
+    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.05, type: "product", label: "MEG" },
+    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.17, type: "product", label: "DEG" },
+    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.30, type: "product", label: "TEG" },
+    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.45, type: "product", label: "MEA" },
+    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.57, type: "product", label: "DEA" },
+    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.70, type: "product", label: "TEA" },
+    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.88, type: "product", label: "Ethoxylates" },
     // ---- EO dedicated pipeline (EOP → storage, pipeline only) ----
     { from: "eop", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
     // ---- storage → market/trade ----
@@ -641,7 +669,7 @@
   /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
-  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "storage", "trade"];
+  var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "eop", "eg", "meg", "deg", "teg", "mea", "dea", "tea", "ethoxylation", "storage", "trade"];
 
   /* ---------------------------------------------------------------
      GROUPS — dashed bounding boxes drawn around a set of nodes
