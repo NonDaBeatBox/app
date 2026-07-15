@@ -2742,7 +2742,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "ethoxylation", stage: "10", cat: "product", glyph: "ethoxylation", art: "ethoxylation",
       title: "Ethoxylates", sub: "Non-ionic surfactants — detergents & cleaners", grades: ["AE", "APE", "FMEE"],
-      x: 2790, y: 880, w: 234, h: 132,
+      x: 2790, y: 930, w: 234, h: 132,
       brief: {
         purpose: "Add EO in a controlled way onto a fatty alcohol or other initiator to build surfactant molecules.",
         para: "A starter such as a fatty alcohol is charged to a stirred reactor and EO is added a little at a time. Each EO adds one –CH₂CH₂O– unit, growing a water-loving chain on the end of the oil-loving starter. The result is an amphiphile: a hydrophobic tail plus a hydrophilic EO chain — the basic structure of most non-ionic surfactants.",
@@ -2766,7 +2766,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "polyols", stage: "10", cat: "product", glyph: "ethoxylation", art: "polyols",
       title: "Polyether polyols", sub: "Feed to polyurethane foams & elastomers", grades: ["Flexible", "Rigid", "PPG"],
-      x: 2790, y: 1044, w: 234, h: 132,
+      x: 2790, y: 1174, w: 234, h: 132,
       brief: {
         purpose: "Build polyether polyols by adding EO and/or propylene oxide (PO) onto an initiator, for downstream polyurethane.",
         para: "EO and/or PO are added onto a multi-functional initiator to grow polyether chains ending in –OH groups (a polyol). The choice and ratio of EO/PO and the initiator set the polyol’s properties. Polyols react with isocyanates downstream to make polyurethanes — flexible and rigid foams, elastomers and coatings.",
@@ -2790,7 +2790,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "storage", stage: "→", cat: "logistics", glyph: "storage", art: "storage",
       title: "Product storage & delivery", sub: "Tank farm, loading & dispatch by mode",
-      x: 3560, y: 130, w: 290, h: 1060,
+      x: 3560, y: 140, w: 290, h: 1180,
       brief: {
         purpose: "Store finished products and dispatch each one by the transport modes that suit it.",
         para: "Liquid products move from the tank farm through loading pumps and loading arms to road tankers, ISO tanks, drums, IBCs and marine vessels, or leave by pipeline. EO itself is different: because it is hazardous, it is moved only by dedicated pipeline and is never loaded into the general transport modes used for the glycols and amines.",
@@ -2817,7 +2817,7 @@ body.view-learn .learn-view { display: block; }
     {
       id: "trade", stage: "$", cat: "commercial", glyph: "trade", art: "trade",
       title: "Market & trade desk", sub: "Spot vs contract · netback · Incoterms 2020",
-      x: 4020, y: 545, w: 300, h: 230,
+      x: 4020, y: 615, w: 300, h: 230,
       brief: {
         purpose: "Sell the finished products — the commercial end of the value chain, where volumes are priced against global benchmarks and shipped under standard trade terms.",
         para: "Once product leaves storage it enters the market. Commodity chemicals are sold two ways — steady term contracts and one-off spot cargoes — and the trade desk judges every cargo against published benchmarks like “MEG CFR China”. The tools below are interactive: work the netback calculator, and tap the Incoterms journey to see exactly where risk and freight change hands.",
@@ -2899,14 +2899,14 @@ body.view-learn .learn-view { display: block; }
     // ---- ethane recycle: cryo back to furnace ----
     { from: "cryo", to: "furnace", fs: "b", ts: "b", type: "recycle", label: "Ethane recycle", side: true, arc: 150 },
     // ---- the products → storage/delivery ----
-    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.06, type: "product", label: "MEG" },
-    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.15, type: "product", label: "DEG" },
-    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.24, type: "product", label: "TEG" },
-    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.43, type: "product", label: "MEA" },
-    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.52, type: "product", label: "DEA" },
-    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.61, type: "product", label: "TEA" },
-    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.77, type: "product", label: "Ethoxylates" },
-    { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.92, type: "product", label: "Polyols" },
+    { from: "meg", to: "storage", fs: "r", ts: "l", toff: 0.05, type: "product", label: "MEG" },
+    { from: "deg", to: "storage", fs: "r", ts: "l", toff: 0.13, type: "product", label: "DEG" },
+    { from: "teg", to: "storage", fs: "r", ts: "l", toff: 0.21, type: "product", label: "TEG" },
+    { from: "mea", to: "storage", fs: "r", ts: "l", toff: 0.38, type: "product", label: "MEA" },
+    { from: "dea", to: "storage", fs: "r", ts: "l", toff: 0.46, type: "product", label: "DEA" },
+    { from: "tea", to: "storage", fs: "r", ts: "l", toff: 0.54, type: "product", label: "TEA" },
+    { from: "ethoxylation", to: "storage", fs: "r", ts: "l", toff: 0.73, type: "product", label: "Ethoxylates" },
+    { from: "polyols", to: "storage", fs: "r", ts: "l", toff: 0.93, type: "product", label: "Polyols" },
     // ---- EO dedicated pipeline (EOP → storage, pipeline only) ----
     { from: "eop", to: "storage", fs: "b", ts: "l", toff: 0.0, type: "product", label: "EO by dedicated pipeline", side: true, dash: true, arc: 200 },
     // ---- storage → market/trade ----
@@ -3018,7 +3018,9 @@ body.view-learn .learn-view { display: block; }
   var GROUPS = [
     { id: "olefin", label: "OLEFINS · ethylene unit", nodes: ["furnace", "quench", "treatment", "cryo"], color: "#5aa0ff" },
     { id: "glycols", label: "ETHYLENE GLYCOLS", nodes: ["meg", "deg", "teg"], color: "#15a367" },
-    { id: "ethanolamines", label: "ETHANOLAMINES", nodes: ["mea", "dea", "tea"], color: "#7c6fd0" }
+    { id: "ethanolamines", label: "ETHANOLAMINES", nodes: ["mea", "dea", "tea"], color: "#7c6fd0" },
+    { id: "surfactants", label: "SURFACTANTS", nodes: ["ethoxylation"], color: "#d98a3a" },
+    { id: "polyolcat", label: "POLYOLS", nodes: ["polyols"], color: "#4aa3d6" }
   ];
 
   /* ---------------------------------------------------------------
