@@ -8,7 +8,7 @@
   function el(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
-  var state = { mode: "overview", layers: {}, tourIdx: -1, theme: "dark" };
+  var state = { mode: "overview", layers: {}, tourIdx: -1, theme: "dark", view: "map" };
 
   /* ---------------- day / night theme ---------------- */
   function applyTheme(theme) {
@@ -75,6 +75,23 @@
 
   function buildCanvasLegend() {
     el("canvas-legend").innerHTML = '<span class="cl-dot"></span><span>Trace the value chain <b>left → right</b>: feedstocks to ethylene to EO to derivatives to delivery</span>';
+  }
+
+  /* ---------------- top-level view (Map / Learn) ---------------- */
+  function setView(view) {
+    state.view = view;
+    document.body.classList.toggle("view-learn", view === "learn");
+    document.querySelectorAll(".view-btn").forEach(function (b) {
+      var on = b.getAttribute("data-view") === view;
+      b.classList.toggle("is-active", on); b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    if (view === "learn") { if (EO.learn) EO.learn.build(); }
+    else if (EO.canvas && EO.canvas.resize) { setTimeout(function () { EO.canvas.resize(); }, 0); }
+  }
+  function wireViews() {
+    document.querySelectorAll(".view-btn").forEach(function (b) {
+      b.addEventListener("click", function () { setView(b.getAttribute("data-view")); });
+    });
   }
 
   /* ---------------- modes ---------------- */
@@ -276,6 +293,7 @@
     buildCanvasLegend();
     buildFabs();
     buildTourBar();
+    wireViews();
     wireControls();
     wireKeys();
     document.body.classList.add("mode-overview");

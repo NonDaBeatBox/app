@@ -32,6 +32,11 @@
         </div>
       </div>
 
+      <div class="view-switch" role="tablist" aria-label="View">
+        <button class="view-btn is-active" data-view="map" role="tab" aria-selected="true">▦ Map</button>
+        <button class="view-btn" data-view="learn" role="tab" aria-selected="false">◲ Learn</button>
+      </div>
+
       <div class="topbar-actions">
         <button class="theme-btn" id="btn-theme" title="Toggle day / night theme" aria-label="Toggle day or night theme">☾</button>
         <button class="ghost-btn" id="btn-tour" title="Guided walk-through of the value chain">▶ Guided tour</button>
@@ -119,6 +124,9 @@
       </aside>
     </div>
 
+    <!-- Learn / Academy view (hidden until selected) -->
+    <div class="learn-view" id="learn-view" hidden></div>
+
     <!-- Bottom disclaimer ribbon -->
     <footer class="disclaimer-bar" id="disclaimer-bar">
       <span class="disc-dot" aria-hidden="true">⚠</span>
@@ -166,6 +174,7 @@
   <script src="assets/js/data.js"></script>
   <script src="assets/js/canvas.js"></script>
   <script src="assets/js/panel.js"></script>
+  <script src="assets/js/learn.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

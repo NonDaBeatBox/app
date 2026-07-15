@@ -634,6 +634,30 @@
   ];
 
   /* ---------------------------------------------------------------
+     QUIZ — used by the Learn/Academy view (pass mark computed from length)
+     --------------------------------------------------------------- */
+  var QUIZ = [
+    { q: "Steam cracking of ethane mainly produces…", opts: ["A single pure gas", "Ethylene plus other light molecules", "Only methane", "Liquid naphtha"], a: 1, why: "Cracking makes a mixture — ethylene, propylene, methane, hydrogen and more — separated downstream." },
+    { q: "Why is dilution steam added in a cracking furnace?", opts: ["To add water to the product", "To lower hydrocarbon partial pressure and limit coke", "To cool the burners", "To raise the pressure"], a: 1, why: "Steam lowers the hydrocarbon partial pressure and slows coke formation on the coils." },
+    { q: "Ethylene oxide is made by reacting ethylene with…", opts: ["Hydrogen", "Oxygen over a silver catalyst", "Chlorine", "Nitrogen"], a: 1, why: "EO is the partial oxidation of ethylene over a silver catalyst: C₂H₄ + ½O₂ → C₂H₄O." },
+    { q: "The main UNWANTED reaction in the EO reactor gives…", opts: ["More ethylene", "Carbon dioxide and water", "Pure oxygen", "Methanol"], a: 1, why: "Complete combustion, C₂H₄ + 3O₂ → 2CO₂ + 2H₂O, competes with the desired partial oxidation." },
+    { q: "Which catalyst is used to make EO?", opts: ["Platinum", "Silver-based", "Nickel", "Iron"], a: 1, why: "EO is made over a silver-based catalyst, tuned with a trace chloride moderator." },
+    { q: "The Shell OMEGA route makes EG (MEG) via an intermediate called…", opts: ["Ethylene carbonate", "Acetylene", "Methanol", "Vinyl chloride"], a: 0, why: "OMEGA first reacts EO with CO₂ to ethylene carbonate, then hydrolyses it to MEG." },
+    { q: "In the OMEGA route, CO₂ is…", opts: ["Vented", "Used and recycled in a loop", "Turned into fuel", "Not involved"], a: 1, why: "CO₂ makes the carbonate and is released again on hydrolysis, so it is captured and recycled." },
+    { q: "Purified EO splits into two destinations —", opts: ["EOP and EG", "Water and steam", "Methane and hydrogen", "MEA and DEA"], a: 0, why: "EOP (EO product for derivatives) and EG (ethylene glycol via OMEGA)." },
+    { q: "Ethanolamines (MEA/DEA/TEA) come from EO reacting with…", opts: ["Ammonia", "Water", "Chlorine", "Methane"], a: 0, why: "EO adds hydroxyethyl arms onto ammonia; the EO:NH₃ ratio sets the MEA/DEA/TEA split." },
+    { q: "Because EO is hazardous, it is normally moved by…", opts: ["Road drum", "Dedicated pipeline", "Flexibag", "Air freight"], a: 1, why: "EO is shipped by dedicated pipeline, not the general modes used for the liquid glycols." },
+    { q: "The biggest end use of MEG (EG) is…", opts: ["Antifreeze only", "PET / polyester", "Explosives", "Fertiliser"], a: 1, why: "Most MEG goes into PET resin and polyester fibre; coolant/antifreeze is a smaller use." },
+    { q: "High-purity ethylene for the EO unit comes from the…", opts: ["Quench tower", "Ethylene splitter", "Feed drum", "Flare"], a: 1, why: "The cryogenic ethylene splitter separates ethylene from ethane to reach EO-grade purity." },
+    { q: "Ethoxylates (detergent surfactants) are amphiphiles because they have…", opts: ["Only an oily tail", "An oily tail plus a water-loving EO chain", "Only a water-loving head", "No structure"], a: 1, why: "Adding EO onto a fatty alcohol builds a hydrophilic chain on an oily tail — the surfactant shape." },
+    { q: "In a CFR sale, risk transfers to the buyer…", opts: ["At the discharge port", "When goods are on board at the load port", "At the seller's gate", "After payment clears"], a: 1, why: "C-terms split cost and risk: the seller pays freight to destination, but risk passes on board at loading — same point as FOB." },
+    { q: "The benchmark 'MEG CFR China' includes…", opts: ["Product + ocean freight to China", "Product only", "Product + freight + import duty", "Insurance only"], a: 0, why: "CFR = cost and freight. Seller pays the ship; duty and onward costs are the buyer's." },
+    { q: "Under FOB Thailand, who books and pays the ocean freight?", opts: ["The buyer", "The seller", "The port authority", "Split 50/50"], a: 0, why: "Free On Board: the seller's job ends when the cargo is safely on the vessel the buyer chartered." },
+    { q: "A spot sale is…", opts: ["A single cargo priced at today's market level", "A five-year fixed contract", "A free sample program", "An internal transfer"], a: 0, why: "Spot = one-off deals priced off current benchmarks; term contracts run on formulas linked to those benchmarks." },
+    { q: "The 'olefins' unit on the map covers…", opts: ["Cracking through cryogenic separation (making ethylene)", "Only the EO reactor", "Glycol production", "Storage and delivery"], a: 0, why: "The olefins/ethylene unit takes feed through cracking, quench, treatment and cryogenic separation to high-purity ethylene." }
+  ];
+
+  /* ---------------------------------------------------------------
      Ordered stage list for the left-rail nav
      --------------------------------------------------------------- */
   var STAGE_ORDER = ["feedstocks", "furnace", "quench", "treatment", "cryo", "eoreactor", "eorecovery", "manifold", "omega", "amines", "ethoxylation", "peg", "glycolethers", "polyols", "storage", "trade"];
@@ -674,6 +698,7 @@
     delivery: DELIVERY,
     disclaimers: DISCLAIMERS,
     sourceCategories: SOURCE_CATEGORIES,
+    quiz: QUIZ,
     stageOrder: STAGE_ORDER,
     node: function (id) { return byId[id]; }
   };

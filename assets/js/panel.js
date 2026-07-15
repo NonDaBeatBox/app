@@ -287,67 +287,7 @@
       '<button class="ph-close" id="panel-close" title="Close">✕</button></div>' +
       '<h2>' + esc(n.title) + '</h2><div class="ph-sub">' + esc(n.sub) + '</div></div>';
 
-    // illustration + purpose
-    var body1 = figure(n.art);
-    body1 += '<p class="p-lead">' + esc(b.purpose) + '</p>';
-    if (b.para) body1 += '<p class="p-para">' + esc(b.para) + '</p>';
-    if (b.para2) body1 += '<p class="p-para">' + esc(b.para2) + '</p>';
-    html += sec("Overview", "◲", body1);
-
-    // feedstock list (feed-preparation stage)
-    if (b.feedList) html += sec("Feedstocks", "▤", feedListBlock(b.feedList));
-
-    // EO product split (EOP / EG)
-    if (b.splits) html += sec("EO splits into", "⑃", splitsBlock(b.splits));
-
-    // interactive market & trade module
-    if (b.trade) html += tradeHtml(b.trade);
-
-    // IO
-    if (b.inputs || b.outputs) html += sec("Streams in / out", "⇄", ioBlock(b));
-
-    // reactions (chemistry)
-    if (b.reactions) html += sec("Reactions", "⚗", reactionsBlock(b));
-
-    // operating conditions
-    if (b.conditions) html += sec("Operating window", "◷", specBlock(b.conditions, b.condNote));
-
-    // boiling-point ladder
-    if (b.ladder) html += sec("Separation ladder — boiling points", "≡", specBlock(b.ladder, "Illustrative public values — not plant data"));
-
-    // molecules
-    if (b.molecules && b.molecules.length) html += sec("Molecules", "⬡", moleculesBlock(b.molecules, b.moleculeNote));
-
-    // formula
-    if (b.formula) html += sec("Repeat structure", "⛓", '<div class="rxn-eq" style="text-align:center;font-size:16px;padding:8px">' + esc(b.formula) + '</div>');
-
-    // products made list (furnace)
-    if (b.productsMade) html += sec("Species formed", "⊞", chips(b.productsMade));
-
-    // equipment
-    if (b.equipment) html += sec("Equipment", "⚙", chips(b.equipment));
-
-    // products (derivative split)
-    if (b.products) html += sec("Products", "❖", productsBlock(b.products));
-
-    // applications
-    if (b.applications && b.applications.length) html += sec("Everyday end uses", "◉", appGrid(b.applications));
-
-    // delivery matrix (storage)
-    if (b.deliveryModes) {
-      html += sec("Dispatch modes", "⇉", chips(b.deliveryModes));
-      html += sec("Product → delivery matrix", "▦", deliveryMatrix());
-    }
-
-    // sources
-    if (b.sources) html += sec("Public source categories", "§", '<ul class="src-list">' + b.sources.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join("") + '</ul>');
-
-    // disclaimers
-    if (b.disclaimers) {
-      html += sec("Accuracy & disclaimers", "⚠", b.disclaimers.map(function (d) {
-        return '<div class="callout disc" style="margin-bottom:8px"><span class="co-ico">⚠</span><div>' + esc(d) + '</div></div>';
-      }).join(""));
-    }
+    html += briefSections(n);
 
     var pb = el("panel-body");
     pb.innerHTML = html;
@@ -355,21 +295,59 @@
     el("panel-empty").style.display = "none";
     pb.scrollTop = 0;
 
-    // wire figure + app clicks
     el("panel-close").onclick = function () { EO.app.closePanel(); EO.canvas.clearFocus(); };
-    pb.querySelectorAll("[data-figzoom]").forEach(function (bn) {
+    wireBrief(pb, n);
+  }
+
+  /* the sections that describe a process area (reused by the Learn view) */
+  function briefSections(n) {
+    var b = n.brief, html = "";
+    var body1 = figure(n.art);
+    body1 += '<p class="p-lead">' + esc(b.purpose) + '</p>';
+    if (b.para) body1 += '<p class="p-para">' + esc(b.para) + '</p>';
+    if (b.para2) body1 += '<p class="p-para">' + esc(b.para2) + '</p>';
+    html += sec("Overview", "◲", body1);
+    if (b.feedList) html += sec("Feedstocks", "▤", feedListBlock(b.feedList));
+    if (b.splits) html += sec("EO splits into", "⑃", splitsBlock(b.splits));
+    if (b.trade) html += tradeHtml(b.trade);
+    if (b.inputs || b.outputs) html += sec("Streams in / out", "⇄", ioBlock(b));
+    if (b.reactions) html += sec("Reactions", "⚗", reactionsBlock(b));
+    if (b.conditions) html += sec("Operating window", "◷", specBlock(b.conditions, b.condNote));
+    if (b.ladder) html += sec("Separation ladder — boiling points", "≡", specBlock(b.ladder, "Illustrative public values — not plant data"));
+    if (b.molecules && b.molecules.length) html += sec("Molecules", "⬡", moleculesBlock(b.molecules, b.moleculeNote));
+    if (b.formula) html += sec("Repeat structure", "⛓", '<div class="rxn-eq" style="text-align:center;font-size:16px;padding:8px">' + esc(b.formula) + '</div>');
+    if (b.productsMade) html += sec("Species formed", "⊞", chips(b.productsMade));
+    if (b.equipment) html += sec("Equipment", "⚙", chips(b.equipment));
+    if (b.products) html += sec("Products", "❖", productsBlock(b.products));
+    if (b.applications && b.applications.length) html += sec("Everyday end uses", "◉", appGrid(b.applications));
+    if (b.deliveryModes) {
+      html += sec("Dispatch modes", "⇉", chips(b.deliveryModes));
+      html += sec("Product → delivery matrix", "▦", deliveryMatrix());
+    }
+    if (b.sources) html += sec("Public source categories", "§", '<ul class="src-list">' + b.sources.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join("") + '</ul>');
+    if (b.disclaimers) {
+      html += sec("Accuracy & disclaimers", "⚠", b.disclaimers.map(function (d) {
+        return '<div class="callout disc" style="margin-bottom:8px"><span class="co-ico">⚠</span><div>' + esc(d) + '</div></div>';
+      }).join(""));
+    }
+    return html;
+  }
+
+  /* wire figure zoom, app cards, and the trade module inside any container */
+  function wireBrief(container, n) {
+    container.querySelectorAll("[data-figzoom]").forEach(function (bn) {
       bn.onclick = function (e) { e.stopPropagation(); EO.app.openFigure(bn.getAttribute("data-figzoom")); };
     });
-    pb.querySelectorAll(".app-card, .chip.app").forEach(function (c) {
+    container.querySelectorAll(".app-card, .chip.app").forEach(function (c) {
       c.onclick = function () { EO.app.openImage(c.getAttribute("data-app")); };
     });
-    if (n.brief.trade) wireTrade(pb, n.brief.trade);
+    if (n.brief.trade) wireTrade(container, n.brief.trade);
   }
 
   function catName(c) {
     return { feed: "Feed preparation", thermal: "Thermal cracking", separation: "Separation", reaction: "Reaction", recovery: "Recovery & purification", distribution: "Distribution", derivative: "Derivative unit", logistics: "Storage & logistics", commercial: "Market & trade" }[c] || c;
   }
 
-  EO.panel = { render: render, shortApp: shortApp };
+  EO.panel = { render: render, shortApp: shortApp, briefSections: briefSections, wireBrief: wireBrief };
   EO.appShort = function (a) { return shortApp(a); };
 })(window.EO = window.EO || {});

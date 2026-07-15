@@ -657,6 +657,7 @@
     zoom: function (f) { EO.canvas_zoom(f); },
     fit: function () { fit(60); },
     reset: reset,
+    resize: function () { var svg = el("process-svg"); if (svg) svg.setAttribute("viewBox", "0 0 " + svg.clientWidth + " " + svg.clientHeight); applyTransform(); },
     centerOn: function (id, o) { var n = D.byId[id]; if (n) centerOn(n, o || {}); },
     setAnimate: function (on) { el("world").classList.toggle("animate", !!on); },
     getLayout: function () { return C.layout; }
