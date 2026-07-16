@@ -261,19 +261,19 @@
       }
     },
     {
-      id: "eg", stage: "7", cat: "distribution", glyph: "glycol", art: "glycol",
+      id: "eg", stage: "7", cat: "distribution", glyph: "glycol", art: "glycoltrain",
       title: "EG — ethylene glycol", sub: "Ethylene glycol products",
       x: 2400, y: 232, w: 230, h: 120,
       brief: {
-        purpose: "Route the rest of the purified EO to EG — ethylene glycol — made in the Shell OMEGA unit.",
-        para: "The other half of the split becomes EG: ethylene glycol. The EO earmarked for glycol is sent to the Shell OMEGA unit, where it reacts with CO₂ and water to give mono-ethylene glycol (MEG) — the single biggest EO derivative, used for PET bottles, polyester fibre, film and coolant.",
+        purpose: "Route the rest of the purified EO to EG — ethylene glycol — made by reacting EO with water.",
+        para: "The other half of the split becomes EG: ethylene glycol. The EO earmarked for glycol reacts with water in the glycol reactor, and the product is separated by distillation into MEG, DEG and TEG — MEG being the single biggest EO derivative, used for PET bottles, polyester fibre, film and coolant.",
         inputs: [{ label: "Purified EO", type: "product" }],
-        outputs: [{ label: "EO → OMEGA glycol unit", type: "product" }, { label: "→ MEG (EG) product", type: "product" }],
-        equipment: ["Glycol-unit feed line", "Branch valve"],
+        outputs: [{ label: "EO → glycol reactor", type: "product" }, { label: "→ MEG · DEG · TEG", type: "product" }],
+        equipment: ["Glycol reactor feed line", "Branch valve"],
         conditions: [
           { k: "EG", v: "EO → ethylene glycol" },
-          { k: "Route", v: "Shell OMEGA" },
-          { k: "Main product", v: "MEG" }
+          { k: "Route", v: "EO + water (hydration)" },
+          { k: "Products", v: "MEG · DEG · TEG" }
         ],
         condNote: PUB,
         molecules: ["eo", "meg"],
@@ -284,40 +284,40 @@
 
     /* ===== STAGE 8 — EG products: MEG · DEG · TEG (own boxes) ===== */
     {
-      id: "meg", stage: "8", cat: "product", glyph: "omega", art: "omega",
+      id: "meg", stage: "8", cat: "product", glyph: "omega", art: "glycoltrain",
       title: "MEG", sub: "Bottles · fibre · film",
       x: 2790, y: 150, w: 214, h: 86,
       brief: {
-        purpose: "Mono-ethylene glycol (MEG) — the single biggest ethylene-oxide product, made from the EG stream via the Shell OMEGA route.",
-        para: "OMEGA (Only MEG Advantaged) makes MEG in two steps instead of hydrating EO with a big excess of water. EO first reacts with CO₂ in the ethylene-carbonate (EC) reactor to form ethylene carbonate; that carbonate is then hydrolysed with water to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled — the amber loop. The carbonate step is so selective that OMEGA makes almost pure MEG with very little DEG/TEG, using far less water and energy than conventional hydration.",
-        para2: "The OMEGA 'machine', step by step: EC reactor (EO + CO₂ → carbonate) → hydrolysis reactor (carbonate + water → MEG + CO₂) → CO₂ separator → CO₂ recycle compressor → MEG purification.",
-        inputs: [{ label: "EO (from EG split)", type: "product" }, { label: "CO₂ (recycled)", type: "recycle" }, { label: "Water", type: "water" }],
-        outputs: [{ label: "MEG product → storage", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
-        equipment: ["Ethylene-carbonate (EC) reactor", "Hydrolysis reactor", "CO₂ separator", "CO₂ recycle compressor", "MEG purification"],
+        purpose: "Mono-ethylene glycol (MEG) — the biggest EO product, made by reacting EO with water.",
+        para: "EO reacts with water in the glycol reactor to make ethylene glycol. The feed is EO-lean (about 10 %wt EO, 90 %wt water), so the reactor product is only ~14 %wt glycol. Multi-effect evaporators and a drying column drive the water off to reach ~100 % glycol, then a train of distillation columns separates MEG — the main product — from the heavier DEG, TEG and PEG.",
+        inputs: [{ label: "EO (from EG split)", type: "product" }, { label: "Water", type: "water" }],
+        outputs: [{ label: "MEG product → storage", type: "product" }, { label: "DEG / TEG / PEG co-products", type: "product" }],
+        equipment: ["Glycol reactor", "Multi-effect evaporators", "Drying column", "MEG column", "DEG column", "TEG column"],
         reactions: [
-          { kind: "", label: "Step 1 — carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
-          { kind: "", label: "Step 2 — hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
+          { kind: "", label: "Main — hydration", eq: "EO + H₂O  →  MEG", mols: ["eo", "water", "meg"] },
+          { kind: "", label: "Heavier glycols", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] }
         ],
         conditions: [
-          { k: "Route", v: "Shell OMEGA (carbonate)" },
-          { k: "CO₂", v: "Recycled in a loop" },
-          { k: "Selectivity", v: "Very high to MEG" }
+          { k: "Route", v: "EO + water (hydration)" },
+          { k: "Reactor product", v: "≈ 14 %wt glycol" },
+          { k: "Concentrate", v: "Evaporators + drying" },
+          { k: "Separate", v: "MEG / DEG / TEG columns" }
         ],
         condNote: PUB,
-        molecules: ["eo", "co2", "ethylene_carbonate", "water", "meg"],
+        molecules: ["eo", "water", "meg"],
         products: [{ name: "MEG", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] }],
         applications: ["petbottle", "fiber", "antifreeze", "film", "coolant"],
-        sources: SRC_COMMON.concat(["Public descriptions of the Shell OMEGA process"]),
-        disclaimers: ["Shell OMEGA technology is described from public sources only.", "Figures are public illustrative values."]
+        sources: SRC_COMMON,
+        disclaimers: ["Glycol process shown from public sources only.", "Figures are public illustrative values."]
       }
     },
     {
-      id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
+      id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycoltrain",
       title: "DEG", sub: "Resins · automotive",
       x: 2790, y: 246, w: 214, h: 86,
       brief: {
         purpose: "Di-ethylene glycol (DEG) — a glycol co-product, one EO unit longer than MEG.",
-        para: "DEG forms when a glycol molecule reacts with a further EO. The OMEGA route makes very little DEG; conventional water hydration makes more. DEG goes into unsaturated polyester resins, plasticisers and polyurethanes, and is used as a humectant and solvent.",
+        para: "DEG forms when a glycol molecule picks up a further EO in the glycol reactor, and is separated in its own column. DEG goes into unsaturated polyester resins, plasticisers and polyurethanes, and is used as a humectant and solvent.",
         inputs: [{ label: "EO (from EG split)", type: "product" }],
         outputs: [{ label: "DEG product → storage", type: "product" }],
         reactions: [{ kind: "", label: "Chain growth", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] }],
@@ -331,7 +331,7 @@
       }
     },
     {
-      id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
+      id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycoltrain",
       title: "TEG", sub: "Gas drying · paints",
       x: 2790, y: 342, w: 214, h: 86,
       brief: {
@@ -664,9 +664,9 @@
     { q: "Ethylene oxide is made by reacting ethylene with…", opts: ["Hydrogen", "Oxygen over a silver catalyst", "Chlorine", "Nitrogen"], a: 1, why: "EO is the partial oxidation of ethylene over a silver catalyst: C₂H₄ + ½O₂ → C₂H₄O." },
     { q: "The main UNWANTED reaction in the EO reactor gives…", opts: ["More ethylene", "Carbon dioxide and water", "Pure oxygen", "Methanol"], a: 1, why: "Complete combustion, C₂H₄ + 3O₂ → 2CO₂ + 2H₂O, competes with the desired partial oxidation." },
     { q: "Which catalyst is used to make EO?", opts: ["Platinum", "Silver-based", "Nickel", "Iron"], a: 1, why: "EO is made over a silver-based catalyst, tuned with a trace chloride moderator." },
-    { q: "The Shell OMEGA route makes EG (MEG) via an intermediate called…", opts: ["Ethylene carbonate", "Acetylene", "Methanol", "Vinyl chloride"], a: 0, why: "OMEGA first reacts EO with CO₂ to ethylene carbonate, then hydrolyses it to MEG." },
-    { q: "In the OMEGA route, CO₂ is…", opts: ["Vented", "Used and recycled in a loop", "Turned into fuel", "Not involved"], a: 1, why: "CO₂ makes the carbonate and is released again on hydrolysis, so it is captured and recycled." },
-    { q: "Purified EO splits into two destinations —", opts: ["EOP and EG", "Water and steam", "Methane and hydrogen", "MEA and DEA"], a: 0, why: "EOP (EO product for derivatives) and EG (ethylene glycol via OMEGA)." },
+    { q: "EG (glycol) is made by reacting EO with…", opts: ["Water", "CO₂", "Ammonia", "Hydrogen"], a: 0, why: "EO reacts with water in the glycol reactor; evaporation and distillation then give MEG, DEG and TEG." },
+    { q: "The three ethylene glycols, smallest to largest, are…", opts: ["MEG, DEG, TEG", "TEG, DEG, MEG", "DEG, MEG, TEG", "MEG, TEG, DEG"], a: 0, why: "Mono-, di- and tri-ethylene glycol — each one EO unit longer than the last." },
+    { q: "Purified EO splits into two destinations —", opts: ["EOP and EG", "Water and steam", "Methane and hydrogen", "MEA and DEA"], a: 0, why: "EOP (EO product for derivatives) and EG (ethylene glycol)." },
     { q: "Ethanolamines (MEA/DEA/TEA) come from EO reacting with…", opts: ["Ammonia", "Water", "Chlorine", "Methane"], a: 0, why: "EO adds hydroxyethyl arms onto ammonia; the EO:NH₃ ratio sets the MEA/DEA/TEA split." },
     { q: "Because EO is hazardous, it is normally moved by…", opts: ["Road drum", "Dedicated pipeline", "Flexibag", "Air freight"], a: 1, why: "EO is shipped by dedicated pipeline, not the general modes used for the liquid glycols." },
     { q: "The biggest end use of MEG (EG) is…", opts: ["Antifreeze only", "PET / polyester", "Explosives", "Fertiliser"], a: 1, why: "Most MEG goes into PET resin and polyester fibre; coolant/antifreeze is a smaller use." },

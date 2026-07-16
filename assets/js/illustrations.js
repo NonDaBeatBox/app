@@ -651,6 +651,108 @@
     return wrapA(g, w, h, "Conventional glycol hydration and separation");
   };
 
+  function glycolPill(x, y, txt) {
+    var wp = txt.length * 7 + 14;
+    return '<g><rect x="' + x + '" y="' + (y - 10) + '" width="' + wp + '" height="20" rx="6" fill="#eafaf2" stroke="#15a367"/>' +
+      T(x + wp / 2, y + 4, txt, { size: 11, weight: 800, fill: "#0f8f5e" }) + '</g>';
+  }
+
+  // ---- scene: MEG/DEG/TEG glycol distillation train (GC EO/EG model, slide 1) ----
+  ART.glycoltrain = function () {
+    var w = 720, h = 300, g = bp(w, h);
+    var TE = "#17b0a4", TED = "#0e9488", BL = "#2ea3dd", BLD = "#1f7fb0", INK = "#46566a";
+    // feeds into glycol reactor
+    g += pipe("M16 116 L60 116", TE, 4) + T(14, 112, "EO", { size: 11, anchor: "end", fill: TE }) + T(14, 126, "10 %wt", { size: 8.5, anchor: "end", fill: INK });
+    g += pipe("M16 176 L60 176", BL, 4) + T(14, 172, "H₂O", { size: 10, anchor: "end", fill: BLD }) + T(14, 186, "90 %wt", { size: 8.5, anchor: "end", fill: INK });
+    // glycol reactor
+    g += tank(60, 104, 62, 112, "Glycol reactor", 0.5);
+    // → evaporators
+    g += pipe("M122 150 L158 150", TE, 4) + T(140, 142, "EG 14%", { size: 8.5, fill: TED });
+    g += drum(158, 116, 82, 30, "") + drum(158, 156, 82, 30, "Evaporators");
+    g += '<path d="M199 116 Q199 96 226 96" fill="none" stroke="' + BL + '" stroke-width="2.4" stroke-dasharray="6 5"/>' + T(230, 100, "H₂O off", { size: 8, anchor: "start", fill: BLD });
+    // → drying column
+    g += pipe("M240 150 L276 150", TE, 4) + T(258, 142, "EG 85%", { size: 8.5, fill: TED });
+    g += column(276, 72, 34, 158, 5, "Drying col");
+    // EG 100% up & over to the column ladder
+    g += pipe("M293 72 L293 54 L372 54 L372 96", TE, 3.4) + T(333, 48, "EG 100%", { size: 8.5, fill: TED });
+    // MEG / DEG / TEG distillation ladder
+    g += column(360, 96, 30, 116, 5, "");
+    g += T(375, 226, "MEG col", { size: 8.5, fill: INK });
+    g += pipe("M390 108 L432 108", TE, 3) + glycolPill(434, 108, "MEG");
+    g += pipe("M375 212 L375 234 L470 234 L470 120", TE, 2.6);
+    g += column(458, 120, 30, 108, 4, "");
+    g += T(473, 244, "DEG col", { size: 8.5, fill: INK });
+    g += pipe("M488 132 L530 132", TE, 3) + glycolPill(532, 132, "DEG");
+    g += pipe("M473 228 L473 250 L568 250 L568 144", TE, 2.6);
+    g += column(556, 144, 30, 100, 4, "");
+    g += T(571, 260, "TEG col", { size: 8.5, fill: INK });
+    g += pipe("M586 156 L628 156", TE, 3) + glycolPill(630, 156, "TEG");
+    g += pipe("M571 244 L571 266 L648 266", TE, 2.6) + T(652, 270, "PEG", { size: 9, anchor: "start", fill: TED });
+    return wrapA(g, w, h, "MEG / DEG / TEG glycol distillation train");
+  };
+
+  /* block-diagram helpers */
+  function vcBox(x, y, bw, bh, txt, fill, stroke, fs) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + bh + '" rx="8" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>' +
+      T(x + bw / 2, y + bh / 2 + 4, txt, { size: fs || 11, weight: 800, fill: "#ffffff" });
+  }
+  function arrR(x1, y, x2, col, lab) {
+    return '<path d="M' + x1 + ' ' + y + ' L' + (x2 - 9) + ' ' + y + '" stroke="' + col + '" stroke-width="3.4" fill="none"/>' +
+      '<path d="M' + (x2 - 10) + ' ' + (y - 6) + ' L' + x2 + ' ' + y + ' L' + (x2 - 10) + ' ' + (y + 6) + ' Z" fill="' + col + '"/>' +
+      (lab ? T((x1 + x2) / 2, y - 8, lab, { size: 9.5, weight: 800, fill: col }) : "");
+  }
+  function arrD(x, y1, y2, col, lab) {
+    return '<path d="M' + x + ' ' + y1 + ' L' + x + ' ' + (y2 - 9) + '" stroke="' + col + '" stroke-width="3.4" fill="none"/>' +
+      '<path d="M' + (x - 6) + ' ' + (y2 - 10) + ' L' + x + ' ' + y2 + ' L' + (x + 6) + ' ' + (y2 - 10) + ' Z" fill="' + col + '"/>' +
+      (lab ? T(x + 8, (y1 + y2) / 2, lab, { size: 9, weight: 800, anchor: "start", fill: col }) : "");
+  }
+
+  // ---- scene: EOB-BU value chain (GC overview, slide 3) ----
+  ART.valuechain = function () {
+    var w = 760, h = 340, g = '<rect width="' + w + '" height="' + h + '" fill="#f2f6fb"/>' + bp(w, h);
+    var NAVY = "#16406e", NS = "#0e2c50", OR = "#dd8a2e", ORS = "#a5641a", PU = "#7c6fd0", PUS = "#5a4da8", GR = "#17a2a0", GRS = "#0e716f", INK = "#46566a";
+    // top lane — olefins → EO → EG → glycols
+    g += vcBox(20, 40, 88, 46, "OLEFINS", NAVY, NS);
+    g += arrR(110, 63, 156, NAVY, "Ethylene");
+    g += vcBox(158, 40, 100, 46, "EO Section", OR, ORS);
+    g += arrR(260, 63, 306, OR, "EO");
+    g += vcBox(308, 40, 100, 46, "EG Section", OR, ORS);
+    g += arrR(410, 63, 448, "#15a367", "");
+    g += glycolPill(450, 54, "MEG") + glycolPill(516, 54, "DEG") + glycolPill(582, 54, "TEG");
+    g += T(516, 92, "Ethylene glycols", { size: 9, fill: INK });
+    // mid lane — EO → purification → EOP → derivatives
+    g += arrD(208, 86, 150, OR, "EO");
+    g += vcBox(150, 150, 140, 46, "EO Purification", NAVY, NS, 10.5);
+    g += arrR(292, 173, 336, PU, "EOP");
+    g += vcBox(340, 126, 124, 34, "EA Plant", PU, PUS, 10) + T(470, 143, "MEA · DEA · TEA", { size: 8.5, anchor: "start", fill: INK });
+    g += vcBox(340, 166, 124, 34, "Ethoxylate (TEX)", PU, PUS, 9) + T(470, 183, "surfactants", { size: 8.5, anchor: "start", fill: INK });
+    g += vcBox(340, 206, 124, 34, "Polyether polyols", PU, PUS, 9) + T(470, 223, "polyurethane", { size: 8.5, anchor: "start", fill: INK });
+    g += '<path d="M336 173 L336 143 L340 143 M336 173 L340 173 M336 173 L336 223 L340 223" stroke="' + PU + '" stroke-width="2.2" fill="none"/>';
+    // bottom lane — CO2 by-product
+    g += arrD(220, 196, 262, GR, "");
+    g += T(150, 262, "CO₂ by-product", { size: 9, weight: 700, anchor: "start", fill: GRS });
+    g += vcBox(150, 270, 96, 32, "Liquid CO₂", GR, GRS, 9.5);
+    g += vcBox(256, 270, 84, 32, "Gas CO₂", GR, GRS, 9.5);
+    return wrapA(g, w, h, "Ethylene oxide business value chain");
+  };
+
+  // ---- scene: EO / EG product applications (slide 2) ----
+  function appPanel(x, y, pw, ph, name, hcol, apps) {
+    var g = '<rect x="' + x + '" y="' + y + '" width="' + pw + '" height="' + ph + '" rx="9" fill="#ffffff" stroke="#d3dbe6" stroke-width="1.4"/>';
+    g += '<path d="M' + (x + 9) + ' ' + y + ' L' + (x + pw - 9) + ' ' + y + ' q9 0 9 9 L' + (x + pw) + ' ' + (y + 26) + ' L' + x + ' ' + (y + 26) + ' L' + x + ' ' + (y + 9) + ' q0 -9 9 -9 Z" fill="' + hcol + '"/>';
+    g += T(x + 14, y + 18, name, { size: 12.5, weight: 800, anchor: "start", fill: "#ffffff" });
+    apps.forEach(function (a, i) { g += '<circle cx="' + (x + 18) + '" cy="' + (y + 48 + i * 24) + '" r="3.4" fill="' + hcol + '"/>' + T(x + 30, y + 52 + i * 24, a, { size: 11, anchor: "start", fill: "#2a3a4e" }); });
+    return g;
+  }
+  ART.applications = function () {
+    var w = 740, h = 300, g = '<rect width="' + w + '" height="' + h + '" fill="#f2f6fb"/>';
+    g += appPanel(20, 22, 340, 122, "EO", "#e07a1f", ["Household detergent", "Home & personal care"]);
+    g += appPanel(380, 22, 340, 122, "MEG", "#6a3fa0", ["Polyester fibre", "Beverage bottle", "Film"]);
+    g += appPanel(20, 158, 340, 122, "DEG", "#c0453c", ["Unsaturated polyester resin", "Automotive components"]);
+    g += appPanel(380, 158, 340, 122, "TEG", "#e07a1f", ["Natural-gas dehydration", "Paint & coating"]);
+    return wrapA(g, w, h, "EO / EG product applications");
+  };
+
   // ---- scene: Shell OMEGA route ----
   ART.omega = function () {
     var w = 660, h = 300, g = bp(w, h);
@@ -1062,6 +1164,9 @@
     eorecovery:   { kind: "illustration", label: ILLUS_LABEL, caption: "EO is absorbed into water, stripped, and purified by distillation; scrubbed recycle gas returns to the reactor loop." },
     manifold:     { kind: "illustration", label: ILLUS_LABEL, caption: "One purified-EO stream is split at a distribution header to the glycol unit and the HPEO derivative units." },
     glycol:       { kind: "illustration", label: ILLUS_LABEL, caption: "The EG branch: EO earmarked for glycol is routed to the OMEGA unit and converted to mono-ethylene glycol (MEG)." },
+    glycoltrain:  { kind: "illustration", label: ILLUS_LABEL, caption: "EO + water react in the glycol reactor; evaporators and a drying column concentrate the glycol, then MEG/DEG/TEG columns separate the products (with heavier PEG bottoms)." },
+    valuechain:   { kind: "illustration", label: ILLUS_LABEL, caption: "The EO business value chain: olefins → EO → the EG glycols (MEG/DEG/TEG) and the EOP derivatives (ethanolamines, ethoxylates, polyols), with CO₂ recovered as a by-product." },
+    applications: { kind: "illustration", label: ILLUS_LABEL, caption: "Where the products go: EO into detergents and personal care; MEG into bottles, fibre and film; DEG into resins and automotive; TEG into gas drying and paints." },
     omega:        { kind: "illustration", label: ILLUS_LABEL, caption: "The OMEGA route first makes ethylene carbonate from EO + CO₂, then hydrolyses it to MEG, recycling the CO₂." },
     amines:       { kind: "illustration", label: ILLUS_LABEL, caption: "EO reacts with ammonia; the EO:NH₃ ratio sets the MEA/DEA/TEA split, which is then separated by distillation." },
     ethoxylation: { kind: "illustration", label: ILLUS_LABEL, caption: "EO is added in a controlled way onto a fatty alcohol / initiator, growing an amphiphilic ethoxylate chain." },

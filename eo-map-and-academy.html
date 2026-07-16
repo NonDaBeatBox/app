@@ -1882,6 +1882,108 @@ body.view-learn .learn-view { display: block; }
     return wrapA(g, w, h, "Conventional glycol hydration and separation");
   };
 
+  function glycolPill(x, y, txt) {
+    var wp = txt.length * 7 + 14;
+    return '<g><rect x="' + x + '" y="' + (y - 10) + '" width="' + wp + '" height="20" rx="6" fill="#eafaf2" stroke="#15a367"/>' +
+      T(x + wp / 2, y + 4, txt, { size: 11, weight: 800, fill: "#0f8f5e" }) + '</g>';
+  }
+
+  // ---- scene: MEG/DEG/TEG glycol distillation train (GC EO/EG model, slide 1) ----
+  ART.glycoltrain = function () {
+    var w = 720, h = 300, g = bp(w, h);
+    var TE = "#17b0a4", TED = "#0e9488", BL = "#2ea3dd", BLD = "#1f7fb0", INK = "#46566a";
+    // feeds into glycol reactor
+    g += pipe("M16 116 L60 116", TE, 4) + T(14, 112, "EO", { size: 11, anchor: "end", fill: TE }) + T(14, 126, "10 %wt", { size: 8.5, anchor: "end", fill: INK });
+    g += pipe("M16 176 L60 176", BL, 4) + T(14, 172, "H₂O", { size: 10, anchor: "end", fill: BLD }) + T(14, 186, "90 %wt", { size: 8.5, anchor: "end", fill: INK });
+    // glycol reactor
+    g += tank(60, 104, 62, 112, "Glycol reactor", 0.5);
+    // → evaporators
+    g += pipe("M122 150 L158 150", TE, 4) + T(140, 142, "EG 14%", { size: 8.5, fill: TED });
+    g += drum(158, 116, 82, 30, "") + drum(158, 156, 82, 30, "Evaporators");
+    g += '<path d="M199 116 Q199 96 226 96" fill="none" stroke="' + BL + '" stroke-width="2.4" stroke-dasharray="6 5"/>' + T(230, 100, "H₂O off", { size: 8, anchor: "start", fill: BLD });
+    // → drying column
+    g += pipe("M240 150 L276 150", TE, 4) + T(258, 142, "EG 85%", { size: 8.5, fill: TED });
+    g += column(276, 72, 34, 158, 5, "Drying col");
+    // EG 100% up & over to the column ladder
+    g += pipe("M293 72 L293 54 L372 54 L372 96", TE, 3.4) + T(333, 48, "EG 100%", { size: 8.5, fill: TED });
+    // MEG / DEG / TEG distillation ladder
+    g += column(360, 96, 30, 116, 5, "");
+    g += T(375, 226, "MEG col", { size: 8.5, fill: INK });
+    g += pipe("M390 108 L432 108", TE, 3) + glycolPill(434, 108, "MEG");
+    g += pipe("M375 212 L375 234 L470 234 L470 120", TE, 2.6);
+    g += column(458, 120, 30, 108, 4, "");
+    g += T(473, 244, "DEG col", { size: 8.5, fill: INK });
+    g += pipe("M488 132 L530 132", TE, 3) + glycolPill(532, 132, "DEG");
+    g += pipe("M473 228 L473 250 L568 250 L568 144", TE, 2.6);
+    g += column(556, 144, 30, 100, 4, "");
+    g += T(571, 260, "TEG col", { size: 8.5, fill: INK });
+    g += pipe("M586 156 L628 156", TE, 3) + glycolPill(630, 156, "TEG");
+    g += pipe("M571 244 L571 266 L648 266", TE, 2.6) + T(652, 270, "PEG", { size: 9, anchor: "start", fill: TED });
+    return wrapA(g, w, h, "MEG / DEG / TEG glycol distillation train");
+  };
+
+  /* block-diagram helpers */
+  function vcBox(x, y, bw, bh, txt, fill, stroke, fs) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + bh + '" rx="8" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>' +
+      T(x + bw / 2, y + bh / 2 + 4, txt, { size: fs || 11, weight: 800, fill: "#ffffff" });
+  }
+  function arrR(x1, y, x2, col, lab) {
+    return '<path d="M' + x1 + ' ' + y + ' L' + (x2 - 9) + ' ' + y + '" stroke="' + col + '" stroke-width="3.4" fill="none"/>' +
+      '<path d="M' + (x2 - 10) + ' ' + (y - 6) + ' L' + x2 + ' ' + y + ' L' + (x2 - 10) + ' ' + (y + 6) + ' Z" fill="' + col + '"/>' +
+      (lab ? T((x1 + x2) / 2, y - 8, lab, { size: 9.5, weight: 800, fill: col }) : "");
+  }
+  function arrD(x, y1, y2, col, lab) {
+    return '<path d="M' + x + ' ' + y1 + ' L' + x + ' ' + (y2 - 9) + '" stroke="' + col + '" stroke-width="3.4" fill="none"/>' +
+      '<path d="M' + (x - 6) + ' ' + (y2 - 10) + ' L' + x + ' ' + y2 + ' L' + (x + 6) + ' ' + (y2 - 10) + ' Z" fill="' + col + '"/>' +
+      (lab ? T(x + 8, (y1 + y2) / 2, lab, { size: 9, weight: 800, anchor: "start", fill: col }) : "");
+  }
+
+  // ---- scene: EOB-BU value chain (GC overview, slide 3) ----
+  ART.valuechain = function () {
+    var w = 760, h = 340, g = '<rect width="' + w + '" height="' + h + '" fill="#f2f6fb"/>' + bp(w, h);
+    var NAVY = "#16406e", NS = "#0e2c50", OR = "#dd8a2e", ORS = "#a5641a", PU = "#7c6fd0", PUS = "#5a4da8", GR = "#17a2a0", GRS = "#0e716f", INK = "#46566a";
+    // top lane — olefins → EO → EG → glycols
+    g += vcBox(20, 40, 88, 46, "OLEFINS", NAVY, NS);
+    g += arrR(110, 63, 156, NAVY, "Ethylene");
+    g += vcBox(158, 40, 100, 46, "EO Section", OR, ORS);
+    g += arrR(260, 63, 306, OR, "EO");
+    g += vcBox(308, 40, 100, 46, "EG Section", OR, ORS);
+    g += arrR(410, 63, 448, "#15a367", "");
+    g += glycolPill(450, 54, "MEG") + glycolPill(516, 54, "DEG") + glycolPill(582, 54, "TEG");
+    g += T(516, 92, "Ethylene glycols", { size: 9, fill: INK });
+    // mid lane — EO → purification → EOP → derivatives
+    g += arrD(208, 86, 150, OR, "EO");
+    g += vcBox(150, 150, 140, 46, "EO Purification", NAVY, NS, 10.5);
+    g += arrR(292, 173, 336, PU, "EOP");
+    g += vcBox(340, 126, 124, 34, "EA Plant", PU, PUS, 10) + T(470, 143, "MEA · DEA · TEA", { size: 8.5, anchor: "start", fill: INK });
+    g += vcBox(340, 166, 124, 34, "Ethoxylate (TEX)", PU, PUS, 9) + T(470, 183, "surfactants", { size: 8.5, anchor: "start", fill: INK });
+    g += vcBox(340, 206, 124, 34, "Polyether polyols", PU, PUS, 9) + T(470, 223, "polyurethane", { size: 8.5, anchor: "start", fill: INK });
+    g += '<path d="M336 173 L336 143 L340 143 M336 173 L340 173 M336 173 L336 223 L340 223" stroke="' + PU + '" stroke-width="2.2" fill="none"/>';
+    // bottom lane — CO2 by-product
+    g += arrD(220, 196, 262, GR, "");
+    g += T(150, 262, "CO₂ by-product", { size: 9, weight: 700, anchor: "start", fill: GRS });
+    g += vcBox(150, 270, 96, 32, "Liquid CO₂", GR, GRS, 9.5);
+    g += vcBox(256, 270, 84, 32, "Gas CO₂", GR, GRS, 9.5);
+    return wrapA(g, w, h, "Ethylene oxide business value chain");
+  };
+
+  // ---- scene: EO / EG product applications (slide 2) ----
+  function appPanel(x, y, pw, ph, name, hcol, apps) {
+    var g = '<rect x="' + x + '" y="' + y + '" width="' + pw + '" height="' + ph + '" rx="9" fill="#ffffff" stroke="#d3dbe6" stroke-width="1.4"/>';
+    g += '<path d="M' + (x + 9) + ' ' + y + ' L' + (x + pw - 9) + ' ' + y + ' q9 0 9 9 L' + (x + pw) + ' ' + (y + 26) + ' L' + x + ' ' + (y + 26) + ' L' + x + ' ' + (y + 9) + ' q0 -9 9 -9 Z" fill="' + hcol + '"/>';
+    g += T(x + 14, y + 18, name, { size: 12.5, weight: 800, anchor: "start", fill: "#ffffff" });
+    apps.forEach(function (a, i) { g += '<circle cx="' + (x + 18) + '" cy="' + (y + 48 + i * 24) + '" r="3.4" fill="' + hcol + '"/>' + T(x + 30, y + 52 + i * 24, a, { size: 11, anchor: "start", fill: "#2a3a4e" }); });
+    return g;
+  }
+  ART.applications = function () {
+    var w = 740, h = 300, g = '<rect width="' + w + '" height="' + h + '" fill="#f2f6fb"/>';
+    g += appPanel(20, 22, 340, 122, "EO", "#e07a1f", ["Household detergent", "Home & personal care"]);
+    g += appPanel(380, 22, 340, 122, "MEG", "#6a3fa0", ["Polyester fibre", "Beverage bottle", "Film"]);
+    g += appPanel(20, 158, 340, 122, "DEG", "#c0453c", ["Unsaturated polyester resin", "Automotive components"]);
+    g += appPanel(380, 158, 340, 122, "TEG", "#e07a1f", ["Natural-gas dehydration", "Paint & coating"]);
+    return wrapA(g, w, h, "EO / EG product applications");
+  };
+
   // ---- scene: Shell OMEGA route ----
   ART.omega = function () {
     var w = 660, h = 300, g = bp(w, h);
@@ -2293,6 +2395,9 @@ body.view-learn .learn-view { display: block; }
     eorecovery:   { kind: "illustration", label: ILLUS_LABEL, caption: "EO is absorbed into water, stripped, and purified by distillation; scrubbed recycle gas returns to the reactor loop." },
     manifold:     { kind: "illustration", label: ILLUS_LABEL, caption: "One purified-EO stream is split at a distribution header to the glycol unit and the HPEO derivative units." },
     glycol:       { kind: "illustration", label: ILLUS_LABEL, caption: "The EG branch: EO earmarked for glycol is routed to the OMEGA unit and converted to mono-ethylene glycol (MEG)." },
+    glycoltrain:  { kind: "illustration", label: ILLUS_LABEL, caption: "EO + water react in the glycol reactor; evaporators and a drying column concentrate the glycol, then MEG/DEG/TEG columns separate the products (with heavier PEG bottoms)." },
+    valuechain:   { kind: "illustration", label: ILLUS_LABEL, caption: "The EO business value chain: olefins → EO → the EG glycols (MEG/DEG/TEG) and the EOP derivatives (ethanolamines, ethoxylates, polyols), with CO₂ recovered as a by-product." },
+    applications: { kind: "illustration", label: ILLUS_LABEL, caption: "Where the products go: EO into detergents and personal care; MEG into bottles, fibre and film; DEG into resins and automotive; TEG into gas drying and paints." },
     omega:        { kind: "illustration", label: ILLUS_LABEL, caption: "The OMEGA route first makes ethylene carbonate from EO + CO₂, then hydrolyses it to MEG, recycling the CO₂." },
     amines:       { kind: "illustration", label: ILLUS_LABEL, caption: "EO reacts with ammonia; the EO:NH₃ ratio sets the MEA/DEA/TEA split, which is then separated by distillation." },
     ethoxylation: { kind: "illustration", label: ILLUS_LABEL, caption: "EO is added in a controlled way onto a fatty alcohol / initiator, growing an amphiphilic ethoxylate chain." },
@@ -2618,19 +2723,19 @@ body.view-learn .learn-view { display: block; }
       }
     },
     {
-      id: "eg", stage: "7", cat: "distribution", glyph: "glycol", art: "glycol",
+      id: "eg", stage: "7", cat: "distribution", glyph: "glycol", art: "glycoltrain",
       title: "EG — ethylene glycol", sub: "Ethylene glycol products",
       x: 2400, y: 232, w: 230, h: 120,
       brief: {
-        purpose: "Route the rest of the purified EO to EG — ethylene glycol — made in the Shell OMEGA unit.",
-        para: "The other half of the split becomes EG: ethylene glycol. The EO earmarked for glycol is sent to the Shell OMEGA unit, where it reacts with CO₂ and water to give mono-ethylene glycol (MEG) — the single biggest EO derivative, used for PET bottles, polyester fibre, film and coolant.",
+        purpose: "Route the rest of the purified EO to EG — ethylene glycol — made by reacting EO with water.",
+        para: "The other half of the split becomes EG: ethylene glycol. The EO earmarked for glycol reacts with water in the glycol reactor, and the product is separated by distillation into MEG, DEG and TEG — MEG being the single biggest EO derivative, used for PET bottles, polyester fibre, film and coolant.",
         inputs: [{ label: "Purified EO", type: "product" }],
-        outputs: [{ label: "EO → OMEGA glycol unit", type: "product" }, { label: "→ MEG (EG) product", type: "product" }],
-        equipment: ["Glycol-unit feed line", "Branch valve"],
+        outputs: [{ label: "EO → glycol reactor", type: "product" }, { label: "→ MEG · DEG · TEG", type: "product" }],
+        equipment: ["Glycol reactor feed line", "Branch valve"],
         conditions: [
           { k: "EG", v: "EO → ethylene glycol" },
-          { k: "Route", v: "Shell OMEGA" },
-          { k: "Main product", v: "MEG" }
+          { k: "Route", v: "EO + water (hydration)" },
+          { k: "Products", v: "MEG · DEG · TEG" }
         ],
         condNote: PUB,
         molecules: ["eo", "meg"],
@@ -2641,40 +2746,40 @@ body.view-learn .learn-view { display: block; }
 
     /* ===== STAGE 8 — EG products: MEG · DEG · TEG (own boxes) ===== */
     {
-      id: "meg", stage: "8", cat: "product", glyph: "omega", art: "omega",
+      id: "meg", stage: "8", cat: "product", glyph: "omega", art: "glycoltrain",
       title: "MEG", sub: "Bottles · fibre · film",
       x: 2790, y: 150, w: 214, h: 86,
       brief: {
-        purpose: "Mono-ethylene glycol (MEG) — the single biggest ethylene-oxide product, made from the EG stream via the Shell OMEGA route.",
-        para: "OMEGA (Only MEG Advantaged) makes MEG in two steps instead of hydrating EO with a big excess of water. EO first reacts with CO₂ in the ethylene-carbonate (EC) reactor to form ethylene carbonate; that carbonate is then hydrolysed with water to give MEG, releasing the CO₂ again. The freed CO₂ is captured, compressed and recycled — the amber loop. The carbonate step is so selective that OMEGA makes almost pure MEG with very little DEG/TEG, using far less water and energy than conventional hydration.",
-        para2: "The OMEGA 'machine', step by step: EC reactor (EO + CO₂ → carbonate) → hydrolysis reactor (carbonate + water → MEG + CO₂) → CO₂ separator → CO₂ recycle compressor → MEG purification.",
-        inputs: [{ label: "EO (from EG split)", type: "product" }, { label: "CO₂ (recycled)", type: "recycle" }, { label: "Water", type: "water" }],
-        outputs: [{ label: "MEG product → storage", type: "product" }, { label: "CO₂ recycle", type: "recycle" }],
-        equipment: ["Ethylene-carbonate (EC) reactor", "Hydrolysis reactor", "CO₂ separator", "CO₂ recycle compressor", "MEG purification"],
+        purpose: "Mono-ethylene glycol (MEG) — the biggest EO product, made by reacting EO with water.",
+        para: "EO reacts with water in the glycol reactor to make ethylene glycol. The feed is EO-lean (about 10 %wt EO, 90 %wt water), so the reactor product is only ~14 %wt glycol. Multi-effect evaporators and a drying column drive the water off to reach ~100 % glycol, then a train of distillation columns separates MEG — the main product — from the heavier DEG, TEG and PEG.",
+        inputs: [{ label: "EO (from EG split)", type: "product" }, { label: "Water", type: "water" }],
+        outputs: [{ label: "MEG product → storage", type: "product" }, { label: "DEG / TEG / PEG co-products", type: "product" }],
+        equipment: ["Glycol reactor", "Multi-effect evaporators", "Drying column", "MEG column", "DEG column", "TEG column"],
         reactions: [
-          { kind: "", label: "Step 1 — carbonate formation", eq: "EO + CO₂  →  Ethylene carbonate", mols: ["eo", "co2", "ethylene_carbonate"] },
-          { kind: "", label: "Step 2 — hydrolysis to MEG", eq: "Ethylene carbonate + H₂O  →  MEG + CO₂", mols: ["ethylene_carbonate", "water", "meg", "co2"] }
+          { kind: "", label: "Main — hydration", eq: "EO + H₂O  →  MEG", mols: ["eo", "water", "meg"] },
+          { kind: "", label: "Heavier glycols", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] }
         ],
         conditions: [
-          { k: "Route", v: "Shell OMEGA (carbonate)" },
-          { k: "CO₂", v: "Recycled in a loop" },
-          { k: "Selectivity", v: "Very high to MEG" }
+          { k: "Route", v: "EO + water (hydration)" },
+          { k: "Reactor product", v: "≈ 14 %wt glycol" },
+          { k: "Concentrate", v: "Evaporators + drying" },
+          { k: "Separate", v: "MEG / DEG / TEG columns" }
         ],
         condNote: PUB,
-        molecules: ["eo", "co2", "ethylene_carbonate", "water", "meg"],
+        molecules: ["eo", "water", "meg"],
         products: [{ name: "MEG", mol: "meg", apps: ["petbottle", "fiber", "film", "coolant", "antifreeze"] }],
         applications: ["petbottle", "fiber", "antifreeze", "film", "coolant"],
-        sources: SRC_COMMON.concat(["Public descriptions of the Shell OMEGA process"]),
-        disclaimers: ["Shell OMEGA technology is described from public sources only.", "Figures are public illustrative values."]
+        sources: SRC_COMMON,
+        disclaimers: ["Glycol process shown from public sources only.", "Figures are public illustrative values."]
       }
     },
     {
-      id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
+      id: "deg", stage: "8", cat: "product", glyph: "glycol", art: "glycoltrain",
       title: "DEG", sub: "Resins · automotive",
       x: 2790, y: 246, w: 214, h: 86,
       brief: {
         purpose: "Di-ethylene glycol (DEG) — a glycol co-product, one EO unit longer than MEG.",
-        para: "DEG forms when a glycol molecule reacts with a further EO. The OMEGA route makes very little DEG; conventional water hydration makes more. DEG goes into unsaturated polyester resins, plasticisers and polyurethanes, and is used as a humectant and solvent.",
+        para: "DEG forms when a glycol molecule picks up a further EO in the glycol reactor, and is separated in its own column. DEG goes into unsaturated polyester resins, plasticisers and polyurethanes, and is used as a humectant and solvent.",
         inputs: [{ label: "EO (from EG split)", type: "product" }],
         outputs: [{ label: "DEG product → storage", type: "product" }],
         reactions: [{ kind: "", label: "Chain growth", eq: "MEG + EO  →  DEG", mols: ["meg", "eo", "deg"] }],
@@ -2688,7 +2793,7 @@ body.view-learn .learn-view { display: block; }
       }
     },
     {
-      id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycol",
+      id: "teg", stage: "8", cat: "product", glyph: "glycol", art: "glycoltrain",
       title: "TEG", sub: "Gas drying · paints",
       x: 2790, y: 342, w: 214, h: 86,
       brief: {
@@ -3021,9 +3126,9 @@ body.view-learn .learn-view { display: block; }
     { q: "Ethylene oxide is made by reacting ethylene with…", opts: ["Hydrogen", "Oxygen over a silver catalyst", "Chlorine", "Nitrogen"], a: 1, why: "EO is the partial oxidation of ethylene over a silver catalyst: C₂H₄ + ½O₂ → C₂H₄O." },
     { q: "The main UNWANTED reaction in the EO reactor gives…", opts: ["More ethylene", "Carbon dioxide and water", "Pure oxygen", "Methanol"], a: 1, why: "Complete combustion, C₂H₄ + 3O₂ → 2CO₂ + 2H₂O, competes with the desired partial oxidation." },
     { q: "Which catalyst is used to make EO?", opts: ["Platinum", "Silver-based", "Nickel", "Iron"], a: 1, why: "EO is made over a silver-based catalyst, tuned with a trace chloride moderator." },
-    { q: "The Shell OMEGA route makes EG (MEG) via an intermediate called…", opts: ["Ethylene carbonate", "Acetylene", "Methanol", "Vinyl chloride"], a: 0, why: "OMEGA first reacts EO with CO₂ to ethylene carbonate, then hydrolyses it to MEG." },
-    { q: "In the OMEGA route, CO₂ is…", opts: ["Vented", "Used and recycled in a loop", "Turned into fuel", "Not involved"], a: 1, why: "CO₂ makes the carbonate and is released again on hydrolysis, so it is captured and recycled." },
-    { q: "Purified EO splits into two destinations —", opts: ["EOP and EG", "Water and steam", "Methane and hydrogen", "MEA and DEA"], a: 0, why: "EOP (EO product for derivatives) and EG (ethylene glycol via OMEGA)." },
+    { q: "EG (glycol) is made by reacting EO with…", opts: ["Water", "CO₂", "Ammonia", "Hydrogen"], a: 0, why: "EO reacts with water in the glycol reactor; evaporation and distillation then give MEG, DEG and TEG." },
+    { q: "The three ethylene glycols, smallest to largest, are…", opts: ["MEG, DEG, TEG", "TEG, DEG, MEG", "DEG, MEG, TEG", "MEG, TEG, DEG"], a: 0, why: "Mono-, di- and tri-ethylene glycol — each one EO unit longer than the last." },
+    { q: "Purified EO splits into two destinations —", opts: ["EOP and EG", "Water and steam", "Methane and hydrogen", "MEA and DEA"], a: 0, why: "EOP (EO product for derivatives) and EG (ethylene glycol)." },
     { q: "Ethanolamines (MEA/DEA/TEA) come from EO reacting with…", opts: ["Ammonia", "Water", "Chlorine", "Methane"], a: 0, why: "EO adds hydroxyethyl arms onto ammonia; the EO:NH₃ ratio sets the MEA/DEA/TEA split." },
     { q: "Because EO is hazardous, it is normally moved by…", opts: ["Road drum", "Dedicated pipeline", "Flexibag", "Air freight"], a: 1, why: "EO is shipped by dedicated pipeline, not the general modes used for the liquid glycols." },
     { q: "The biggest end use of MEG (EG) is…", opts: ["Antifreeze only", "PET / polyester", "Explosives", "Fertiliser"], a: 1, why: "Most MEG goes into PET resin and polyester fibre; coolant/antifreeze is a smaller use." },
@@ -4143,7 +4248,7 @@ body.view-learn .learn-view { display: block; }
     { id: "crack", label: "Feed & cracking", kind: "nodes", nodes: ["feedstocks", "furnace"] },
     { id: "reactor", label: "EO reactor", kind: "nodes", nodes: ["eoreactor"], lab: true },
     { id: "split", label: "The EO split", kind: "nodes", nodes: ["eop", "eg"] },
-    { id: "glycol", label: "Glycols · OMEGA", kind: "nodes", nodes: ["meg", "deg", "teg"] },
+    { id: "glycol", label: "Glycols", kind: "nodes", nodes: ["meg", "deg", "teg"] },
     { id: "deriv", label: "Derivatives", kind: "nodes", nodes: ["mea", "dea", "tea", "ethoxylation", "polyols"] },
     { id: "delivery", label: "Delivery", kind: "nodes", nodes: ["storage"] },
     { id: "trade", label: "Trade", kind: "nodes", nodes: ["trade"] },
@@ -4207,14 +4312,17 @@ body.view-learn .learn-view { display: block; }
     }
     return '<div class="lesson-head"><h2>The ethylene-oxide value chain</h2>' +
       '<div class="ph-sub">One molecule, a long journey — from a gas feed to the products in your day, and finally to a price on a trading screen.</div></div>' +
-      '<div class="fig"><span class="fig-tag repr">Representative industrial illustration — not a specific GC, PTTGC or Shell facility</span>' +
-      '<div class="fig-media">' + EO.art("complex") + '</div>' +
-      '<div class="fig-caption">A modern petrochemical complex groups crackers, separation trains and derivative units on one integrated site.</div></div>' +
+      '<div class="fig"><span class="fig-tag repr">Business value chain — illustrative, not a specific GC/PTTGC facility</span>' +
+      '<div class="fig-media">' + EO.art("valuechain") + '</div>' +
+      '<div class="fig-caption">Olefins → EO → the EG glycols (MEG · DEG · TEG) and the EOP derivatives (ethanolamines, ethoxylates, polyols), with CO₂ recovered as a by-product.</div></div>' +
       '<div class="learn-cards">' +
         card("Make it", "var(--s-hydrocarbon)", "Crack a hydrocarbon feed to ethylene in the <b>olefins</b> unit, then partially oxidise it over silver to ethylene oxide.") +
-        card("Use it", "var(--s-product)", "EO splits into <b>EOP</b> (product) and <b>EG</b> (glycol via OMEGA), becoming the ethylene glycols <b>MEG · DEG · TEG</b>, the ethanolamines <b>MEA · DEA · TEA</b> and ethoxylate surfactants — PET bottles, polyester fibre, coolant, gas treating and detergents.") +
+        card("Use it", "var(--s-product)", "EO splits into <b>EOP</b> (product) and <b>EG</b> (glycol), becoming the ethylene glycols <b>MEG · DEG · TEG</b>, the ethanolamines <b>MEA · DEA · TEA</b> and ethoxylate surfactants — bottles, polyester fibre, resins, coatings and detergents.") +
         card("Sell it", "var(--s-recycle)", "The finished products are commodities, priced against global benchmarks and shipped under standard trade terms.") +
       '</div>' +
+      '<div class="fig"><span class="fig-tag repr">Product applications — illustrative</span>' +
+      '<div class="fig-media">' + EO.art("applications") + '</div>' +
+      '<div class="fig-caption">Where the products go — EO into detergents &amp; personal care; MEG into bottles, fibre and film; DEG into resins and automotive; TEG into gas drying and paints.</div></div>' +
       '<p class="p-para">Read each stage with the tabs above, or open the <b>Map</b> to explore it. Finish with the <b>Quiz</b>. All figures are public illustrative values — not plant or commercial data.</p>';
   }
 
